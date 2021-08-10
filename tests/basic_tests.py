@@ -70,6 +70,20 @@ class BasicTestCase(unittest.TestCase):
         self.assertEqual("Missing required top level file 'README'", report.messages[0]['message'])
         self.assertEqual("Missing required top level file 'CHANGES'", report.messages[1]['message'])
 
+    def test_parse_entities_in_filenames(self):
+        ds005 = dataset.Dataset(DS005_DIR)
+        # get first artifact in func datatype of first subject/session:
+        # sub-16_task-mixedgamblestask_run-01_bold.nii.gz
+        artifact = ds005.get_subjects()[0].get_sessions()[0].get_datatypes()[-1].get_artifacts()[0]
+        self.assertTrue(isinstance(artifact, dataset.Artifact))
+        entities = artifact.get_entities()
+        self.assertTrue(isinstance(entities, dict))
+        self.assertEqual("01", entities['sub'])
+        self.assertEqual("mixedgamblestask", entities['task'])
+        self.assertEqual("01", entities['run'])
+        self.assertEqual("bold", entities['suffix'])
+        self.assertEqual(".nii.gz", entities['extension'])
+
 
 if __name__ == '__main__':
     unittest.main()

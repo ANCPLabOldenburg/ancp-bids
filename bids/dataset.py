@@ -1,5 +1,9 @@
-from .files import File, Folder
+from collections import OrderedDict
 
+from .files import File, Folder
+import regex
+
+ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
 
 class Dataset:
     def __init__(self, dir_path):
@@ -53,7 +57,15 @@ class Artifact:
         self.name = name if name is not None else self.file.name()
 
     def get_entities(self):
-        pass
+        entities = OrderedDict()
+        match = regex.match(ENTITIES_PATTERN, self.name)
+        if match:
+            for pair in zip(match.captures(2), match.captures(3)):
+                entities[pair[0]] = pair[1]
+            entities['suffix'] = match[4]
+            entities['extension'] = match[5]
+        return entities
+
 
 
 class Datatype:
