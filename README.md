@@ -6,4 +6,8 @@ The 'ancp-bids' is a Python package which allows to:
 
 BIDS datasets using the BIDS Schema as its foundation.
 
-... further details to follow soon ...
+# Current state and further reading
+We are in a proposal/experimental stage and design decisions may change frequently.
+You can follow the progress of the proposal in the following slides:
+
+https://docs.google.com/presentation/d/12x3cQGRD9-T1bkpK--t0e_OdgMb3UuO4jn5fGpj0a4w
