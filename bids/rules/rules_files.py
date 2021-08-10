@@ -23,3 +23,22 @@ class TopLevelFilesValidationRule(vd.ValidationRule):
 class AssociatedDataValidationRule(vd.ValidationRule):
     def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
         pass
+
+
+class DatatypesValidationRule(vd.ValidationRule):
+    def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
+        for subject in dataset.get_subjects():
+            for session in subject.get_sessions():
+                for datatype in session.get_datatypes():
+                    if datatype.name not in schema.datatypes:
+                        dt_path = "%s/%s/%s" % (subject.name, session.name, datatype.name)
+                        report.error("Unsupported datatype folder '%s'" % dt_path)
+
+
+class EntitiesValidationRule(vd.ValidationRule):
+    def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
+        pass
+
+class SuffixesValidationRule(vd.ValidationRule):
+    def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
+        pass

@@ -1,5 +1,6 @@
 import os
 import logging
+import fnmatch
 
 logger = logging.getLogger(__file__)
 
@@ -66,7 +67,7 @@ class Folder:
     def name(self):
         return os.path.basename(self.dir_path)
 
-    def get_files(self, force_refresh: bool = False, include_folders: bool = True):
+    def get_files(self, force_refresh: bool = False, include_folders: bool = True, fnmatch_pattern=None):
         if self.files is None or force_refresh:
             self.files = os.listdir(self.dir_path)
             self.files = list(map(lambda file: os.path.normpath(self.dir_path + "/" + file), self.files))
@@ -75,6 +76,8 @@ class Folder:
         files = self.files
         if not include_folders:
             files = list(filter(lambda file: not isinstance(file, Folder), files))
+        if fnmatch_pattern:
+            files = list(filter(lambda file: fnmatch.fnmatch(file.name(), fnmatch_pattern), files))
         return files
 
     def load_file(self, relative_name):

@@ -8,10 +8,16 @@ logger = logging.getLogger(__file__)
 
 
 class Validator:
+    def __init__(self):
+        self.ruleAcceptor = None
+
     def validate(self, schema: Schema, dataset: Dataset):
         validation_rules = rules.collect_rules()
         report = ValidationReport()
         for rule in validation_rules:
+            # if rule is disabled, skip it
+            if self.ruleAcceptor is not None and not self.ruleAcceptor(rule):
+                continue
             try:
                 instance = rule()
                 instance.validate(schema, dataset, report)
@@ -21,7 +27,8 @@ class Validator:
 
 
 class ValidationReport:
-    messages = []
+    def __init__(self):
+        self.messages = []
 
     def error(self, message):
         self.messages.append({

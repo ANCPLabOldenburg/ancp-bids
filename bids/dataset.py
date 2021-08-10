@@ -55,16 +55,18 @@ class Artifact:
     def __init__(self, file: File, name: str = None):
         self.file = file
         self.name = name if name is not None else self.file.name()
+        self.entities = None
 
-    def get_entities(self):
-        entities = OrderedDict()
-        match = regex.match(ENTITIES_PATTERN, self.name)
-        if match:
-            for pair in zip(match.captures(2), match.captures(3)):
-                entities[pair[0]] = pair[1]
-            entities['suffix'] = match[4]
-            entities['extension'] = match[5]
-        return entities
+    def get_entities(self, force_refresh=False):
+        if self.entities is None or force_refresh:
+            self.entities = OrderedDict()
+            match = regex.match(ENTITIES_PATTERN, self.name)
+            if match:
+                for pair in zip(match.captures(2), match.captures(3)):
+                    self.entities[pair[0]] = pair[1]
+                self.entities['suffix'] = match[4]
+                self.entities['extension'] = match[5]
+        return self.entities
 
 
 

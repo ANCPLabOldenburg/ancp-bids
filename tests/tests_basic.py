@@ -1,17 +1,10 @@
-import unittest
-from bids import schema, dataset, validator
-import os
 import pandas
 
-BIDS_SCHEMA_DIR = os.path.expanduser("~/git/bids-specification/src/schema/")
-TEST_FOLDER = os.path.dirname(__file__)
-RESOURCES_FOLDER = TEST_FOLDER + "/data"
-
-DS005_DIR = RESOURCES_FOLDER + "/ds005"
-DS005_CONFLICT_DIR = RESOURCES_FOLDER + "/ds005_conflict"
+from base_test_case import *
+from bids import dataset
 
 
-class BasicTestCase(unittest.TestCase):
+class BasicTestCase(BaseTestCase):
     def test_ds005_basic_structure(self):
         ds005 = dataset.Dataset(DS005_DIR)
         self.assertEqual("ds005", ds005.name)
@@ -56,24 +49,10 @@ class BasicTestCase(unittest.TestCase):
         self.assertListEqual(['participant_id', 'sex', 'age'], list(participants.columns))
         self.assertEqual(16, participants.shape[0])
 
-    def test_validation_top_level_files(self):
-        bids_schema = schema.Schema(BIDS_SCHEMA_DIR)
-        self.assertEqual("master", bids_schema.get_version())
-
-        ds005_conflict = dataset.Dataset(DS005_CONFLICT_DIR)
-
-        val = validator.Validator()
-        report = val.validate(bids_schema, ds005_conflict)
-        self.assertTrue(isinstance(report, validator.ValidationReport))
-
-        self.assertEqual(2, len(report.messages))
-        self.assertEqual("Missing required top level file 'README'", report.messages[0]['message'])
-        self.assertEqual("Missing required top level file 'CHANGES'", report.messages[1]['message'])
-
     def test_parse_entities_in_filenames(self):
         ds005 = dataset.Dataset(DS005_DIR)
         # get first artifact in func datatype of first subject/session:
-        # sub-16_task-mixedgamblestask_run-01_bold.nii.gz
+        # sub-16_task-mixedgamblesatask_run-01_bold.nii.gz
         artifact = ds005.get_subjects()[0].get_sessions()[0].get_datatypes()[-1].get_artifacts()[0]
         self.assertTrue(isinstance(artifact, dataset.Artifact))
         entities = artifact.get_entities()
