@@ -1,7 +1,7 @@
 import os
 import unittest
 
-BIDS_SCHEMA_DIR = os.path.expanduser("~/git/bids-specification/src/schema/")
+BIDS_SCHEMA_DIR = "../../bids-specification/src/schema/"
 TEST_FOLDER = os.path.dirname(__file__)
 RESOURCES_FOLDER = TEST_FOLDER + "/data"
 

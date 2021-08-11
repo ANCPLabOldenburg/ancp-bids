@@ -27,10 +27,13 @@ class ValidationTestCase(BaseTestCase):
         self.assertEqual("Unsupported datatype folder 'sub-01/ses-01/xyz'", report.messages[1]['message'])
 
     def test_validation_entities(self):
-        report = self.createSUT(DS005_CONFLICT_DIR, rules_files.EntitiesValidationRule)
+        report = self.createSUT(RESOURCES_FOLDER + "/ds005_entities_validation", rules_files.EntitiesValidationRule)
         self.assertEqual(2, len(report.messages))
-        self.assertEqual("Unsupported entity in artifact 'sub-01/ses-01/anat/'", report.messages[0]['message'])
-        self.assertEqual("Unsupported datatype folder 'sub-01/ses-01/xyz'", report.messages[1]['message'])
+        self.assertEqual("Artifact name does not match expected pattern 'abc.txt'",
+                         report.messages[0]['message'])
+        self.assertEqual("Invalid entity 'xyz' in artifact "
+                         "'sub-01_task-mixedgamblestask_run-03_xyz-001_events.tsv'",
+                         report.messages[1]['message'])
 
 
 if __name__ == '__main__':

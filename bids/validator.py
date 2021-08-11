@@ -23,6 +23,7 @@ class Validator:
                 instance.validate(schema, dataset, report)
             except Exception as e:
                 logger.error("Could not execute validation rule %s: %s" % (rule.__name__, e))
+                raise e
         return report
 
 
