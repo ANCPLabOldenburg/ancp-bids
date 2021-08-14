@@ -1,0 +1,88 @@
+---
+- name: First group
+  suffixes:
+    - meg
+  extensions:
+    - /  - name: corresponds to BTi/4D data
+    - .ds/
+    - .json
+    - .fif
+    - .sqd
+    - .con
+    - .raw
+    - .ave
+    - .mrk
+    - .kdf
+    - .mhd
+  entities:
+    subject: required
+    session: optional
+    task: required
+    acquisition: optional
+    run: optional
+    processing: optional
+    split: optional
+- name: Second group
+  suffixes:
+    - headshape
+  extensions:
+    - "*"
+  entities:
+    subject: required
+    session: optional
+    acquisition: optional
+- name: Third group
+  suffixes:
+    - markers
+  extensions:
+    - .sqd
+    - .mrk
+  entities:
+    subject: required
+    session: optional
+    task: optional
+    acquisition: optional
+    space: optional
+- name: Fourth
+  suffixes:
+    - coordsystem
+  extensions:
+    - .json
+  entities:
+    subject: required
+    session: optional
+    acquisition: optional
+- name: channels
+  suffixes:
+    - channels
+  extensions:
+    - .json
+    - .tsv
+  entities:
+    subject: required
+    session: optional
+    task: required
+    acquisition: optional
+    run: optional
+    processing: optional
+- name: events
+  suffixes:
+    - events
+  extensions:
+    - .json
+    - .tsv
+  entities:
+    subject: required
+    session: optional
+    task: required
+    acquisition: optional
+    run: optional
+- name: photo
+  suffixes:
+    - photo
+  extensions:
+    - .jpg
+  entities:
+    subject: required
+    session: optional
+    acquisition: optional

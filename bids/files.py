@@ -1,6 +1,6 @@
 import os
-import logging
 import fnmatch
+import logging
 
 logger = logging.getLogger(__file__)
 
@@ -38,49 +38,28 @@ FILE_READERS = {
 }
 
 
-class File:
-    def __init__(self, file_path: str):
-        self.file_path = file_path
-
-    def name(self):
-        return os.path.basename(self.file_path)
-
-    def load_contents(self):
-        reader = None
-        file_name = self.name()
-        parts = os.path.splitext(file_name)
-        if len(parts) > 1:
-            extension = parts[-1][1:]
-            if extension in FILE_READERS:
-                reader = FILE_READERS[extension]
-        if reader is None:
-            logger.debug("No reader found for file '%s', defaulting to 'txt' file reader" % file_name)
-            reader = FILE_READERS['txt']
-        return reader(self.file_path)
+def load_contents(file_path):
+    if not os.path.exists(file_path):
+        return None
+    reader = None
+    file_name = os.path.basename(file_path)
+    parts = os.path.splitext(file_name)
+    if len(parts) > 1:
+        extension = parts[-1][1:]
+        if extension in FILE_READERS:
+            reader = FILE_READERS[extension]
+    if reader is None:
+        logger.debug("No reader found for file '%s', defaulting to 'txt' file reader" % file_name)
+        reader = FILE_READERS['txt']
+    return reader(file_path)
 
 
-class Folder:
-    def __init__(self, dir_path: str):
-        self.dir_path = dir_path
-        self.files = None
-
-    def name(self):
-        return os.path.basename(self.dir_path)
-
-    def get_files(self, force_refresh: bool = False, include_folders: bool = True, fnmatch_pattern=None):
-        if self.files is None or force_refresh:
-            self.files = os.listdir(self.dir_path)
-            self.files = list(map(lambda file: os.path.normpath(self.dir_path + "/" + file), self.files))
-            self.files = sorted(self.files)
-            self.files = list(map(lambda file: File(file) if not os.path.isdir(file) else Folder(file), self.files))
-        files = self.files
-        if not include_folders:
-            files = list(filter(lambda file: not isinstance(file, Folder), files))
-        if fnmatch_pattern:
-            files = list(filter(lambda file: fnmatch.fnmatch(file.name(), fnmatch_pattern), files))
-        return files
-
-    def load_file(self, relative_name):
-        file_path = os.path.join(self.dir_path, relative_name)
-        file = File(file_path)
-        return file.load_contents()
+def get_files(dir_path: str, include_folders: bool = False, fnmatch_pattern=None):
+    files = os.listdir(dir_path)
+    files = list(map(lambda file: os.path.normpath(dir_path + "/" + file), files))
+    files = sorted(files)
+    if not include_folders:
+        files = list(filter(lambda file: not os.path.isdir(file), files))
+    if fnmatch_pattern:
+        files = list(filter(lambda file: fnmatch.fnmatch(os.path.basename(file), fnmatch_pattern), files))
+    return files

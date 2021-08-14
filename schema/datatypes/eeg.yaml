@@ -1,0 +1,73 @@
+---
+- name: eeg
+  suffixes:
+    - eeg
+  extensions:
+    - .json
+    - .edf
+    - .vhdr
+    - .vmrk
+    - .eeg
+    - .set
+    - .fdt
+    - .bdf
+  entities:
+    subject: required
+    session: optional
+    task: required
+    acquisition: optional
+    run: optional
+- name: channels
+  suffixes:
+    - channels
+  extensions:
+    - .json
+    - .tsv
+  entities:
+    subject: required
+    session: optional
+    task: required
+    acquisition: optional
+    run: optional
+- name: coordsystem
+  suffixes:
+    - coordsystem
+  extensions:
+    - .json
+  entities:
+    subject: required
+    session: optional
+    acquisition: optional
+    space: optional
+- name: electrodes
+  suffixes:
+    - electrodes
+  extensions:
+    - .json
+    - .tsv
+  entities:
+    subject: required
+    session: optional
+    acquisition: optional
+    space: optional
+- name: events
+  suffixes:
+    - events
+  extensions:
+    - .json
+    - .tsv
+  entities:
+    subject: required
+    session: optional
+    task: required
+    acquisition: optional
+    run: optional
+- name: photo
+  suffixes:
+    - photo
+  extensions:
+    - .jpg
+  entities:
+    subject: required
+    session: optional
+    acquisition: optional

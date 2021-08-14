@@ -1,11 +1,11 @@
 import itertools
 
-from bids import schema as sc, dataset as ds, validator as vd
+from bids import schema as sc, model , validator as vd
 
 
 class TopLevelFilesValidationRule(vd.ValidationRule):
     def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
-        top_level_files = schema.top_level_files.load_contents()
+        top_level_files = schema.top_level_files
         files = dataset.folder.get_files(include_folders=False)
         for key in top_level_files:
             file_schema = top_level_files[key]

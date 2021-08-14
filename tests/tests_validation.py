@@ -1,12 +1,12 @@
 from base_test_case import *
-from bids import schema, dataset, validator
+from bids import schema, validator
 from bids.rules import rules_files
 
 
 class ValidationTestCase(BaseTestCase):
     def createSUT(self, ds_dir, rule_class):
         bids_schema = schema.Schema(BIDS_SCHEMA_DIR)
-        test_ds = dataset.Dataset(ds_dir)
+        test_ds = utils.Dataset(ds_dir)
         val = validator.Validator()
         # only test this rule
         val.ruleAcceptor = lambda rule: rule == rule_class

@@ -1,0 +1,29 @@
+---
+- key: mri
+  name: Magnetic Resonance Imaging
+  datatypes:
+    - anat
+    - dwi
+    - fmap
+    - func
+    - perf
+- key: eeg
+  name: Electroencephalography
+  datatypes:
+    - eeg
+- key: ieeg
+  name: Intracranial Electroencephalography
+  datatypes:
+    - ieeg
+- key: meg
+  name: Magnetoencephalography
+  datatypes:
+    - meg
+- key: beh
+  name: Behavioral experiments
+  datatypes:
+    - beh
+- key: pet
+  name: Positron Emission Tomography
+  datatypes:
+    - pet
