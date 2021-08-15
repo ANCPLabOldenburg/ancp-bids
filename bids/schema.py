@@ -14,6 +14,10 @@ logger = logging.getLogger(__file__)
 SCHEMA_PATH = os.path.dirname(__file__) + '/../schema'
 ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
 
+NS = 'https://bids.neuroimaging.io/1.7.0'
+NS_PREFIX = 'bids'
+NS_MAP = {NS_PREFIX: NS}
+
 
 class Schema:
     def __init__(self):
@@ -30,6 +34,7 @@ class Schema:
 
     def load_dataset(self, base_dir):
         ds = model.Dataset()
+        ds.set_ns_prefix_(NS_PREFIX)
         ds._schema = self
         ds.set_name(os.path.basename(base_dir))
         ds.set_base(base_dir)
@@ -136,6 +141,7 @@ def _type_handler_File(parent, member):
         setattr(parent, name, file)
         parent.remove_file(name)
 
+
 def _type_handler_Artifact(parent, member):
     if not isinstance(parent, model.Folder):
         return
@@ -156,7 +162,6 @@ def _type_handler_Artifact(parent, member):
             artifact.add_entities(entity)
         artifact.set_suffix(match[4])
         artifact.set_extension(match[5])
-
 
 
 def _type_handler_Folder(parent, member):

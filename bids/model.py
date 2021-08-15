@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Fri Aug 13 16:11:49 2021 by generateDS.py version 2.39.2.
+# Generated Sun Aug 15 14:11:58 2021 by generateDS.py version 2.39.2.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
 #   ('-f', '')
+#   ('--export', 'write etree')
 #   ('--member-specs', 'dict')
 #   ('--always-export-default', '')
 #   ('-o', '../bids/model.py')
@@ -15,7 +16,7 @@
 #   ../schema/bids.xsd
 #
 # Command line:
-#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --member-specs="dict" --always-export-default -o "../bids/model.py" ../schema/bids.xsd
+#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="write etree" --member-specs="dict" --always-export-default -o "../bids/model.py" ../schema/bids.xsd
 #
 # Current working directory (os.getcwd()):
 #   tools
@@ -1080,6 +1081,22 @@ class File(GeneratedsSuper):
                 outfile.write(' xsi:type="%s"' % self.extensiontype_)
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='File', fromsubclass_=False, pretty_print=True):
         pass
+    def to_etree(self, parent_element=None, name_='File', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.extensiontype_ is not None:
+            element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
+        if self.name is not None:
+            element.set('name', self.gds_format_string(self.name))
+        if self.extension is not None:
+            element.set('extension', self.gds_format_string(self.extension))
+        if self.uri is not None:
+            element.set('uri', self.gds_format_string(self.uri))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1210,6 +1227,15 @@ class JsonObject(File):
         for properties_ in self.properties:
             namespaceprefix_ = self.properties_nsprefix_ + ':' if (UseCapturedNS_ and self.properties_nsprefix_) else ''
             properties_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='properties', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='JsonObject', mapping_=None, nsmap_=None):
+        element = super(JsonObject, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        if self.extensiontype_ is not None:
+            element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
+        for properties_ in self.properties:
+            properties_.to_etree(element, name_='properties', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1319,6 +1345,15 @@ class DatasetDescriptionFile(JsonObject):
             outfile.write(' Name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.Name), input_name='Name')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DatasetDescriptionFile', fromsubclass_=False, pretty_print=True):
         super(DatasetDescriptionFile, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='DatasetDescriptionFile', mapping_=None, nsmap_=None):
+        element = super(DatasetDescriptionFile, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        if self.BIDSVersion is not None:
+            element.set('BIDSVersion', self.gds_format_string(self.BIDSVersion))
+        if self.Name is not None:
+            element.set('Name', self.gds_format_string(self.Name))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1439,6 +1474,21 @@ class Property(GeneratedsSuper):
         if self.object is not None:
             namespaceprefix_ = self.object_nsprefix_ + ':' if (UseCapturedNS_ and self.object_nsprefix_) else ''
             self.object.export(outfile, level, namespaceprefix_, namespacedef_='', name_='object', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='Property', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.key is not None:
+            element.set('key', self.gds_format_string(self.key))
+        if self.value is not None:
+            element.set('value', self.gds_format_string(self.value))
+        if self.object is not None:
+            object_ = self.object
+            object_.to_etree(element, name_='object', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1592,6 +1642,22 @@ class Folder(GeneratedsSuper):
         for folders_ in self.folders:
             namespaceprefix_ = self.folders_nsprefix_ + ':' if (UseCapturedNS_ and self.folders_nsprefix_) else ''
             folders_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='folders', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='Folder', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.extensiontype_ is not None:
+            element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
+        if self.name is not None:
+            element.set('name', self.gds_format_string(self.name))
+        for files_ in self.files:
+            files_.to_etree(element, name_='files', mapping_=mapping_, nsmap_=nsmap_)
+        for folders_ in self.folders:
+            folders_.to_etree(element, name_='folders', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1714,6 +1780,13 @@ class DatatypeFolder(Folder):
         for artifacts_ in self.artifacts:
             namespaceprefix_ = self.artifacts_nsprefix_ + ':' if (UseCapturedNS_ and self.artifacts_nsprefix_) else ''
             artifacts_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='artifacts', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='DatatypeFolder', mapping_=None, nsmap_=None):
+        element = super(DatatypeFolder, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        for artifacts_ in self.artifacts:
+            artifacts_.to_etree(element, name_='artifacts', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1833,6 +1906,15 @@ class Artifact(File):
         for entities_ in self.entities:
             namespaceprefix_ = self.entities_nsprefix_ + ':' if (UseCapturedNS_ and self.entities_nsprefix_) else ''
             entities_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='entities', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='Artifact', mapping_=None, nsmap_=None):
+        element = super(Artifact, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        if self.suffix is not None:
+            element.set('suffix', self.gds_format_string(self.suffix))
+        for entities_ in self.entities:
+            entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1939,6 +2021,18 @@ class EntityRef(GeneratedsSuper):
             outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='EntityRef', fromsubclass_=False, pretty_print=True):
         pass
+    def to_etree(self, parent_element=None, name_='EntityRef', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.key is not None:
+            element.set('key', self.gds_format_string(self.key))
+        if self.value is not None:
+            element.set('value', self.gds_format_string(self.value))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2083,6 +2177,26 @@ class Entity(GeneratedsSuper):
             outfile.write(' format=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.format), input_name='format')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Entity', fromsubclass_=False, pretty_print=True):
         pass
+    def to_etree(self, parent_element=None, name_='Entity', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.name is not None:
+            element.set('name', self.gds_format_string(self.name))
+        if self.label is not None:
+            element.set('label', self.gds_format_string(self.label))
+        if self.key is not None:
+            element.set('key', self.gds_format_string(self.key))
+        if self.description is not None:
+            element.set('description', self.gds_format_string(self.description))
+        if self.type_ is not None:
+            element.set('type', self.gds_format_string(self.type_))
+        if self.format is not None:
+            element.set('format', self.gds_format_string(self.format))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2213,6 +2327,20 @@ class Suffix(GeneratedsSuper):
             outfile.write(' unit=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.unit), input_name='unit')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Suffix', fromsubclass_=False, pretty_print=True):
         pass
+    def to_etree(self, parent_element=None, name_='Suffix', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.name is not None:
+            element.set('name', self.gds_format_string(self.name))
+        if self.description is not None:
+            element.set('description', self.gds_format_string(self.description))
+        if self.unit is not None:
+            element.set('unit', self.gds_format_string(self.unit))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2345,6 +2473,20 @@ class Modality(GeneratedsSuper):
             namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
             showIndent(outfile, level, pretty_print)
             outfile.write('<%sdatatypes>%s</%sdatatypes>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(datatypes_), input_name='datatypes')), namespaceprefix_ , eol_))
+    def to_etree(self, parent_element=None, name_='Modality', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.key is not None:
+            element.set('key', self.gds_format_string(self.key))
+        if self.name is not None:
+            element.set('name', self.gds_format_string(self.name))
+        for datatypes_ in self.datatypes:
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}datatypes').text = self.gds_format_string(datatypes_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2467,6 +2609,18 @@ class Datatype(GeneratedsSuper):
         for contexts_ in self.contexts:
             namespaceprefix_ = self.contexts_nsprefix_ + ':' if (UseCapturedNS_ and self.contexts_nsprefix_) else ''
             contexts_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='contexts', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='Datatype', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.name is not None:
+            element.set('name', self.gds_format_string(self.name))
+        for contexts_ in self.contexts:
+            contexts_.to_etree(element, name_='contexts', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2571,6 +2725,18 @@ class EntityDep(GeneratedsSuper):
             outfile.write(' required="%s"' % self.gds_format_boolean(self.required, input_name='required'))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='EntityDep', fromsubclass_=False, pretty_print=True):
         pass
+    def to_etree(self, parent_element=None, name_='EntityDep', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.key is not None:
+            element.set('key', self.gds_format_string(self.key))
+        if self.required is not None:
+            element.set('required', self.gds_format_boolean(self.required))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2684,6 +2850,16 @@ class EntitiesContainer(GeneratedsSuper):
         for entities_ in self.entities:
             namespaceprefix_ = self.entities_nsprefix_ + ':' if (UseCapturedNS_ and self.entities_nsprefix_) else ''
             entities_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='entities', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='EntitiesContainer', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        for entities_ in self.entities:
+            entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2789,6 +2965,16 @@ class ModalitiesContainer(GeneratedsSuper):
         for modalities_ in self.modalities:
             namespaceprefix_ = self.modalities_nsprefix_ + ':' if (UseCapturedNS_ and self.modalities_nsprefix_) else ''
             modalities_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='modalities', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='ModalitiesContainer', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        for modalities_ in self.modalities:
+            modalities_.to_etree(element, name_='modalities', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2894,6 +3080,16 @@ class DatatypesContainer(GeneratedsSuper):
         for datatypes_ in self.datatypes:
             namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
             datatypes_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='datatypes', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='DatatypesContainer', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        for datatypes_ in self.datatypes:
+            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3050,6 +3246,22 @@ class DatatypeContext(GeneratedsSuper):
         for entities_ in self.entities:
             namespaceprefix_ = self.entities_nsprefix_ + ':' if (UseCapturedNS_ and self.entities_nsprefix_) else ''
             entities_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='entities', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='DatatypeContext', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.name is not None:
+            element.set('name', self.gds_format_string(self.name))
+        for suffixes_ in self.suffixes:
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}suffixes').text = self.gds_format_string(suffixes_)
+        for extensions_ in self.extensions:
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}extensions').text = self.gds_format_string(extensions_)
+        for entities_ in self.entities:
+            entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3183,6 +3395,23 @@ class Metadata(GeneratedsSuper):
         if self.modalities is not None:
             namespaceprefix_ = self.modalities_nsprefix_ + ':' if (UseCapturedNS_ and self.modalities_nsprefix_) else ''
             self.modalities.export(outfile, level, namespaceprefix_, namespacedef_='', name_='modalities', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='Metadata', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.datatypes is not None:
+            datatypes_ = self.datatypes
+            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
+        if self.entities is not None:
+            entities_ = self.entities
+            entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
+        if self.modalities is not None:
+            modalities_ = self.modalities
+            modalities_.to_etree(element, name_='modalities', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3298,6 +3527,16 @@ class DataframeObject(GeneratedsSuper):
         for columns_ in self.columns:
             namespaceprefix_ = self.columns_nsprefix_ + ':' if (UseCapturedNS_ and self.columns_nsprefix_) else ''
             columns_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='columns', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='DataframeObject', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        for columns_ in self.columns:
+            columns_.to_etree(element, name_='columns', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3399,6 +3638,18 @@ class DataframeColumn(GeneratedsSuper):
             outfile.write(' type=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.type_), input_name='type')), ))
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DataframeColumn', fromsubclass_=False, pretty_print=True):
         pass
+    def to_etree(self, parent_element=None, name_='DataframeColumn', mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+        if self.name is not None:
+            element.set('name', self.gds_format_string(self.name))
+        if self.type_ is not None:
+            element.set('type', self.gds_format_string(self.type_))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3509,6 +3760,13 @@ class ParticipantsFile(File):
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='ParticipantsFile', fromsubclass_=False, pretty_print=True):
         super(ParticipantsFile, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
         pass
+    def to_etree(self, parent_element=None, name_='ParticipantsFile', mapping_=None, nsmap_=None):
+        element = super(ParticipantsFile, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        if self.allowedExtensions is not None:
+            element.set('allowedExtensions', self.gds_format_string(self.allowedExtensions))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3618,6 +3876,13 @@ class SamplesFile(File):
     def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='SamplesFile', fromsubclass_=False, pretty_print=True):
         super(SamplesFile, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
         pass
+    def to_etree(self, parent_element=None, name_='SamplesFile', mapping_=None, nsmap_=None):
+        element = super(SamplesFile, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        if self.allowedExtensions is not None:
+            element.set('allowedExtensions', self.gds_format_string(self.allowedExtensions))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3728,6 +3993,13 @@ class Session(Folder):
         for datatypes_ in self.datatypes:
             namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
             datatypes_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='datatypes', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='Session', mapping_=None, nsmap_=None):
+        element = super(Session, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        for datatypes_ in self.datatypes:
+            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3857,6 +4129,15 @@ class Subject(Folder):
         for datatypes_ in self.datatypes:
             namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
             datatypes_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='datatypes', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='Subject', mapping_=None, nsmap_=None):
+        element = super(Subject, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        for sessions_ in self.sessions:
+            sessions_.to_etree(element, name_='sessions', mapping_=mapping_, nsmap_=nsmap_)
+        for datatypes_ in self.datatypes:
+            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -4102,6 +4383,48 @@ class Dataset(Folder):
         if self.sourcedata is not None:
             namespaceprefix_ = self.sourcedata_nsprefix_ + ':' if (UseCapturedNS_ and self.sourcedata_nsprefix_) else ''
             self.sourcedata.export(outfile, level, namespaceprefix_, namespacedef_='', name_='sourcedata', pretty_print=pretty_print)
+    def to_etree(self, parent_element=None, name_='Dataset', mapping_=None, nsmap_=None):
+        element = super(Dataset, self).to_etree(parent_element, name_, mapping_, nsmap_)
+        if self.base is not None:
+            element.set('base', self.gds_format_string(self.base))
+        for subjects_ in self.subjects:
+            subjects_.to_etree(element, name_='subjects', mapping_=mapping_, nsmap_=nsmap_)
+        if self.dataset_description is not None:
+            dataset_description_ = self.dataset_description
+            dataset_description_.to_etree(element, name_='dataset_description', mapping_=mapping_, nsmap_=nsmap_)
+        if self.README is not None:
+            README_ = self.README
+            README_.to_etree(element, name_='README', mapping_=mapping_, nsmap_=nsmap_)
+        if self.CHANGES is not None:
+            CHANGES_ = self.CHANGES
+            CHANGES_.to_etree(element, name_='CHANGES', mapping_=mapping_, nsmap_=nsmap_)
+        if self.LICENSE is not None:
+            LICENSE_ = self.LICENSE
+            LICENSE_.to_etree(element, name_='LICENSE', mapping_=mapping_, nsmap_=nsmap_)
+        if self.genetic_info is not None:
+            genetic_info_ = self.genetic_info
+            genetic_info_.to_etree(element, name_='genetic_info', mapping_=mapping_, nsmap_=nsmap_)
+        if self.participants is not None:
+            participants_ = self.participants
+            participants_.to_etree(element, name_='participants', mapping_=mapping_, nsmap_=nsmap_)
+        if self.samples is not None:
+            samples_ = self.samples
+            samples_.to_etree(element, name_='samples', mapping_=mapping_, nsmap_=nsmap_)
+        if self.stimuli is not None:
+            stimuli_ = self.stimuli
+            stimuli_.to_etree(element, name_='stimuli', mapping_=mapping_, nsmap_=nsmap_)
+        if self.code is not None:
+            code_ = self.code
+            code_.to_etree(element, name_='code', mapping_=mapping_, nsmap_=nsmap_)
+        if self.derivatives is not None:
+            derivatives_ = self.derivatives
+            derivatives_.to_etree(element, name_='derivatives', mapping_=mapping_, nsmap_=nsmap_)
+        if self.sourcedata is not None:
+            sourcedata_ = self.sourcedata
+            sourcedata_.to_etree(element, name_='sourcedata', mapping_=mapping_, nsmap_=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        return element
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:

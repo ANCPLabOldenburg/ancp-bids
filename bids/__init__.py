@@ -64,3 +64,5 @@ setattr(model.Folder, 'get_files_sorted', get_files_sorted)
 setattr(model.Folder, 'get_folders_sorted', get_folders_sorted)
 
 # end monkey-patching
+
+from .pybids_compat import BIDSLayout
