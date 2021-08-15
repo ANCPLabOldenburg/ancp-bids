@@ -5,8 +5,8 @@ from bids.rules import rules_files
 
 class ValidationTestCase(BaseTestCase):
     def createSUT(self, ds_dir, rule_class):
-        bids_schema = schema.Schema(BIDS_SCHEMA_DIR)
-        test_ds = utils.Dataset(ds_dir)
+        bids_schema = schema.Schema()
+        test_ds = bids_schema.load_dataset(ds_dir)
         val = validator.Validator()
         # only test this rule
         val.ruleAcceptor = lambda rule: rule == rule_class
@@ -14,11 +14,11 @@ class ValidationTestCase(BaseTestCase):
         self.assertTrue(isinstance(report, validator.ValidationReport))
         return report
 
-    def test_validation_top_level_files(self):
-        report = self.createSUT(DS005_CONFLICT_DIR, rules_files.TopLevelFilesValidationRule)
+    def test_validate_static_structure(self):
+        report = self.createSUT(DS005_CONFLICT_DIR, rules_files.StaticStructureValidationRule)
         self.assertEqual(2, len(report.messages))
-        self.assertEqual("Missing required top level file 'README'", report.messages[0]['message'])
-        self.assertEqual("Missing required top level file 'CHANGES'", report.messages[1]['message'])
+        self.assertTrue('README' in report.messages[0]['message'], 'README file not expected')
+        self.assertTrue('CHANGES' in report.messages[1]['message'], 'CHANGES file not expected')
 
     def test_validate_datatypes(self):
         report = self.createSUT(DS005_CONFLICT_DIR, rules_files.DatatypesValidationRule)

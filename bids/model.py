@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Sun Aug 15 14:11:58 2021 by generateDS.py version 2.39.2.
+# Generated Sun Aug 15 15:06:56 2021 by generateDS.py version 2.39.2.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
 #   ('-f', '')
-#   ('--export', 'write etree')
+#   ('--export', 'write etree validate')
 #   ('--member-specs', 'dict')
 #   ('--always-export-default', '')
 #   ('-o', '../bids/model.py')
@@ -16,7 +16,7 @@
 #   ../schema/bids.xsd
 #
 # Command line:
-#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="write etree" --member-specs="dict" --always-export-default -o "../bids/model.py" ../schema/bids.xsd
+#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="write etree validate" --member-specs="dict" --always-export-default -o "../bids/model.py" ../schema/bids.xsd
 #
 # Current working directory (os.getcwd()):
 #   tools
@@ -1097,6 +1097,21 @@ class File(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
+        self.gds_check_cardinality_(self.name, 'name', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.extension, 'extension')
+        self.gds_check_cardinality_(self.extension, 'extension', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.uri, 'uri')
+        self.gds_check_cardinality_(self.uri, 'uri', required=False)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1236,6 +1251,17 @@ class JsonObject(File):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.properties, 'properties', min_occurs=0, max_occurs=9999999)
+        if recursive:
+            for item in self.properties:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1354,6 +1380,19 @@ class DatasetDescriptionFile(JsonObject):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.BIDSVersion, 'BIDSVersion')
+        self.gds_check_cardinality_(self.BIDSVersion, 'BIDSVersion', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.Name, 'Name')
+        self.gds_check_cardinality_(self.Name, 'Name', required=True)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1489,6 +1528,21 @@ class Property(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
+        self.gds_check_cardinality_(self.key, 'key', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.value, 'value')
+        self.gds_check_cardinality_(self.value, 'value', required=False)
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.object, 'object', min_occurs=1, max_occurs=1)
+        if recursive:
+            if self.object is not None:
+                self.object.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1658,6 +1712,22 @@ class Folder(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
+        self.gds_check_cardinality_(self.name, 'name', required=True)
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.files, 'files', min_occurs=0, max_occurs=9999999)
+        self.gds_check_cardinality_(self.folders, 'folders', min_occurs=0, max_occurs=9999999)
+        if recursive:
+            for item in self.files:
+                item.validate_(gds_collector, recursive=True)
+            for item in self.folders:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1787,6 +1857,17 @@ class DatatypeFolder(Folder):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.artifacts, 'artifacts', min_occurs=0, max_occurs=9999999)
+        if recursive:
+            for item in self.artifacts:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -1915,6 +1996,19 @@ class Artifact(File):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.suffix, 'suffix')
+        self.gds_check_cardinality_(self.suffix, 'suffix', required=True)
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.entities, 'entities', min_occurs=1, max_occurs=9999999)
+        if recursive:
+            for item in self.entities:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2033,6 +2127,19 @@ class EntityRef(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
+        self.gds_check_cardinality_(self.key, 'key', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.value, 'value')
+        self.gds_check_cardinality_(self.value, 'value', required=False)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2197,6 +2304,27 @@ class Entity(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
+        self.gds_check_cardinality_(self.name, 'name', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.label, 'label')
+        self.gds_check_cardinality_(self.label, 'label', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
+        self.gds_check_cardinality_(self.key, 'key', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.description, 'description')
+        self.gds_check_cardinality_(self.description, 'description', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.type_, 'type_')
+        self.gds_check_cardinality_(self.type_, 'type_', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.format, 'format')
+        self.gds_check_cardinality_(self.format, 'format', required=False)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2341,6 +2469,21 @@ class Suffix(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
+        self.gds_check_cardinality_(self.name, 'name', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.description, 'description')
+        self.gds_check_cardinality_(self.description, 'description', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.unit, 'unit')
+        self.gds_check_cardinality_(self.unit, 'unit', required=False)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2487,6 +2630,22 @@ class Modality(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
+        self.gds_check_cardinality_(self.key, 'key', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
+        self.gds_check_cardinality_(self.name, 'name', required=False)
+        # validate simple type children
+        for item in self.datatypes:
+            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'datatypes')
+        self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2621,6 +2780,19 @@ class Datatype(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
+        self.gds_check_cardinality_(self.name, 'name', required=False)
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.contexts, 'contexts', min_occurs=1, max_occurs=9999999)
+        if recursive:
+            for item in self.contexts:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2737,6 +2909,19 @@ class EntityDep(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
+        self.gds_check_cardinality_(self.key, 'key', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_boolean, self.required, 'required')
+        self.gds_check_cardinality_(self.required, 'required', required=True)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2860,6 +3045,17 @@ class EntitiesContainer(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.entities, 'entities', min_occurs=1, max_occurs=9999999)
+        if recursive:
+            for item in self.entities:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2975,6 +3171,17 @@ class ModalitiesContainer(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.modalities, 'modalities', min_occurs=1, max_occurs=9999999)
+        if recursive:
+            for item in self.modalities:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3090,6 +3297,17 @@ class DatatypesContainer(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
+        if recursive:
+            for item in self.datatypes:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3262,6 +3480,25 @@ class DatatypeContext(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
+        self.gds_check_cardinality_(self.name, 'name', required=False)
+        # validate simple type children
+        for item in self.suffixes:
+            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'suffixes')
+        self.gds_check_cardinality_(self.suffixes, 'suffixes', min_occurs=1, max_occurs=9999999)
+        for item in self.extensions:
+            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'extensions')
+        self.gds_check_cardinality_(self.extensions, 'extensions', min_occurs=1, max_occurs=9999999)
+        # validate complex type children
+        self.gds_check_cardinality_(self.entities, 'entities', min_occurs=1, max_occurs=9999999)
+        if recursive:
+            for item in self.entities:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3412,6 +3649,23 @@ class Metadata(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.entities, 'entities', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.modalities, 'modalities', min_occurs=0, max_occurs=1)
+        if recursive:
+            if self.datatypes is not None:
+                self.datatypes.validate_(gds_collector, recursive=True)
+            if self.entities is not None:
+                self.entities.validate_(gds_collector, recursive=True)
+            if self.modalities is not None:
+                self.modalities.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3537,6 +3791,17 @@ class DataframeObject(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.columns, 'columns', min_occurs=0, max_occurs=9999999)
+        if recursive:
+            for item in self.columns:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3650,6 +3915,19 @@ class DataframeColumn(GeneratedsSuper):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
+        self.gds_check_cardinality_(self.name, 'name', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.type_, 'type_')
+        self.gds_check_cardinality_(self.type_, 'type_', required=False)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3767,6 +4045,17 @@ class ParticipantsFile(File):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_defined_ST_(self.validate_JsonOrTsvAllowedExtension, self.allowedExtensions, 'allowedExtensions')
+        self.gds_check_cardinality_(self.allowedExtensions, 'allowedExtensions', required=False)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -3883,6 +4172,17 @@ class SamplesFile(File):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_defined_ST_(self.validate_JsonOrTsvAllowedExtension, self.allowedExtensions, 'allowedExtensions')
+        self.gds_check_cardinality_(self.allowedExtensions, 'allowedExtensions', required=False)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -4000,6 +4300,17 @@ class Session(Folder):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
+        if recursive:
+            for item in self.datatypes:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -4138,6 +4449,22 @@ class Subject(Folder):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        # cardinality check omitted for choice item sessions
+        #self.gds_check_cardinality_(self.sessions, 'sessions', min_occurs=0, max_occurs=9999999)
+        # cardinality check omitted for choice item datatypes
+        #self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
+        if recursive:
+            for item in self.sessions:
+                item.validate_(gds_collector, recursive=True)
+            for item in self.datatypes:
+                item.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -4425,6 +4752,52 @@ class Dataset(Folder):
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.base, 'base')
+        self.gds_check_cardinality_(self.base, 'base', required=True)
+        # validate simple type children
+        # validate complex type children
+        self.gds_check_cardinality_(self.subjects, 'subjects', min_occurs=0, max_occurs=9999999)
+        self.gds_check_cardinality_(self.dataset_description, 'dataset_description', min_occurs=1, max_occurs=1)
+        self.gds_check_cardinality_(self.README, 'README', min_occurs=1, max_occurs=1)
+        self.gds_check_cardinality_(self.CHANGES, 'CHANGES', min_occurs=1, max_occurs=1)
+        self.gds_check_cardinality_(self.LICENSE, 'LICENSE', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.genetic_info, 'genetic_info', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.participants, 'participants', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.samples, 'samples', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.stimuli, 'stimuli', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.code, 'code', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.derivatives, 'derivatives', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.sourcedata, 'sourcedata', min_occurs=0, max_occurs=1)
+        if recursive:
+            for item in self.subjects:
+                item.validate_(gds_collector, recursive=True)
+            if self.dataset_description is not None:
+                self.dataset_description.validate_(gds_collector, recursive=True)
+            if self.README is not None:
+                self.README.validate_(gds_collector, recursive=True)
+            if self.CHANGES is not None:
+                self.CHANGES.validate_(gds_collector, recursive=True)
+            if self.LICENSE is not None:
+                self.LICENSE.validate_(gds_collector, recursive=True)
+            if self.genetic_info is not None:
+                self.genetic_info.validate_(gds_collector, recursive=True)
+            if self.participants is not None:
+                self.participants.validate_(gds_collector, recursive=True)
+            if self.samples is not None:
+                self.samples.validate_(gds_collector, recursive=True)
+            if self.stimuli is not None:
+                self.stimuli.validate_(gds_collector, recursive=True)
+            if self.code is not None:
+                self.code.validate_(gds_collector, recursive=True)
+            if self.derivatives is not None:
+                self.derivatives.validate_(gds_collector, recursive=True)
+            if self.sourcedata is not None:
+                self.sourcedata.validate_(gds_collector, recursive=True)
+        return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:

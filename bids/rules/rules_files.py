@@ -1,32 +1,18 @@
-import itertools
-
-from bids import schema as sc, model , validator as vd
-
-
-class TopLevelFilesValidationRule(vd.ValidationRule):
-    def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
-        top_level_files = schema.top_level_files
-        files = dataset.folder.get_files(include_folders=False)
-        for key in top_level_files:
-            file_schema = top_level_files[key]
-            extensions = file_schema["extensions"]
-            extensions = list(filter(lambda ext: ext != 'NONE' and ext.startswith('.'), extensions))
-            probes = list(itertools.zip_longest([], extensions, fillvalue=key))
-            probes = list(map(lambda probe: probe[0] + probe[1], probes))
-            if not probes:
-                probes = [key]
-            found = list(filter(lambda file: file.name() in probes, files))
-            if not found and file_schema['required']:
-                report.error("Missing required top level file '%s'" % key)
+from bids.model import Dataset, GdsCollector_
+from bids.schema import Schema
+from bids.validator import ValidationRule, ValidationReport
 
 
-class AssociatedDataValidationRule(vd.ValidationRule):
-    def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
-        pass
+class StaticStructureValidationRule(ValidationRule):
+    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
+        collector = GdsCollector_()
+        dataset.validate_(collector, recursive=True)
+        for message in collector.messages:
+            report.error(message)
 
 
-class DatatypesValidationRule(vd.ValidationRule):
-    def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
+class DatatypesValidationRule(ValidationRule):
+    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
         for subject in dataset.get_subjects():
             for session in subject.get_sessions():
                 for datatype in session.get_datatypes():
@@ -35,8 +21,8 @@ class DatatypesValidationRule(vd.ValidationRule):
                         report.error("Unsupported datatype folder '%s'" % dt_path)
 
 
-class EntitiesValidationRule(vd.ValidationRule):
-    def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
+class EntitiesValidationRule(ValidationRule):
+    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
         for subject in dataset.get_subjects():
             for session in subject.get_sessions():
                 for datatype in session.get_datatypes():
@@ -78,10 +64,10 @@ class EntitiesValidationRule(vd.ValidationRule):
                         if False and list(dt_entities.keys()) != list(entities.keys()):
                             report.error(
                                 "Invalid entities order in artifact: expected %s, encountered %s" % (
-                                list(dt_entities.keys()), list(entities.keys())))
+                                    list(dt_entities.keys()), list(entities.keys())))
                             continue
 
 
-class SuffixesValidationRule(vd.ValidationRule):
-    def validate(self, schema: sc.Schema, dataset: ds.Dataset, report: vd.ValidationReport):
+class SuffixesValidationRule(ValidationRule):
+    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
         pass

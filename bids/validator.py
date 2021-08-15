@@ -1,7 +1,8 @@
 import logging
 
 from bids import rules
-from .schema import Schema
+from bids.model import Dataset
+from bids.schema import Schema
 
 logger = logging.getLogger(__file__)
 
