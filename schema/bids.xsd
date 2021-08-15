@@ -97,21 +97,77 @@
     <complexType name="DatasetDescriptionFile">
     	<complexContent>
     		<extension base="bids:JsonObject">
+    			<sequence>
+    				<element name="Authors" type="string" minOccurs="0"
+    					maxOccurs="unbounded">
+    				</element>
+    				<element name="Funding" type="string"
+    					maxOccurs="unbounded" minOccurs="0">
+    				</element>
+    				<element name="EthicsApprovals" type="string"
+    					minOccurs="0" maxOccurs="unbounded">
+    				</element>
+    				<element name="ReferencesAndLinks" type="string"
+    					minOccurs="0" maxOccurs="unbounded">
+    				</element>
+    			</sequence>
+    			<attribute name="Name" type="string" use="required"></attribute>
     			<attribute name="BIDSVersion" type="string"
     				use="required">
     			</attribute>
 
-    			<attribute name="Name" type="string" use="required"></attribute>
+    			<attribute name="HEDVersion" type="string"
+    				use="optional">
+    				<annotation>
+    					<documentation>
+    						Usage: recommended
+    					</documentation>
+    				</annotation>
+    			</attribute>
+    			<attribute name="DatasetType" use="prohibited" form="unqualified" default="raw">
+    				<annotation>
+    					<documentation>
+    						Usage: recommended
+    					</documentation>
+    				</annotation>
+    				<simpleType>
+    					<restriction base="string">
+    						<enumeration value="raw"></enumeration>
+    						<enumeration value="derivative"></enumeration>
+    					</restriction>
+    				</simpleType>
+    			</attribute>
+    			<attribute name="License" type="string"
+    				use="optional">
+    				<annotation>
+    					<documentation>
+    						Usage: recommended
+    					</documentation>
+    				</annotation>
+    			</attribute>
+    			<attribute name="Acknowledgements" type="string"
+    				use="optional">
+    			</attribute>
+    			<attribute name="HowToAcknowledge" type="string"
+    				use="optional">
+    			</attribute>
+    			<attribute name="DatasetDOI" type="string" use="optional"></attribute>
     		</extension>
     	</complexContent>
     </complexType>
 
     <complexType name="Property">
     	<sequence>
-    		<element name="object" type="bids:JsonObject"></element>
+
+    		<choice>
+    			<element name="value_single" type="anySimpleType"></element>
+    			<element name="value_multi" type="anySimpleType"
+    				minOccurs="0" maxOccurs="unbounded">
+    			</element>
+    			<element name="value_obj" type="bids:JsonObject"></element>
+    		</choice>
     	</sequence>
     	<attribute name="key" type="string" use="required"></attribute>
-    	<attribute name="value" type="string" use="optional"></attribute>
     </complexType>
 
     <element name="dataset" type="bids:Dataset"></element>
@@ -292,5 +348,5 @@
     				<enumeration value=".json"></enumeration>
     			</restriction>
     		</simpleType>
-
+    		
 </schema>

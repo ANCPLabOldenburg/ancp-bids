@@ -91,9 +91,11 @@ def _dict_to_JsonObject(data: dict):
         prop.set_key(k)
         if isinstance(v, dict):
             obj = _dict_to_JsonObject(v)
-            prop.set_object(obj)
+            prop.set_value_obj(obj)
+        elif isinstance(v, list):
+            prop.set_value_multi(v)
         else:
-            prop.set_value(v)
+            prop.set_value_single(v)
         result.add_properties(prop)
     return result
 
@@ -117,7 +119,12 @@ def _type_handler_DatasetDescriptionFile(parent, member):
         direct_props = list(map(lambda m: m['name'], members))
         for prop in json_object.get_properties():
             if prop.get_key() in direct_props:
-                setattr(dsd_file, prop.get_key(), prop.get_value())
+                if prop.get_value_single():
+                    setattr(dsd_file, prop.get_key(), prop.get_value_single())
+                elif prop.get_value_multi():
+                    setattr(dsd_file, prop.get_key(), prop.get_value_multi())
+                else:
+                    setattr(dsd_file, prop.get_key(), prop.get_value_obj())
             else:
                 dsd_file.add_properties(prop)
         setattr(parent, name, dsd_file)

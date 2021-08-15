@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Sun Aug 15 15:06:56 2021 by generateDS.py version 2.39.2.
+# Generated Sun Aug 15 17:21:50 2021 by generateDS.py version 2.39.2.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -976,6 +976,15 @@ def _cast(typ, value):
 #
 
 
+class DatasetTypeType(str, Enum):
+    """DatasetTypeType --
+    Usage: recommended
+    
+    """
+    RAW='raw'
+    DERIVATIVE='derivative'
+
+
 class JsonOrTsvAllowedExtension(str, Enum):
     TSV='.tsv'
     JSON='.json'
@@ -1290,24 +1299,76 @@ class JsonObject(File):
 
 
 class DatasetDescriptionFile(JsonObject):
+    """HEDVersion --
+    Usage: recommended
+      
+    * DatasetType --
+      Usage: recommended
+      
+    * License --
+      Usage: recommended
+    
+    """
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'BIDSVersion': MemberSpec_('BIDSVersion', 'string', 0, 0, {'use': 'required'}),
         'Name': MemberSpec_('Name', 'string', 0, 0, {'use': 'required'}),
+        'BIDSVersion': MemberSpec_('BIDSVersion', 'string', 0, 0, {'use': 'required'}),
+        'HEDVersion': MemberSpec_('HEDVersion', 'string', 0, 1, {'use': 'optional'}),
+        'DatasetType': MemberSpec_('DatasetType', 'DatasetTypeType', 0, 0, {'use': 'prohibited'}),
+        'License': MemberSpec_('License', 'string', 0, 1, {'use': 'optional'}),
+        'Acknowledgements': MemberSpec_('Acknowledgements', 'string', 0, 1, {'use': 'optional'}),
+        'HowToAcknowledge': MemberSpec_('HowToAcknowledge', 'string', 0, 1, {'use': 'optional'}),
+        'DatasetDOI': MemberSpec_('DatasetDOI', 'string', 0, 1, {'use': 'optional'}),
+        'Authors': MemberSpec_('Authors', 'string', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'Authors', 'type': 'string'}, None),
+        'Funding': MemberSpec_('Funding', 'string', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'Funding', 'type': 'string'}, None),
+        'EthicsApprovals': MemberSpec_('EthicsApprovals', 'string', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'EthicsApprovals', 'type': 'string'}, None),
+        'ReferencesAndLinks': MemberSpec_('ReferencesAndLinks', 'string', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'ReferencesAndLinks', 'type': 'string'}, None),
     }
     subclass = None
     superclass = JsonObject
-    def __init__(self, name=None, extension=None, uri=None, properties=None, BIDSVersion=None, Name=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, extension=None, uri=None, properties=None, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType='raw', License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=None, Funding=None, EthicsApprovals=None, ReferencesAndLinks=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
         super(globals().get("DatasetDescriptionFile"), self).__init__(name, extension, uri, properties,  **kwargs_)
-        self.BIDSVersion = _cast(None, BIDSVersion)
-        self.BIDSVersion_nsprefix_ = None
         self.Name = _cast(None, Name)
         self.Name_nsprefix_ = None
+        self.BIDSVersion = _cast(None, BIDSVersion)
+        self.BIDSVersion_nsprefix_ = None
+        self.HEDVersion = _cast(None, HEDVersion)
+        self.HEDVersion_nsprefix_ = None
+        self.DatasetType = _cast(None, DatasetType)
+        self.DatasetType_nsprefix_ = None
+        self.License = _cast(None, License)
+        self.License_nsprefix_ = None
+        self.Acknowledgements = _cast(None, Acknowledgements)
+        self.Acknowledgements_nsprefix_ = None
+        self.HowToAcknowledge = _cast(None, HowToAcknowledge)
+        self.HowToAcknowledge_nsprefix_ = None
+        self.DatasetDOI = _cast(None, DatasetDOI)
+        self.DatasetDOI_nsprefix_ = None
+        if Authors is None:
+            self.Authors = []
+        else:
+            self.Authors = Authors
+        self.Authors_nsprefix_ = None
+        if Funding is None:
+            self.Funding = []
+        else:
+            self.Funding = Funding
+        self.Funding_nsprefix_ = None
+        if EthicsApprovals is None:
+            self.EthicsApprovals = []
+        else:
+            self.EthicsApprovals = EthicsApprovals
+        self.EthicsApprovals_nsprefix_ = None
+        if ReferencesAndLinks is None:
+            self.ReferencesAndLinks = []
+        else:
+            self.ReferencesAndLinks = ReferencesAndLinks
+        self.ReferencesAndLinks_nsprefix_ = None
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -1323,22 +1384,103 @@ class DatasetDescriptionFile(JsonObject):
         return self.ns_prefix_
     def set_ns_prefix_(self, ns_prefix):
         self.ns_prefix_ = ns_prefix
-    def get_BIDSVersion(self):
-        return self.BIDSVersion
-    def set_BIDSVersion(self, BIDSVersion):
-        self.BIDSVersion = BIDSVersion
+    def get_Authors(self):
+        return self.Authors
+    def set_Authors(self, Authors):
+        self.Authors = Authors
+    def add_Authors(self, value):
+        self.Authors.append(value)
+    def insert_Authors_at(self, index, value):
+        self.Authors.insert(index, value)
+    def replace_Authors_at(self, index, value):
+        self.Authors[index] = value
+    def get_Funding(self):
+        return self.Funding
+    def set_Funding(self, Funding):
+        self.Funding = Funding
+    def add_Funding(self, value):
+        self.Funding.append(value)
+    def insert_Funding_at(self, index, value):
+        self.Funding.insert(index, value)
+    def replace_Funding_at(self, index, value):
+        self.Funding[index] = value
+    def get_EthicsApprovals(self):
+        return self.EthicsApprovals
+    def set_EthicsApprovals(self, EthicsApprovals):
+        self.EthicsApprovals = EthicsApprovals
+    def add_EthicsApprovals(self, value):
+        self.EthicsApprovals.append(value)
+    def insert_EthicsApprovals_at(self, index, value):
+        self.EthicsApprovals.insert(index, value)
+    def replace_EthicsApprovals_at(self, index, value):
+        self.EthicsApprovals[index] = value
+    def get_ReferencesAndLinks(self):
+        return self.ReferencesAndLinks
+    def set_ReferencesAndLinks(self, ReferencesAndLinks):
+        self.ReferencesAndLinks = ReferencesAndLinks
+    def add_ReferencesAndLinks(self, value):
+        self.ReferencesAndLinks.append(value)
+    def insert_ReferencesAndLinks_at(self, index, value):
+        self.ReferencesAndLinks.insert(index, value)
+    def replace_ReferencesAndLinks_at(self, index, value):
+        self.ReferencesAndLinks[index] = value
     def get_Name(self):
         return self.Name
     def set_Name(self, Name):
         self.Name = Name
+    def get_BIDSVersion(self):
+        return self.BIDSVersion
+    def set_BIDSVersion(self, BIDSVersion):
+        self.BIDSVersion = BIDSVersion
+    def get_HEDVersion(self):
+        return self.HEDVersion
+    def set_HEDVersion(self, HEDVersion):
+        self.HEDVersion = HEDVersion
+    def get_DatasetType(self):
+        return self.DatasetType
+    def set_DatasetType(self, DatasetType):
+        self.DatasetType = DatasetType
+    def get_License(self):
+        return self.License
+    def set_License(self, License):
+        self.License = License
+    def get_Acknowledgements(self):
+        return self.Acknowledgements
+    def set_Acknowledgements(self, Acknowledgements):
+        self.Acknowledgements = Acknowledgements
+    def get_HowToAcknowledge(self):
+        return self.HowToAcknowledge
+    def set_HowToAcknowledge(self, HowToAcknowledge):
+        self.HowToAcknowledge = HowToAcknowledge
+    def get_DatasetDOI(self):
+        return self.DatasetDOI
+    def set_DatasetDOI(self, DatasetDOI):
+        self.DatasetDOI = DatasetDOI
+    def validate_DatasetTypeType(self, value):
+        # Validate type DatasetTypeType, a restriction on string.
+        if value is not None and Validate_simpletypes_ and self.gds_collector_ is not None:
+            if not isinstance(value, str):
+                lineno = self.gds_get_node_lineno_()
+                self.gds_collector_.add_message('Value "%(value)s"%(lineno)s is not of the correct base simple type (str)' % {"value": value, "lineno": lineno, })
+                return False
+            value = value
+            enumerations = ['raw', 'derivative']
+            if value not in enumerations:
+                lineno = self.gds_get_node_lineno_()
+                self.gds_collector_.add_message('Value "%(value)s"%(lineno)s does not match xsd enumeration restriction on DatasetTypeType' % {"value" : encode_str_2_3(value), "lineno": lineno} )
+                result = False
     def _hasContent(self):
         if (
+            self.Authors or
+            self.Funding or
+            self.EthicsApprovals or
+            self.ReferencesAndLinks or
             super(DatasetDescriptionFile, self)._hasContent()
         ):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DatasetDescriptionFile', pretty_print=True):
+    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='DatasetDescriptionFile', pretty_print=True):
         imported_ns_def_ = GenerateDSNamespaceDefs_.get('DatasetDescriptionFile')
         if imported_ns_def_ is not None:
             namespacedef_ = imported_ns_def_
@@ -1363,20 +1505,78 @@ class DatasetDescriptionFile(JsonObject):
             outfile.write('/>%s' % (eol_, ))
     def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='DatasetDescriptionFile'):
         super(DatasetDescriptionFile, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DatasetDescriptionFile')
-        if self.BIDSVersion is not None and 'BIDSVersion' not in already_processed:
-            already_processed.add('BIDSVersion')
-            outfile.write(' BIDSVersion=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.BIDSVersion), input_name='BIDSVersion')), ))
         if self.Name is not None and 'Name' not in already_processed:
             already_processed.add('Name')
             outfile.write(' Name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.Name), input_name='Name')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DatasetDescriptionFile', fromsubclass_=False, pretty_print=True):
+        if self.BIDSVersion is not None and 'BIDSVersion' not in already_processed:
+            already_processed.add('BIDSVersion')
+            outfile.write(' BIDSVersion=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.BIDSVersion), input_name='BIDSVersion')), ))
+        if self.HEDVersion is not None and 'HEDVersion' not in already_processed:
+            already_processed.add('HEDVersion')
+            outfile.write(' HEDVersion=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.HEDVersion), input_name='HEDVersion')), ))
+        if self.DatasetType is not None and 'DatasetType' not in already_processed:
+            already_processed.add('DatasetType')
+            outfile.write(' DatasetType=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.DatasetType), input_name='DatasetType')), ))
+        if self.License is not None and 'License' not in already_processed:
+            already_processed.add('License')
+            outfile.write(' License=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.License), input_name='License')), ))
+        if self.Acknowledgements is not None and 'Acknowledgements' not in already_processed:
+            already_processed.add('Acknowledgements')
+            outfile.write(' Acknowledgements=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.Acknowledgements), input_name='Acknowledgements')), ))
+        if self.HowToAcknowledge is not None and 'HowToAcknowledge' not in already_processed:
+            already_processed.add('HowToAcknowledge')
+            outfile.write(' HowToAcknowledge=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.HowToAcknowledge), input_name='HowToAcknowledge')), ))
+        if self.DatasetDOI is not None and 'DatasetDOI' not in already_processed:
+            already_processed.add('DatasetDOI')
+            outfile.write(' DatasetDOI=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.DatasetDOI), input_name='DatasetDOI')), ))
+    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='DatasetDescriptionFile', fromsubclass_=False, pretty_print=True):
         super(DatasetDescriptionFile, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
+        if pretty_print:
+            eol_ = '\n'
+        else:
+            eol_ = ''
+        for Authors_ in self.Authors:
+            namespaceprefix_ = self.Authors_nsprefix_ + ':' if (UseCapturedNS_ and self.Authors_nsprefix_) else ''
+            showIndent(outfile, level, pretty_print)
+            outfile.write('<%sAuthors>%s</%sAuthors>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(Authors_), input_name='Authors')), namespaceprefix_ , eol_))
+        for Funding_ in self.Funding:
+            namespaceprefix_ = self.Funding_nsprefix_ + ':' if (UseCapturedNS_ and self.Funding_nsprefix_) else ''
+            showIndent(outfile, level, pretty_print)
+            outfile.write('<%sFunding>%s</%sFunding>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(Funding_), input_name='Funding')), namespaceprefix_ , eol_))
+        for EthicsApprovals_ in self.EthicsApprovals:
+            namespaceprefix_ = self.EthicsApprovals_nsprefix_ + ':' if (UseCapturedNS_ and self.EthicsApprovals_nsprefix_) else ''
+            showIndent(outfile, level, pretty_print)
+            outfile.write('<%sEthicsApprovals>%s</%sEthicsApprovals>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(EthicsApprovals_), input_name='EthicsApprovals')), namespaceprefix_ , eol_))
+        for ReferencesAndLinks_ in self.ReferencesAndLinks:
+            namespaceprefix_ = self.ReferencesAndLinks_nsprefix_ + ':' if (UseCapturedNS_ and self.ReferencesAndLinks_nsprefix_) else ''
+            showIndent(outfile, level, pretty_print)
+            outfile.write('<%sReferencesAndLinks>%s</%sReferencesAndLinks>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(ReferencesAndLinks_), input_name='ReferencesAndLinks')), namespaceprefix_ , eol_))
     def to_etree(self, parent_element=None, name_='DatasetDescriptionFile', mapping_=None, nsmap_=None):
         element = super(DatasetDescriptionFile, self).to_etree(parent_element, name_, mapping_, nsmap_)
-        if self.BIDSVersion is not None:
-            element.set('BIDSVersion', self.gds_format_string(self.BIDSVersion))
         if self.Name is not None:
             element.set('Name', self.gds_format_string(self.Name))
+        if self.BIDSVersion is not None:
+            element.set('BIDSVersion', self.gds_format_string(self.BIDSVersion))
+        if self.HEDVersion is not None:
+            element.set('HEDVersion', self.gds_format_string(self.HEDVersion))
+        if self.DatasetType is not None:
+            element.set('DatasetType', self.gds_format_string(self.DatasetType))
+        if self.License is not None:
+            element.set('License', self.gds_format_string(self.License))
+        if self.Acknowledgements is not None:
+            element.set('Acknowledgements', self.gds_format_string(self.Acknowledgements))
+        if self.HowToAcknowledge is not None:
+            element.set('HowToAcknowledge', self.gds_format_string(self.HowToAcknowledge))
+        if self.DatasetDOI is not None:
+            element.set('DatasetDOI', self.gds_format_string(self.DatasetDOI))
+        for Authors_ in self.Authors:
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}Authors').text = self.gds_format_string(Authors_)
+        for Funding_ in self.Funding:
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}Funding').text = self.gds_format_string(Funding_)
+        for EthicsApprovals_ in self.EthicsApprovals:
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}EthicsApprovals').text = self.gds_format_string(EthicsApprovals_)
+        for ReferencesAndLinks_ in self.ReferencesAndLinks:
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}ReferencesAndLinks').text = self.gds_format_string(ReferencesAndLinks_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
@@ -1384,11 +1584,35 @@ class DatasetDescriptionFile(JsonObject):
         self.gds_collector_ = gds_collector
         message_count = len(self.gds_collector_.get_messages())
         # validate simple type attributes
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.BIDSVersion, 'BIDSVersion')
-        self.gds_check_cardinality_(self.BIDSVersion, 'BIDSVersion', required=True)
         self.gds_validate_builtin_ST_(self.gds_validate_string, self.Name, 'Name')
         self.gds_check_cardinality_(self.Name, 'Name', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.BIDSVersion, 'BIDSVersion')
+        self.gds_check_cardinality_(self.BIDSVersion, 'BIDSVersion', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.HEDVersion, 'HEDVersion')
+        self.gds_check_cardinality_(self.HEDVersion, 'HEDVersion', required=False)
+        self.gds_validate_defined_ST_(self.validate_DatasetTypeType, self.DatasetType, 'DatasetType')
+        self.gds_check_cardinality_(self.DatasetType, 'DatasetType', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.License, 'License')
+        self.gds_check_cardinality_(self.License, 'License', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.Acknowledgements, 'Acknowledgements')
+        self.gds_check_cardinality_(self.Acknowledgements, 'Acknowledgements', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.HowToAcknowledge, 'HowToAcknowledge')
+        self.gds_check_cardinality_(self.HowToAcknowledge, 'HowToAcknowledge', required=False)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.DatasetDOI, 'DatasetDOI')
+        self.gds_check_cardinality_(self.DatasetDOI, 'DatasetDOI', required=False)
         # validate simple type children
+        for item in self.Authors:
+            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'Authors')
+        self.gds_check_cardinality_(self.Authors, 'Authors', min_occurs=0, max_occurs=9999999)
+        for item in self.Funding:
+            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'Funding')
+        self.gds_check_cardinality_(self.Funding, 'Funding', min_occurs=0, max_occurs=9999999)
+        for item in self.EthicsApprovals:
+            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'EthicsApprovals')
+        self.gds_check_cardinality_(self.EthicsApprovals, 'EthicsApprovals', min_occurs=0, max_occurs=9999999)
+        for item in self.ReferencesAndLinks:
+            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'ReferencesAndLinks')
+        self.gds_check_cardinality_(self.ReferencesAndLinks, 'ReferencesAndLinks', min_occurs=0, max_occurs=9999999)
         # validate complex type children
         if recursive:
             pass
@@ -1405,18 +1629,66 @@ class DatasetDescriptionFile(JsonObject):
             self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
         return self
     def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('BIDSVersion', node)
-        if value is not None and 'BIDSVersion' not in already_processed:
-            already_processed.add('BIDSVersion')
-            self.BIDSVersion = value
         value = find_attr_value_('Name', node)
         if value is not None and 'Name' not in already_processed:
             already_processed.add('Name')
             self.Name = value
+        value = find_attr_value_('BIDSVersion', node)
+        if value is not None and 'BIDSVersion' not in already_processed:
+            already_processed.add('BIDSVersion')
+            self.BIDSVersion = value
+        value = find_attr_value_('HEDVersion', node)
+        if value is not None and 'HEDVersion' not in already_processed:
+            already_processed.add('HEDVersion')
+            self.HEDVersion = value
+        value = find_attr_value_('DatasetType', node)
+        if value is not None and 'DatasetType' not in already_processed:
+            already_processed.add('DatasetType')
+            self.DatasetType = value
+            self.validate_DatasetTypeType(self.DatasetType)    # validate type DatasetTypeType
+        value = find_attr_value_('License', node)
+        if value is not None and 'License' not in already_processed:
+            already_processed.add('License')
+            self.License = value
+        value = find_attr_value_('Acknowledgements', node)
+        if value is not None and 'Acknowledgements' not in already_processed:
+            already_processed.add('Acknowledgements')
+            self.Acknowledgements = value
+        value = find_attr_value_('HowToAcknowledge', node)
+        if value is not None and 'HowToAcknowledge' not in already_processed:
+            already_processed.add('HowToAcknowledge')
+            self.HowToAcknowledge = value
+        value = find_attr_value_('DatasetDOI', node)
+        if value is not None and 'DatasetDOI' not in already_processed:
+            already_processed.add('DatasetDOI')
+            self.DatasetDOI = value
         super(DatasetDescriptionFile, self)._buildAttributes(node, attrs, already_processed)
     def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
+        if nodeName_ == 'Authors':
+            value_ = child_.text
+            value_ = self.gds_parse_string(value_, node, 'Authors')
+            value_ = self.gds_validate_string(value_, node, 'Authors')
+            self.Authors.append(value_)
+            self.Authors_nsprefix_ = child_.prefix
+        elif nodeName_ == 'Funding':
+            value_ = child_.text
+            value_ = self.gds_parse_string(value_, node, 'Funding')
+            value_ = self.gds_validate_string(value_, node, 'Funding')
+            self.Funding.append(value_)
+            self.Funding_nsprefix_ = child_.prefix
+        elif nodeName_ == 'EthicsApprovals':
+            value_ = child_.text
+            value_ = self.gds_parse_string(value_, node, 'EthicsApprovals')
+            value_ = self.gds_validate_string(value_, node, 'EthicsApprovals')
+            self.EthicsApprovals.append(value_)
+            self.EthicsApprovals_nsprefix_ = child_.prefix
+        elif nodeName_ == 'ReferencesAndLinks':
+            value_ = child_.text
+            value_ = self.gds_parse_string(value_, node, 'ReferencesAndLinks')
+            value_ = self.gds_validate_string(value_, node, 'ReferencesAndLinks')
+            self.ReferencesAndLinks.append(value_)
+            self.ReferencesAndLinks_nsprefix_ = child_.prefix
         super(DatasetDescriptionFile, self)._buildChildren(child_, node, nodeName_, True)
-        pass
 # end class DatasetDescriptionFile
 
 
@@ -1424,12 +1696,13 @@ class Property(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
         'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required'}),
-        'value': MemberSpec_('value', 'string', 0, 1, {'use': 'optional'}),
-        'object': MemberSpec_('object', 'JsonObject', 0, 0, {'name': 'object', 'type': 'JsonObject'}, None),
+        'value_single': MemberSpec_('value_single', 'anySimpleType', 0, 0, {'name': 'value_single', 'type': 'anySimpleType'}, 2),
+        'value_multi': MemberSpec_('value_multi', 'anySimpleType', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'value_multi', 'type': 'anySimpleType'}, 2),
+        'value_obj': MemberSpec_('value_obj', 'JsonObject', 0, 0, {'name': 'value_obj', 'type': 'JsonObject'}, 2),
     }
     subclass = None
     superclass = None
-    def __init__(self, key=None, value=None, object=None, gds_collector_=None, **kwargs_):
+    def __init__(self, key=None, value_single=None, value_multi=None, value_obj=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -1437,10 +1710,15 @@ class Property(GeneratedsSuper):
         self.ns_prefix_ = None
         self.key = _cast(None, key)
         self.key_nsprefix_ = None
-        self.value = _cast(None, value)
-        self.value_nsprefix_ = None
-        self.object = object
-        self.object_nsprefix_ = None
+        self.value_single = value_single
+        self.value_single_nsprefix_ = None
+        if value_multi is None:
+            self.value_multi = []
+        else:
+            self.value_multi = value_multi
+        self.value_multi_nsprefix_ = None
+        self.value_obj = value_obj
+        self.value_obj_nsprefix_ = None
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -1456,26 +1734,38 @@ class Property(GeneratedsSuper):
         return self.ns_prefix_
     def set_ns_prefix_(self, ns_prefix):
         self.ns_prefix_ = ns_prefix
-    def get_object(self):
-        return self.object
-    def set_object(self, object):
-        self.object = object
+    def get_value_single(self):
+        return self.value_single
+    def set_value_single(self, value_single):
+        self.value_single = value_single
+    def get_value_multi(self):
+        return self.value_multi
+    def set_value_multi(self, value_multi):
+        self.value_multi = value_multi
+    def add_value_multi(self, value):
+        self.value_multi.append(value)
+    def insert_value_multi_at(self, index, value):
+        self.value_multi.insert(index, value)
+    def replace_value_multi_at(self, index, value):
+        self.value_multi[index] = value
+    def get_value_obj(self):
+        return self.value_obj
+    def set_value_obj(self, value_obj):
+        self.value_obj = value_obj
     def get_key(self):
         return self.key
     def set_key(self, key):
         self.key = key
-    def get_value(self):
-        return self.value
-    def set_value(self, value):
-        self.value = value
     def _hasContent(self):
         if (
-            self.object is not None
+            self.value_single is not None or
+            self.value_multi or
+            self.value_obj is not None
         ):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Property', pretty_print=True):
+    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='Property', pretty_print=True):
         imported_ns_def_ = GenerateDSNamespaceDefs_.get('Property')
         if imported_ns_def_ is not None:
             namespacedef_ = imported_ns_def_
@@ -1502,17 +1792,20 @@ class Property(GeneratedsSuper):
         if self.key is not None and 'key' not in already_processed:
             already_processed.add('key')
             outfile.write(' key=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.key), input_name='key')), ))
-        if self.value is not None and 'value' not in already_processed:
-            already_processed.add('value')
-            outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Property', fromsubclass_=False, pretty_print=True):
+    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='Property', fromsubclass_=False, pretty_print=True):
         if pretty_print:
             eol_ = '\n'
         else:
             eol_ = ''
-        if self.object is not None:
-            namespaceprefix_ = self.object_nsprefix_ + ':' if (UseCapturedNS_ and self.object_nsprefix_) else ''
-            self.object.export(outfile, level, namespaceprefix_, namespacedef_='', name_='object', pretty_print=pretty_print)
+        if self.value_single is not None:
+            namespaceprefix_ = self.value_single_nsprefix_ + ':' if (UseCapturedNS_ and self.value_single_nsprefix_) else ''
+            self.value_single.export(outfile, level, namespaceprefix_, namespacedef_='', name_='value_single', pretty_print=pretty_print)
+        for value_multi_ in self.value_multi:
+            namespaceprefix_ = self.value_multi_nsprefix_ + ':' if (UseCapturedNS_ and self.value_multi_nsprefix_) else ''
+            value_multi_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='value_multi', pretty_print=pretty_print)
+        if self.value_obj is not None:
+            namespaceprefix_ = self.value_obj_nsprefix_ + ':' if (UseCapturedNS_ and self.value_obj_nsprefix_) else ''
+            self.value_obj.export(outfile, level, namespaceprefix_, namespacedef_='', name_='value_obj', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='Property', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -1520,11 +1813,14 @@ class Property(GeneratedsSuper):
             element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
         if self.key is not None:
             element.set('key', self.gds_format_string(self.key))
-        if self.value is not None:
-            element.set('value', self.gds_format_string(self.value))
-        if self.object is not None:
-            object_ = self.object
-            object_.to_etree(element, name_='object', mapping_=mapping_, nsmap_=nsmap_)
+        if self.value_single is not None:
+            value_single_ = self.value_single
+            value_single_.to_etree(element, name_='value_single', mapping_=mapping_, nsmap_=nsmap_)
+        for value_multi_ in self.value_multi:
+            value_multi_.to_etree(element, name_='value_multi', mapping_=mapping_, nsmap_=nsmap_)
+        if self.value_obj is not None:
+            value_obj_ = self.value_obj
+            value_obj_.to_etree(element, name_='value_obj', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         return element
@@ -1534,14 +1830,13 @@ class Property(GeneratedsSuper):
         # validate simple type attributes
         self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
         self.gds_check_cardinality_(self.key, 'key', required=True)
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.value, 'value')
-        self.gds_check_cardinality_(self.value, 'value', required=False)
         # validate simple type children
         # validate complex type children
-        self.gds_check_cardinality_(self.object, 'object', min_occurs=1, max_occurs=1)
+        # cardinality check omitted for choice item value_obj
+        #self.gds_check_cardinality_(self.value_obj, 'value_obj', min_occurs=1, max_occurs=1)
         if recursive:
-            if self.object is not None:
-                self.object.validate_(gds_collector, recursive=True)
+            if self.value_obj is not None:
+                self.value_obj.validate_(gds_collector, recursive=True)
         return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -1559,17 +1854,23 @@ class Property(GeneratedsSuper):
         if value is not None and 'key' not in already_processed:
             already_processed.add('key')
             self.key = value
-        value = find_attr_value_('value', node)
-        if value is not None and 'value' not in already_processed:
-            already_processed.add('value')
-            self.value = value
     def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'object':
+        if nodeName_ == 'value_single':
+            obj_ = anySimpleType.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.value_single = obj_
+            obj_.original_tagname_ = 'value_single'
+        elif nodeName_ == 'value_multi':
+            obj_ = anySimpleType.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.value_multi.append(obj_)
+            obj_.original_tagname_ = 'value_multi'
+        elif nodeName_ == 'value_obj':
             class_obj_ = self.get_class_obj_(child_, JsonObject)
             obj_ = class_obj_.factory(parent_object_=self)
             obj_.build(child_, gds_collector_=gds_collector_)
-            self.object = obj_
-            obj_.original_tagname_ = 'object'
+            self.value_obj = obj_
+            obj_.original_tagname_ = 'value_obj'
 # end class Property
 
 

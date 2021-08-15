@@ -3,11 +3,6 @@ import bids
 
 
 class QueryTestCase(BaseTestCase):
-    def test_deserialization(self):
-        ds = bids.model.parse(RESOURCES_FOLDER + "/bids.xml")
-        root = ds.to_etree()
-        pass
-
     def test_bidslayout(self):
         layout = bids.BIDSLayout(DS005_DIR)
 
