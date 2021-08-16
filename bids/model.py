@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Sun Aug 15 17:21:50 2021 by generateDS.py version 2.39.2.
+# Generated Mon Aug 16 23:03:57 2021 by generateDS.py version 2.39.2.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
 #   ('-f', '')
-#   ('--export', 'write etree validate')
+#   ('--export', 'etree validate')
 #   ('--member-specs', 'dict')
 #   ('--always-export-default', '')
 #   ('-o', '../bids/model.py')
@@ -16,7 +16,7 @@
 #   ../schema/bids.xsd
 #
 # Command line:
-#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="write etree validate" --member-specs="dict" --always-export-default -o "../bids/model.py" ../schema/bids.xsd
+#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../bids/model.py" ../schema/bids.xsd
 #
 # Current working directory (os.getcwd()):
 #   tools
@@ -977,17 +977,11 @@ def _cast(typ, value):
 
 
 class DatasetTypeType(str, Enum):
-    """DatasetTypeType --
-    Usage: recommended
+    """DatasetTypeType -- @use: recommended
     
     """
     RAW='raw'
     DERIVATIVE='derivative'
-
-
-class JsonOrTsvAllowedExtension(str, Enum):
-    TSV='.tsv'
-    JSON='.json'
 
 
 class File(GeneratedsSuper):
@@ -1048,48 +1042,6 @@ class File(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='File', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('File')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'File':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='File')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='File', pretty_print=pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='File'):
-        if self.name is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            outfile.write(' name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.name), input_name='name')), ))
-        if self.extension is not None and 'extension' not in already_processed:
-            already_processed.add('extension')
-            outfile.write(' extension=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.extension), input_name='extension')), ))
-        if self.uri is not None and 'uri' not in already_processed:
-            already_processed.add('uri')
-            outfile.write(' uri=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.uri), input_name='uri')), ))
-        if self.extensiontype_ is not None and 'xsi:type' not in already_processed:
-            already_processed.add('xsi:type')
-            outfile.write(' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"')
-            if ":" not in self.extensiontype_:
-                imported_ns_type_prefix_ = GenerateDSNamespaceTypePrefixes_.get(self.extensiontype_, '')
-                outfile.write(' xsi:type="%s%s"' % (imported_ns_type_prefix_, self.extensiontype_))
-            else:
-                outfile.write(' xsi:type="%s"' % self.extensiontype_)
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='File', fromsubclass_=False, pretty_print=True):
-        pass
     def to_etree(self, parent_element=None, name_='File', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -1104,7 +1056,7 @@ class File(GeneratedsSuper):
         if self.uri is not None:
             element.set('uri', self.gds_format_string(self.uri))
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -1154,167 +1106,13 @@ class File(GeneratedsSuper):
 # end class File
 
 
-class JsonObject(File):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'properties': MemberSpec_('properties', 'Property', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'properties', 'type': 'Property'}, None),
-    }
-    subclass = None
-    superclass = File
-    def __init__(self, name=None, extension=None, uri=None, properties=None, extensiontype_=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        super(globals().get("JsonObject"), self).__init__(name, extension, uri, extensiontype_,  **kwargs_)
-        if properties is None:
-            self.properties = []
-        else:
-            self.properties = properties
-        self.properties_nsprefix_ = None
-        self.extensiontype_ = extensiontype_
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, JsonObject)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if JsonObject.subclass:
-            return JsonObject.subclass(*args_, **kwargs_)
-        else:
-            return JsonObject(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_properties(self):
-        return self.properties
-    def set_properties(self, properties):
-        self.properties = properties
-    def add_properties(self, value):
-        self.properties.append(value)
-    def insert_properties_at(self, index, value):
-        self.properties.insert(index, value)
-    def replace_properties_at(self, index, value):
-        self.properties[index] = value
-    def get_extensiontype_(self): return self.extensiontype_
-    def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
-    def _hasContent(self):
-        if (
-            self.properties or
-            super(JsonObject, self)._hasContent()
-        ):
-            return True
-        else:
-            return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='JsonObject', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('JsonObject')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'JsonObject':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='JsonObject')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='JsonObject', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='JsonObject'):
-        super(JsonObject, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='JsonObject')
-        if self.extensiontype_ is not None and 'xsi:type' not in already_processed:
-            already_processed.add('xsi:type')
-            outfile.write(' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"')
-            if ":" not in self.extensiontype_:
-                imported_ns_type_prefix_ = GenerateDSNamespaceTypePrefixes_.get(self.extensiontype_, '')
-                outfile.write(' xsi:type="%s%s"' % (imported_ns_type_prefix_, self.extensiontype_))
-            else:
-                outfile.write(' xsi:type="%s"' % self.extensiontype_)
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='JsonObject', fromsubclass_=False, pretty_print=True):
-        super(JsonObject, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for properties_ in self.properties:
-            namespaceprefix_ = self.properties_nsprefix_ + ':' if (UseCapturedNS_ and self.properties_nsprefix_) else ''
-            properties_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='properties', pretty_print=pretty_print)
-    def to_etree(self, parent_element=None, name_='JsonObject', mapping_=None, nsmap_=None):
-        element = super(JsonObject, self).to_etree(parent_element, name_, mapping_, nsmap_)
-        if self.extensiontype_ is not None:
-            element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
-        for properties_ in self.properties:
-            properties_.to_etree(element, name_='properties', mapping_=mapping_, nsmap_=nsmap_)
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        # validate simple type children
-        # validate complex type children
-        self.gds_check_cardinality_(self.properties, 'properties', min_occurs=0, max_occurs=9999999)
-        if recursive:
-            for item in self.properties:
-                item.validate_(gds_collector, recursive=True)
-        return message_count == len(self.gds_collector_.get_messages())
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('xsi:type', node)
-        if value is not None and 'xsi:type' not in already_processed:
-            already_processed.add('xsi:type')
-            self.extensiontype_ = value
-        super(JsonObject, self)._buildAttributes(node, attrs, already_processed)
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'properties':
-            obj_ = Property.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.properties.append(obj_)
-            obj_.original_tagname_ = 'properties'
-        super(JsonObject, self)._buildChildren(child_, node, nodeName_, True)
-# end class JsonObject
-
-
-class DatasetDescriptionFile(JsonObject):
-    """HEDVersion --
-    Usage: recommended
-      
-    * DatasetType --
-      Usage: recommended
-      
-    * License --
-      Usage: recommended
-    
-    """
+class DatasetDescriptionFile(File):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
         'Name': MemberSpec_('Name', 'string', 0, 0, {'use': 'required'}),
         'BIDSVersion': MemberSpec_('BIDSVersion', 'string', 0, 0, {'use': 'required'}),
         'HEDVersion': MemberSpec_('HEDVersion', 'string', 0, 1, {'use': 'optional'}),
-        'DatasetType': MemberSpec_('DatasetType', 'DatasetTypeType', 0, 0, {'use': 'prohibited'}),
+        'DatasetType': MemberSpec_('DatasetType', 'DatasetTypeType', 0, 1, {'use': 'optional'}),
         'License': MemberSpec_('License', 'string', 0, 1, {'use': 'optional'}),
         'Acknowledgements': MemberSpec_('Acknowledgements', 'string', 0, 1, {'use': 'optional'}),
         'HowToAcknowledge': MemberSpec_('HowToAcknowledge', 'string', 0, 1, {'use': 'optional'}),
@@ -1325,14 +1123,14 @@ class DatasetDescriptionFile(JsonObject):
         'ReferencesAndLinks': MemberSpec_('ReferencesAndLinks', 'string', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'ReferencesAndLinks', 'type': 'string'}, None),
     }
     subclass = None
-    superclass = JsonObject
-    def __init__(self, name=None, extension=None, uri=None, properties=None, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType='raw', License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=None, Funding=None, EthicsApprovals=None, ReferencesAndLinks=None, gds_collector_=None, **kwargs_):
+    superclass = File
+    def __init__(self, name=None, extension=None, uri=None, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType='raw', License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=None, Funding=None, EthicsApprovals=None, ReferencesAndLinks=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
-        super(globals().get("DatasetDescriptionFile"), self).__init__(name, extension, uri, properties,  **kwargs_)
+        super(globals().get("DatasetDescriptionFile"), self).__init__(name, extension, uri,  **kwargs_)
         self.Name = _cast(None, Name)
         self.Name_nsprefix_ = None
         self.BIDSVersion = _cast(None, BIDSVersion)
@@ -1480,77 +1278,6 @@ class DatasetDescriptionFile(JsonObject):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='DatasetDescriptionFile', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('DatasetDescriptionFile')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'DatasetDescriptionFile':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DatasetDescriptionFile')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DatasetDescriptionFile', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='DatasetDescriptionFile'):
-        super(DatasetDescriptionFile, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DatasetDescriptionFile')
-        if self.Name is not None and 'Name' not in already_processed:
-            already_processed.add('Name')
-            outfile.write(' Name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.Name), input_name='Name')), ))
-        if self.BIDSVersion is not None and 'BIDSVersion' not in already_processed:
-            already_processed.add('BIDSVersion')
-            outfile.write(' BIDSVersion=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.BIDSVersion), input_name='BIDSVersion')), ))
-        if self.HEDVersion is not None and 'HEDVersion' not in already_processed:
-            already_processed.add('HEDVersion')
-            outfile.write(' HEDVersion=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.HEDVersion), input_name='HEDVersion')), ))
-        if self.DatasetType is not None and 'DatasetType' not in already_processed:
-            already_processed.add('DatasetType')
-            outfile.write(' DatasetType=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.DatasetType), input_name='DatasetType')), ))
-        if self.License is not None and 'License' not in already_processed:
-            already_processed.add('License')
-            outfile.write(' License=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.License), input_name='License')), ))
-        if self.Acknowledgements is not None and 'Acknowledgements' not in already_processed:
-            already_processed.add('Acknowledgements')
-            outfile.write(' Acknowledgements=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.Acknowledgements), input_name='Acknowledgements')), ))
-        if self.HowToAcknowledge is not None and 'HowToAcknowledge' not in already_processed:
-            already_processed.add('HowToAcknowledge')
-            outfile.write(' HowToAcknowledge=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.HowToAcknowledge), input_name='HowToAcknowledge')), ))
-        if self.DatasetDOI is not None and 'DatasetDOI' not in already_processed:
-            already_processed.add('DatasetDOI')
-            outfile.write(' DatasetDOI=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.DatasetDOI), input_name='DatasetDOI')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='DatasetDescriptionFile', fromsubclass_=False, pretty_print=True):
-        super(DatasetDescriptionFile, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for Authors_ in self.Authors:
-            namespaceprefix_ = self.Authors_nsprefix_ + ':' if (UseCapturedNS_ and self.Authors_nsprefix_) else ''
-            showIndent(outfile, level, pretty_print)
-            outfile.write('<%sAuthors>%s</%sAuthors>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(Authors_), input_name='Authors')), namespaceprefix_ , eol_))
-        for Funding_ in self.Funding:
-            namespaceprefix_ = self.Funding_nsprefix_ + ':' if (UseCapturedNS_ and self.Funding_nsprefix_) else ''
-            showIndent(outfile, level, pretty_print)
-            outfile.write('<%sFunding>%s</%sFunding>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(Funding_), input_name='Funding')), namespaceprefix_ , eol_))
-        for EthicsApprovals_ in self.EthicsApprovals:
-            namespaceprefix_ = self.EthicsApprovals_nsprefix_ + ':' if (UseCapturedNS_ and self.EthicsApprovals_nsprefix_) else ''
-            showIndent(outfile, level, pretty_print)
-            outfile.write('<%sEthicsApprovals>%s</%sEthicsApprovals>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(EthicsApprovals_), input_name='EthicsApprovals')), namespaceprefix_ , eol_))
-        for ReferencesAndLinks_ in self.ReferencesAndLinks:
-            namespaceprefix_ = self.ReferencesAndLinks_nsprefix_ + ':' if (UseCapturedNS_ and self.ReferencesAndLinks_nsprefix_) else ''
-            showIndent(outfile, level, pretty_print)
-            outfile.write('<%sReferencesAndLinks>%s</%sReferencesAndLinks>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(ReferencesAndLinks_), input_name='ReferencesAndLinks')), namespaceprefix_ , eol_))
     def to_etree(self, parent_element=None, name_='DatasetDescriptionFile', mapping_=None, nsmap_=None):
         element = super(DatasetDescriptionFile, self).to_etree(parent_element, name_, mapping_, nsmap_)
         if self.Name is not None:
@@ -1578,7 +1305,7 @@ class DatasetDescriptionFile(JsonObject):
         for ReferencesAndLinks_ in self.ReferencesAndLinks:
             etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}ReferencesAndLinks').text = self.gds_format_string(ReferencesAndLinks_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -1692,188 +1419,6 @@ class DatasetDescriptionFile(JsonObject):
 # end class DatasetDescriptionFile
 
 
-class Property(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required'}),
-        'value_single': MemberSpec_('value_single', 'anySimpleType', 0, 0, {'name': 'value_single', 'type': 'anySimpleType'}, 2),
-        'value_multi': MemberSpec_('value_multi', 'anySimpleType', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'value_multi', 'type': 'anySimpleType'}, 2),
-        'value_obj': MemberSpec_('value_obj', 'JsonObject', 0, 0, {'name': 'value_obj', 'type': 'JsonObject'}, 2),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, key=None, value_single=None, value_multi=None, value_obj=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        self.key = _cast(None, key)
-        self.key_nsprefix_ = None
-        self.value_single = value_single
-        self.value_single_nsprefix_ = None
-        if value_multi is None:
-            self.value_multi = []
-        else:
-            self.value_multi = value_multi
-        self.value_multi_nsprefix_ = None
-        self.value_obj = value_obj
-        self.value_obj_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, Property)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if Property.subclass:
-            return Property.subclass(*args_, **kwargs_)
-        else:
-            return Property(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_value_single(self):
-        return self.value_single
-    def set_value_single(self, value_single):
-        self.value_single = value_single
-    def get_value_multi(self):
-        return self.value_multi
-    def set_value_multi(self, value_multi):
-        self.value_multi = value_multi
-    def add_value_multi(self, value):
-        self.value_multi.append(value)
-    def insert_value_multi_at(self, index, value):
-        self.value_multi.insert(index, value)
-    def replace_value_multi_at(self, index, value):
-        self.value_multi[index] = value
-    def get_value_obj(self):
-        return self.value_obj
-    def set_value_obj(self, value_obj):
-        self.value_obj = value_obj
-    def get_key(self):
-        return self.key
-    def set_key(self, key):
-        self.key = key
-    def _hasContent(self):
-        if (
-            self.value_single is not None or
-            self.value_multi or
-            self.value_obj is not None
-        ):
-            return True
-        else:
-            return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='Property', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Property')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Property':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Property')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Property', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Property'):
-        if self.key is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            outfile.write(' key=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.key), input_name='key')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='Property', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.value_single is not None:
-            namespaceprefix_ = self.value_single_nsprefix_ + ':' if (UseCapturedNS_ and self.value_single_nsprefix_) else ''
-            self.value_single.export(outfile, level, namespaceprefix_, namespacedef_='', name_='value_single', pretty_print=pretty_print)
-        for value_multi_ in self.value_multi:
-            namespaceprefix_ = self.value_multi_nsprefix_ + ':' if (UseCapturedNS_ and self.value_multi_nsprefix_) else ''
-            value_multi_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='value_multi', pretty_print=pretty_print)
-        if self.value_obj is not None:
-            namespaceprefix_ = self.value_obj_nsprefix_ + ':' if (UseCapturedNS_ and self.value_obj_nsprefix_) else ''
-            self.value_obj.export(outfile, level, namespaceprefix_, namespacedef_='', name_='value_obj', pretty_print=pretty_print)
-    def to_etree(self, parent_element=None, name_='Property', mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
-        if self.key is not None:
-            element.set('key', self.gds_format_string(self.key))
-        if self.value_single is not None:
-            value_single_ = self.value_single
-            value_single_.to_etree(element, name_='value_single', mapping_=mapping_, nsmap_=nsmap_)
-        for value_multi_ in self.value_multi:
-            value_multi_.to_etree(element, name_='value_multi', mapping_=mapping_, nsmap_=nsmap_)
-        if self.value_obj is not None:
-            value_obj_ = self.value_obj
-            value_obj_.to_etree(element, name_='value_obj', mapping_=mapping_, nsmap_=nsmap_)
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
-        self.gds_check_cardinality_(self.key, 'key', required=True)
-        # validate simple type children
-        # validate complex type children
-        # cardinality check omitted for choice item value_obj
-        #self.gds_check_cardinality_(self.value_obj, 'value_obj', min_occurs=1, max_occurs=1)
-        if recursive:
-            if self.value_obj is not None:
-                self.value_obj.validate_(gds_collector, recursive=True)
-        return message_count == len(self.gds_collector_.get_messages())
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('key', node)
-        if value is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            self.key = value
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'value_single':
-            obj_ = anySimpleType.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.value_single = obj_
-            obj_.original_tagname_ = 'value_single'
-        elif nodeName_ == 'value_multi':
-            obj_ = anySimpleType.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.value_multi.append(obj_)
-            obj_.original_tagname_ = 'value_multi'
-        elif nodeName_ == 'value_obj':
-            class_obj_ = self.get_class_obj_(child_, JsonObject)
-            obj_ = class_obj_.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.value_obj = obj_
-            obj_.original_tagname_ = 'value_obj'
-# end class Property
-
-
 class Folder(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
@@ -1951,52 +1496,6 @@ class Folder(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Folder', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Folder')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Folder':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Folder')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Folder', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Folder'):
-        if self.name is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            outfile.write(' name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.name), input_name='name')), ))
-        if self.extensiontype_ is not None and 'xsi:type' not in already_processed:
-            already_processed.add('xsi:type')
-            outfile.write(' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"')
-            if ":" not in self.extensiontype_:
-                imported_ns_type_prefix_ = GenerateDSNamespaceTypePrefixes_.get(self.extensiontype_, '')
-                outfile.write(' xsi:type="%s%s"' % (imported_ns_type_prefix_, self.extensiontype_))
-            else:
-                outfile.write(' xsi:type="%s"' % self.extensiontype_)
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Folder', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for files_ in self.files:
-            namespaceprefix_ = self.files_nsprefix_ + ':' if (UseCapturedNS_ and self.files_nsprefix_) else ''
-            files_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='files', pretty_print=pretty_print)
-        for folders_ in self.folders:
-            namespaceprefix_ = self.folders_nsprefix_ + ':' if (UseCapturedNS_ and self.folders_nsprefix_) else ''
-            folders_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='folders', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='Folder', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -2011,7 +1510,7 @@ class Folder(GeneratedsSuper):
         for folders_ in self.folders:
             folders_.to_etree(element, name_='folders', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2117,46 +1616,12 @@ class DatatypeFolder(Folder):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DatatypeFolder', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('DatatypeFolder')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'DatatypeFolder':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DatatypeFolder')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DatatypeFolder', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='DatatypeFolder'):
-        super(DatatypeFolder, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DatatypeFolder')
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DatatypeFolder', fromsubclass_=False, pretty_print=True):
-        super(DatatypeFolder, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for artifacts_ in self.artifacts:
-            namespaceprefix_ = self.artifacts_nsprefix_ + ':' if (UseCapturedNS_ and self.artifacts_nsprefix_) else ''
-            artifacts_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='artifacts', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='DatatypeFolder', mapping_=None, nsmap_=None):
         element = super(DatatypeFolder, self).to_etree(parent_element, name_, mapping_, nsmap_)
         for artifacts_ in self.artifacts:
             artifacts_.to_etree(element, name_='artifacts', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2251,43 +1716,6 @@ class Artifact(File):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Artifact', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Artifact')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Artifact':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Artifact')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Artifact', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Artifact'):
-        super(Artifact, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Artifact')
-        if self.suffix is not None and 'suffix' not in already_processed:
-            already_processed.add('suffix')
-            outfile.write(' suffix=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.suffix), input_name='suffix')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Artifact', fromsubclass_=False, pretty_print=True):
-        super(Artifact, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for entities_ in self.entities:
-            namespaceprefix_ = self.entities_nsprefix_ + ':' if (UseCapturedNS_ and self.entities_nsprefix_) else ''
-            entities_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='entities', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='Artifact', mapping_=None, nsmap_=None):
         element = super(Artifact, self).to_etree(parent_element, name_, mapping_, nsmap_)
         if self.suffix is not None:
@@ -2295,7 +1723,7 @@ class Artifact(File):
         for entities_ in self.entities:
             entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2385,37 +1813,6 @@ class EntityRef(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='EntityRef', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('EntityRef')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'EntityRef':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='EntityRef')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='EntityRef', pretty_print=pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='EntityRef'):
-        if self.key is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            outfile.write(' key=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.key), input_name='key')), ))
-        if self.value is not None and 'value' not in already_processed:
-            already_processed.add('value')
-            outfile.write(' value=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.value), input_name='value')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='EntityRef', fromsubclass_=False, pretty_print=True):
-        pass
     def to_etree(self, parent_element=None, name_='EntityRef', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -2426,7 +1823,7 @@ class EntityRef(GeneratedsSuper):
         if self.value is not None:
             element.set('value', self.gds_format_string(self.value))
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2542,49 +1939,6 @@ class Entity(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Entity', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Entity')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Entity':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Entity')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Entity', pretty_print=pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Entity'):
-        if self.name is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            outfile.write(' name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.name), input_name='name')), ))
-        if self.label is not None and 'label' not in already_processed:
-            already_processed.add('label')
-            outfile.write(' label=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.label), input_name='label')), ))
-        if self.key is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            outfile.write(' key=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.key), input_name='key')), ))
-        if self.description is not None and 'description' not in already_processed:
-            already_processed.add('description')
-            outfile.write(' description=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.description), input_name='description')), ))
-        if self.type_ is not None and 'type_' not in already_processed:
-            already_processed.add('type_')
-            outfile.write(' type=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.type_), input_name='type')), ))
-        if self.format is not None and 'format' not in already_processed:
-            already_processed.add('format')
-            outfile.write(' format=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.format), input_name='format')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Entity', fromsubclass_=False, pretty_print=True):
-        pass
     def to_etree(self, parent_element=None, name_='Entity', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -2603,7 +1957,7 @@ class Entity(GeneratedsSuper):
         if self.format is not None:
             element.set('format', self.gds_format_string(self.format))
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2722,40 +2076,6 @@ class Suffix(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Suffix', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Suffix')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Suffix':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Suffix')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Suffix', pretty_print=pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Suffix'):
-        if self.name is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            outfile.write(' name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.name), input_name='name')), ))
-        if self.description is not None and 'description' not in already_processed:
-            already_processed.add('description')
-            outfile.write(' description=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.description), input_name='description')), ))
-        if self.unit is not None and 'unit' not in already_processed:
-            already_processed.add('unit')
-            outfile.write(' unit=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.unit), input_name='unit')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Suffix', fromsubclass_=False, pretty_print=True):
-        pass
     def to_etree(self, parent_element=None, name_='Suffix', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -2768,7 +2088,7 @@ class Suffix(GeneratedsSuper):
         if self.unit is not None:
             element.set('unit', self.gds_format_string(self.unit))
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2878,45 +2198,6 @@ class Modality(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='Modality', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Modality')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Modality':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Modality')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Modality', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Modality'):
-        if self.key is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            outfile.write(' key=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.key), input_name='key')), ))
-        if self.name is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            outfile.write(' name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.name), input_name='name')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='Modality', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for datatypes_ in self.datatypes:
-            namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
-            showIndent(outfile, level, pretty_print)
-            outfile.write('<%sdatatypes>%s</%sdatatypes>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(datatypes_), input_name='datatypes')), namespaceprefix_ , eol_))
     def to_etree(self, parent_element=None, name_='Modality', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -2929,7 +2210,7 @@ class Modality(GeneratedsSuper):
         for datatypes_ in self.datatypes:
             etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}datatypes').text = self.gds_format_string(datatypes_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3034,41 +2315,6 @@ class Datatype(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Datatype', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Datatype')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Datatype':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Datatype')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Datatype', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Datatype'):
-        if self.name is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            outfile.write(' name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.name), input_name='name')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Datatype', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for contexts_ in self.contexts:
-            namespaceprefix_ = self.contexts_nsprefix_ + ':' if (UseCapturedNS_ and self.contexts_nsprefix_) else ''
-            contexts_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='contexts', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='Datatype', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -3079,7 +2325,7 @@ class Datatype(GeneratedsSuper):
         for contexts_ in self.contexts:
             contexts_.to_etree(element, name_='contexts', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3167,37 +2413,6 @@ class EntityDep(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='EntityDep', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('EntityDep')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'EntityDep':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='EntityDep')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='EntityDep', pretty_print=pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='EntityDep'):
-        if self.key is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            outfile.write(' key=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.key), input_name='key')), ))
-        if self.required is not None and 'required' not in already_processed:
-            already_processed.add('required')
-            outfile.write(' required="%s"' % self.gds_format_boolean(self.required, input_name='required'))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='EntityDep', fromsubclass_=False, pretty_print=True):
-        pass
     def to_etree(self, parent_element=None, name_='EntityDep', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -3208,7 +2423,7 @@ class EntityDep(GeneratedsSuper):
         if self.required is not None:
             element.set('required', self.gds_format_boolean(self.required))
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3303,39 +2518,6 @@ class EntitiesContainer(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='EntitiesContainer', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('EntitiesContainer')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'EntitiesContainer':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='EntitiesContainer')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='EntitiesContainer', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='EntitiesContainer'):
-        pass
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='EntitiesContainer', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for entities_ in self.entities:
-            namespaceprefix_ = self.entities_nsprefix_ + ':' if (UseCapturedNS_ and self.entities_nsprefix_) else ''
-            entities_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='entities', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='EntitiesContainer', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -3344,7 +2526,7 @@ class EntitiesContainer(GeneratedsSuper):
         for entities_ in self.entities:
             entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3429,39 +2611,6 @@ class ModalitiesContainer(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='ModalitiesContainer', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('ModalitiesContainer')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'ModalitiesContainer':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ModalitiesContainer')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ModalitiesContainer', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='ModalitiesContainer'):
-        pass
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='ModalitiesContainer', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for modalities_ in self.modalities:
-            namespaceprefix_ = self.modalities_nsprefix_ + ':' if (UseCapturedNS_ and self.modalities_nsprefix_) else ''
-            modalities_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='modalities', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='ModalitiesContainer', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -3470,7 +2619,7 @@ class ModalitiesContainer(GeneratedsSuper):
         for modalities_ in self.modalities:
             modalities_.to_etree(element, name_='modalities', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3555,39 +2704,6 @@ class DatatypesContainer(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DatatypesContainer', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('DatatypesContainer')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'DatatypesContainer':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DatatypesContainer')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DatatypesContainer', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='DatatypesContainer'):
-        pass
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DatatypesContainer', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for datatypes_ in self.datatypes:
-            namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
-            datatypes_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='datatypes', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='DatatypesContainer', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -3596,7 +2712,7 @@ class DatatypesContainer(GeneratedsSuper):
         for datatypes_ in self.datatypes:
             datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3722,49 +2838,6 @@ class DatatypeContext(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='DatatypeContext', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('DatatypeContext')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'DatatypeContext':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DatatypeContext')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DatatypeContext', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='DatatypeContext'):
-        if self.name is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            outfile.write(' name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.name), input_name='name')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0" xmlns:None="http://www.w3.org/2001/XMLSchema" ', name_='DatatypeContext', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for suffixes_ in self.suffixes:
-            namespaceprefix_ = self.suffixes_nsprefix_ + ':' if (UseCapturedNS_ and self.suffixes_nsprefix_) else ''
-            showIndent(outfile, level, pretty_print)
-            outfile.write('<%ssuffixes>%s</%ssuffixes>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(suffixes_), input_name='suffixes')), namespaceprefix_ , eol_))
-        for extensions_ in self.extensions:
-            namespaceprefix_ = self.extensions_nsprefix_ + ':' if (UseCapturedNS_ and self.extensions_nsprefix_) else ''
-            showIndent(outfile, level, pretty_print)
-            outfile.write('<%sextensions>%s</%sextensions>%s' % (namespaceprefix_ , self.gds_encode(self.gds_format_string(quote_xml(extensions_), input_name='extensions')), namespaceprefix_ , eol_))
-        for entities_ in self.entities:
-            namespaceprefix_ = self.entities_nsprefix_ + ':' if (UseCapturedNS_ and self.entities_nsprefix_) else ''
-            entities_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='entities', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='DatatypeContext', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -3779,7 +2852,7 @@ class DatatypeContext(GeneratedsSuper):
         for entities_ in self.entities:
             entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3894,45 +2967,6 @@ class Metadata(GeneratedsSuper):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Metadata', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Metadata')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Metadata':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Metadata')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Metadata', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Metadata'):
-        pass
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Metadata', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.datatypes is not None:
-            namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
-            self.datatypes.export(outfile, level, namespaceprefix_, namespacedef_='', name_='datatypes', pretty_print=pretty_print)
-        if self.entities is not None:
-            namespaceprefix_ = self.entities_nsprefix_ + ':' if (UseCapturedNS_ and self.entities_nsprefix_) else ''
-            self.entities.export(outfile, level, namespaceprefix_, namespacedef_='', name_='entities', pretty_print=pretty_print)
-        if self.modalities is not None:
-            namespaceprefix_ = self.modalities_nsprefix_ + ':' if (UseCapturedNS_ and self.modalities_nsprefix_) else ''
-            self.modalities.export(outfile, level, namespaceprefix_, namespacedef_='', name_='modalities', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='Metadata', mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
@@ -3948,7 +2982,7 @@ class Metadata(GeneratedsSuper):
             modalities_ = self.modalities
             modalities_.to_etree(element, name_='modalities', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3997,515 +3031,6 @@ class Metadata(GeneratedsSuper):
             self.modalities = obj_
             obj_.original_tagname_ = 'modalities'
 # end class Metadata
-
-
-class DataframeObject(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'columns': MemberSpec_('columns', 'DataframeColumn', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'columns', 'type': 'DataframeColumn'}, None),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, columns=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        if columns is None:
-            self.columns = []
-        else:
-            self.columns = columns
-        self.columns_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, DataframeObject)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if DataframeObject.subclass:
-            return DataframeObject.subclass(*args_, **kwargs_)
-        else:
-            return DataframeObject(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_columns(self):
-        return self.columns
-    def set_columns(self, columns):
-        self.columns = columns
-    def add_columns(self, value):
-        self.columns.append(value)
-    def insert_columns_at(self, index, value):
-        self.columns.insert(index, value)
-    def replace_columns_at(self, index, value):
-        self.columns[index] = value
-    def _hasContent(self):
-        if (
-            self.columns
-        ):
-            return True
-        else:
-            return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DataframeObject', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('DataframeObject')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'DataframeObject':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DataframeObject')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DataframeObject', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='DataframeObject'):
-        pass
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DataframeObject', fromsubclass_=False, pretty_print=True):
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for columns_ in self.columns:
-            namespaceprefix_ = self.columns_nsprefix_ + ':' if (UseCapturedNS_ and self.columns_nsprefix_) else ''
-            columns_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='columns', pretty_print=pretty_print)
-    def to_etree(self, parent_element=None, name_='DataframeObject', mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
-        for columns_ in self.columns:
-            columns_.to_etree(element, name_='columns', mapping_=mapping_, nsmap_=nsmap_)
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        # validate simple type children
-        # validate complex type children
-        self.gds_check_cardinality_(self.columns, 'columns', min_occurs=0, max_occurs=9999999)
-        if recursive:
-            for item in self.columns:
-                item.validate_(gds_collector, recursive=True)
-        return message_count == len(self.gds_collector_.get_messages())
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        pass
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'columns':
-            obj_ = DataframeColumn.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.columns.append(obj_)
-            obj_.original_tagname_ = 'columns'
-# end class DataframeObject
-
-
-class DataframeColumn(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional'}),
-        'type_': MemberSpec_('type_', 'string', 0, 1, {'use': 'optional'}),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, name=None, type_=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        self.name = _cast(None, name)
-        self.name_nsprefix_ = None
-        self.type_ = _cast(None, type_)
-        self.type__nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, DataframeColumn)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if DataframeColumn.subclass:
-            return DataframeColumn.subclass(*args_, **kwargs_)
-        else:
-            return DataframeColumn(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_name(self):
-        return self.name
-    def set_name(self, name):
-        self.name = name
-    def get_type(self):
-        return self.type_
-    def set_type(self, type_):
-        self.type_ = type_
-    def _hasContent(self):
-        if (
-
-        ):
-            return True
-        else:
-            return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DataframeColumn', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('DataframeColumn')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'DataframeColumn':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='DataframeColumn')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='DataframeColumn', pretty_print=pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='DataframeColumn'):
-        if self.name is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            outfile.write(' name=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.name), input_name='name')), ))
-        if self.type_ is not None and 'type_' not in already_processed:
-            already_processed.add('type_')
-            outfile.write(' type=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.type_), input_name='type')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='DataframeColumn', fromsubclass_=False, pretty_print=True):
-        pass
-    def to_etree(self, parent_element=None, name_='DataframeColumn', mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
-        if self.name is not None:
-            element.set('name', self.gds_format_string(self.name))
-        if self.type_ is not None:
-            element.set('type', self.gds_format_string(self.type_))
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
-        self.gds_check_cardinality_(self.name, 'name', required=False)
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.type_, 'type_')
-        self.gds_check_cardinality_(self.type_, 'type_', required=False)
-        # validate simple type children
-        # validate complex type children
-        if recursive:
-            pass
-        return message_count == len(self.gds_collector_.get_messages())
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('name', node)
-        if value is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            self.name = value
-        value = find_attr_value_('type', node)
-        if value is not None and 'type' not in already_processed:
-            already_processed.add('type')
-            self.type_ = value
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        pass
-# end class DataframeColumn
-
-
-class ParticipantsFile(File):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'allowedExtensions': MemberSpec_('allowedExtensions', 'bids:JsonOrTsvAllowedExtension', 0, 1, {'use': 'optional'}),
-    }
-    subclass = None
-    superclass = File
-    def __init__(self, name=None, extension=None, uri=None, allowedExtensions=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        super(globals().get("ParticipantsFile"), self).__init__(name, extension, uri,  **kwargs_)
-        self.allowedExtensions = _cast(None, allowedExtensions)
-        self.allowedExtensions_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, ParticipantsFile)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if ParticipantsFile.subclass:
-            return ParticipantsFile.subclass(*args_, **kwargs_)
-        else:
-            return ParticipantsFile(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_allowedExtensions(self):
-        return self.allowedExtensions
-    def set_allowedExtensions(self, allowedExtensions):
-        self.allowedExtensions = allowedExtensions
-    def validate_JsonOrTsvAllowedExtension(self, value):
-        # Validate type bids:JsonOrTsvAllowedExtension, a restriction on string.
-        if value is not None and Validate_simpletypes_ and self.gds_collector_ is not None:
-            if not isinstance(value, str):
-                lineno = self.gds_get_node_lineno_()
-                self.gds_collector_.add_message('Value "%(value)s"%(lineno)s is not of the correct base simple type (str)' % {"value": value, "lineno": lineno, })
-                return False
-            value = value
-            enumerations = ['.tsv', '.json']
-            if value not in enumerations:
-                lineno = self.gds_get_node_lineno_()
-                self.gds_collector_.add_message('Value "%(value)s"%(lineno)s does not match xsd enumeration restriction on JsonOrTsvAllowedExtension' % {"value" : encode_str_2_3(value), "lineno": lineno} )
-                result = False
-    def _hasContent(self):
-        if (
-            super(ParticipantsFile, self)._hasContent()
-        ):
-            return True
-        else:
-            return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='ParticipantsFile', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('ParticipantsFile')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'ParticipantsFile':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ParticipantsFile')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='ParticipantsFile', pretty_print=pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='ParticipantsFile'):
-        super(ParticipantsFile, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='ParticipantsFile')
-        if self.allowedExtensions is not None and 'allowedExtensions' not in already_processed:
-            already_processed.add('allowedExtensions')
-            outfile.write(' allowedExtensions=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.allowedExtensions), input_name='allowedExtensions')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='ParticipantsFile', fromsubclass_=False, pretty_print=True):
-        super(ParticipantsFile, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        pass
-    def to_etree(self, parent_element=None, name_='ParticipantsFile', mapping_=None, nsmap_=None):
-        element = super(ParticipantsFile, self).to_etree(parent_element, name_, mapping_, nsmap_)
-        if self.allowedExtensions is not None:
-            element.set('allowedExtensions', self.gds_format_string(self.allowedExtensions))
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_defined_ST_(self.validate_JsonOrTsvAllowedExtension, self.allowedExtensions, 'allowedExtensions')
-        self.gds_check_cardinality_(self.allowedExtensions, 'allowedExtensions', required=False)
-        # validate simple type children
-        # validate complex type children
-        if recursive:
-            pass
-        return message_count == len(self.gds_collector_.get_messages())
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('allowedExtensions', node)
-        if value is not None and 'allowedExtensions' not in already_processed:
-            already_processed.add('allowedExtensions')
-            self.allowedExtensions = value
-            self.validate_JsonOrTsvAllowedExtension(self.allowedExtensions)    # validate type JsonOrTsvAllowedExtension
-        super(ParticipantsFile, self)._buildAttributes(node, attrs, already_processed)
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        super(ParticipantsFile, self)._buildChildren(child_, node, nodeName_, True)
-        pass
-# end class ParticipantsFile
-
-
-class SamplesFile(File):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'allowedExtensions': MemberSpec_('allowedExtensions', 'bids:JsonOrTsvAllowedExtension', 0, 1, {'use': 'optional'}),
-    }
-    subclass = None
-    superclass = File
-    def __init__(self, name=None, extension=None, uri=None, allowedExtensions=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        super(globals().get("SamplesFile"), self).__init__(name, extension, uri,  **kwargs_)
-        self.allowedExtensions = _cast(None, allowedExtensions)
-        self.allowedExtensions_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, SamplesFile)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if SamplesFile.subclass:
-            return SamplesFile.subclass(*args_, **kwargs_)
-        else:
-            return SamplesFile(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_allowedExtensions(self):
-        return self.allowedExtensions
-    def set_allowedExtensions(self, allowedExtensions):
-        self.allowedExtensions = allowedExtensions
-    def validate_JsonOrTsvAllowedExtension(self, value):
-        # Validate type bids:JsonOrTsvAllowedExtension, a restriction on string.
-        if value is not None and Validate_simpletypes_ and self.gds_collector_ is not None:
-            if not isinstance(value, str):
-                lineno = self.gds_get_node_lineno_()
-                self.gds_collector_.add_message('Value "%(value)s"%(lineno)s is not of the correct base simple type (str)' % {"value": value, "lineno": lineno, })
-                return False
-            value = value
-            enumerations = ['.tsv', '.json']
-            if value not in enumerations:
-                lineno = self.gds_get_node_lineno_()
-                self.gds_collector_.add_message('Value "%(value)s"%(lineno)s does not match xsd enumeration restriction on JsonOrTsvAllowedExtension' % {"value" : encode_str_2_3(value), "lineno": lineno} )
-                result = False
-    def _hasContent(self):
-        if (
-            super(SamplesFile, self)._hasContent()
-        ):
-            return True
-        else:
-            return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='SamplesFile', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('SamplesFile')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'SamplesFile':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SamplesFile')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='SamplesFile', pretty_print=pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='SamplesFile'):
-        super(SamplesFile, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='SamplesFile')
-        if self.allowedExtensions is not None and 'allowedExtensions' not in already_processed:
-            already_processed.add('allowedExtensions')
-            outfile.write(' allowedExtensions=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.allowedExtensions), input_name='allowedExtensions')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='SamplesFile', fromsubclass_=False, pretty_print=True):
-        super(SamplesFile, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        pass
-    def to_etree(self, parent_element=None, name_='SamplesFile', mapping_=None, nsmap_=None):
-        element = super(SamplesFile, self).to_etree(parent_element, name_, mapping_, nsmap_)
-        if self.allowedExtensions is not None:
-            element.set('allowedExtensions', self.gds_format_string(self.allowedExtensions))
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_defined_ST_(self.validate_JsonOrTsvAllowedExtension, self.allowedExtensions, 'allowedExtensions')
-        self.gds_check_cardinality_(self.allowedExtensions, 'allowedExtensions', required=False)
-        # validate simple type children
-        # validate complex type children
-        if recursive:
-            pass
-        return message_count == len(self.gds_collector_.get_messages())
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('allowedExtensions', node)
-        if value is not None and 'allowedExtensions' not in already_processed:
-            already_processed.add('allowedExtensions')
-            self.allowedExtensions = value
-            self.validate_JsonOrTsvAllowedExtension(self.allowedExtensions)    # validate type JsonOrTsvAllowedExtension
-        super(SamplesFile, self)._buildAttributes(node, attrs, already_processed)
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        super(SamplesFile, self)._buildChildren(child_, node, nodeName_, True)
-        pass
-# end class SamplesFile
 
 
 class Session(Folder):
@@ -4560,46 +3085,12 @@ class Session(Folder):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Session', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Session')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Session':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Session')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Session', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Session'):
-        super(Session, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Session')
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Session', fromsubclass_=False, pretty_print=True):
-        super(Session, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for datatypes_ in self.datatypes:
-            namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
-            datatypes_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='datatypes', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='Session', mapping_=None, nsmap_=None):
         element = super(Session, self).to_etree(parent_element, name_, mapping_, nsmap_)
         for datatypes_ in self.datatypes:
             datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -4638,8 +3129,8 @@ class Session(Folder):
 class Subject(Folder):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'sessions': MemberSpec_('sessions', 'Session', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'sessions', 'type': 'Session'}, 1),
-        'datatypes': MemberSpec_('datatypes', 'DatatypeFolder', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'datatypes', 'type': 'DatatypeFolder'}, 1),
+        'sessions': MemberSpec_('sessions', 'Session', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'sessions', 'type': 'Session'}, None),
+        'datatypes': MemberSpec_('datatypes', 'DatatypeFolder', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'datatypes', 'type': 'DatatypeFolder'}, None),
     }
     subclass = None
     superclass = Folder
@@ -4704,43 +3195,6 @@ class Subject(Folder):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Subject', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Subject')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Subject':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Subject')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Subject', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Subject'):
-        super(Subject, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Subject')
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Subject', fromsubclass_=False, pretty_print=True):
-        super(Subject, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for sessions_ in self.sessions:
-            namespaceprefix_ = self.sessions_nsprefix_ + ':' if (UseCapturedNS_ and self.sessions_nsprefix_) else ''
-            sessions_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='sessions', pretty_print=pretty_print)
-        for datatypes_ in self.datatypes:
-            namespaceprefix_ = self.datatypes_nsprefix_ + ':' if (UseCapturedNS_ and self.datatypes_nsprefix_) else ''
-            datatypes_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='datatypes', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='Subject', mapping_=None, nsmap_=None):
         element = super(Subject, self).to_etree(parent_element, name_, mapping_, nsmap_)
         for sessions_ in self.sessions:
@@ -4748,7 +3202,7 @@ class Subject(Folder):
         for datatypes_ in self.datatypes:
             datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -4756,10 +3210,8 @@ class Subject(Folder):
         # validate simple type attributes
         # validate simple type children
         # validate complex type children
-        # cardinality check omitted for choice item sessions
-        #self.gds_check_cardinality_(self.sessions, 'sessions', min_occurs=0, max_occurs=9999999)
-        # cardinality check omitted for choice item datatypes
-        #self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
+        self.gds_check_cardinality_(self.sessions, 'sessions', min_occurs=0, max_occurs=9999999)
+        self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
         if recursive:
             for item in self.sessions:
                 item.validate_(gds_collector, recursive=True)
@@ -4795,6 +3247,12 @@ class Subject(Folder):
 
 
 class Dataset(Folder):
+    """dataset_description -- @extensions: json
+    genetic_info -- @extensions: json
+    participants -- @extensions: json, tsv
+    @use: test
+    
+    """
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
         'base': MemberSpec_('base', 'string', 0, 0, {'use': 'required'}),
@@ -4803,9 +3261,9 @@ class Dataset(Folder):
         'README': MemberSpec_('README', 'File', 0, 0, {'maxOccurs': '1', 'minOccurs': '1', 'name': 'README', 'type': 'File'}, None),
         'CHANGES': MemberSpec_('CHANGES', 'File', 0, 0, {'maxOccurs': '1', 'minOccurs': '1', 'name': 'CHANGES', 'type': 'File'}, None),
         'LICENSE': MemberSpec_('LICENSE', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'LICENSE', 'type': 'File'}, None),
-        'genetic_info': MemberSpec_('genetic_info', 'JsonObject', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'genetic_info', 'type': 'JsonObject'}, None),
-        'participants': MemberSpec_('participants', 'ParticipantsFile', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'participants', 'type': 'ParticipantsFile'}, None),
-        'samples': MemberSpec_('samples', 'SamplesFile', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'samples', 'type': 'SamplesFile'}, None),
+        'genetic_info': MemberSpec_('genetic_info', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'genetic_info', 'type': 'File'}, None),
+        'participants': MemberSpec_('participants', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'participants', 'type': 'File'}, None),
+        'samples': MemberSpec_('samples', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'samples', 'type': 'File'}, None),
         'stimuli': MemberSpec_('stimuli', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'stimuli', 'type': 'Folder'}, None),
         'code': MemberSpec_('code', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'code', 'type': 'Folder'}, None),
         'derivatives': MemberSpec_('derivatives', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'derivatives', 'type': 'Folder'}, None),
@@ -4941,76 +3399,6 @@ class Dataset(Folder):
             return True
         else:
             return False
-    def export(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Dataset', pretty_print=True):
-        imported_ns_def_ = GenerateDSNamespaceDefs_.get('Dataset')
-        if imported_ns_def_ is not None:
-            namespacedef_ = imported_ns_def_
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        if self.original_tagname_ is not None and name_ == 'Dataset':
-            name_ = self.original_tagname_
-        if UseCapturedNS_ and self.ns_prefix_:
-            namespaceprefix_ = self.ns_prefix_ + ':'
-        showIndent(outfile, level, pretty_print)
-        outfile.write('<%s%s%s' % (namespaceprefix_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
-        already_processed = set()
-        self._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Dataset')
-        if self._hasContent():
-            outfile.write('>%s' % (eol_, ))
-            self._exportChildren(outfile, level + 1, namespaceprefix_, namespacedef_, name_='Dataset', pretty_print=pretty_print)
-            showIndent(outfile, level, pretty_print)
-            outfile.write('</%s%s>%s' % (namespaceprefix_, name_, eol_))
-        else:
-            outfile.write('/>%s' % (eol_, ))
-    def _exportAttributes(self, outfile, level, already_processed, namespaceprefix_='', name_='Dataset'):
-        super(Dataset, self)._exportAttributes(outfile, level, already_processed, namespaceprefix_, name_='Dataset')
-        if self.base is not None and 'base' not in already_processed:
-            already_processed.add('base')
-            outfile.write(' base=%s' % (self.gds_encode(self.gds_format_string(quote_attrib(self.base), input_name='base')), ))
-    def _exportChildren(self, outfile, level, namespaceprefix_='', namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"', name_='Dataset', fromsubclass_=False, pretty_print=True):
-        super(Dataset, self)._exportChildren(outfile, level, namespaceprefix_, namespacedef_, name_, True, pretty_print=pretty_print)
-        if pretty_print:
-            eol_ = '\n'
-        else:
-            eol_ = ''
-        for subjects_ in self.subjects:
-            namespaceprefix_ = self.subjects_nsprefix_ + ':' if (UseCapturedNS_ and self.subjects_nsprefix_) else ''
-            subjects_.export(outfile, level, namespaceprefix_, namespacedef_='', name_='subjects', pretty_print=pretty_print)
-        if self.dataset_description is not None:
-            namespaceprefix_ = self.dataset_description_nsprefix_ + ':' if (UseCapturedNS_ and self.dataset_description_nsprefix_) else ''
-            self.dataset_description.export(outfile, level, namespaceprefix_, namespacedef_='', name_='dataset_description', pretty_print=pretty_print)
-        if self.README is not None:
-            namespaceprefix_ = self.README_nsprefix_ + ':' if (UseCapturedNS_ and self.README_nsprefix_) else ''
-            self.README.export(outfile, level, namespaceprefix_, namespacedef_='', name_='README', pretty_print=pretty_print)
-        if self.CHANGES is not None:
-            namespaceprefix_ = self.CHANGES_nsprefix_ + ':' if (UseCapturedNS_ and self.CHANGES_nsprefix_) else ''
-            self.CHANGES.export(outfile, level, namespaceprefix_, namespacedef_='', name_='CHANGES', pretty_print=pretty_print)
-        if self.LICENSE is not None:
-            namespaceprefix_ = self.LICENSE_nsprefix_ + ':' if (UseCapturedNS_ and self.LICENSE_nsprefix_) else ''
-            self.LICENSE.export(outfile, level, namespaceprefix_, namespacedef_='', name_='LICENSE', pretty_print=pretty_print)
-        if self.genetic_info is not None:
-            namespaceprefix_ = self.genetic_info_nsprefix_ + ':' if (UseCapturedNS_ and self.genetic_info_nsprefix_) else ''
-            self.genetic_info.export(outfile, level, namespaceprefix_, namespacedef_='', name_='genetic_info', pretty_print=pretty_print)
-        if self.participants is not None:
-            namespaceprefix_ = self.participants_nsprefix_ + ':' if (UseCapturedNS_ and self.participants_nsprefix_) else ''
-            self.participants.export(outfile, level, namespaceprefix_, namespacedef_='', name_='participants', pretty_print=pretty_print)
-        if self.samples is not None:
-            namespaceprefix_ = self.samples_nsprefix_ + ':' if (UseCapturedNS_ and self.samples_nsprefix_) else ''
-            self.samples.export(outfile, level, namespaceprefix_, namespacedef_='', name_='samples', pretty_print=pretty_print)
-        if self.stimuli is not None:
-            namespaceprefix_ = self.stimuli_nsprefix_ + ':' if (UseCapturedNS_ and self.stimuli_nsprefix_) else ''
-            self.stimuli.export(outfile, level, namespaceprefix_, namespacedef_='', name_='stimuli', pretty_print=pretty_print)
-        if self.code is not None:
-            namespaceprefix_ = self.code_nsprefix_ + ':' if (UseCapturedNS_ and self.code_nsprefix_) else ''
-            self.code.export(outfile, level, namespaceprefix_, namespacedef_='', name_='code', pretty_print=pretty_print)
-        if self.derivatives is not None:
-            namespaceprefix_ = self.derivatives_nsprefix_ + ':' if (UseCapturedNS_ and self.derivatives_nsprefix_) else ''
-            self.derivatives.export(outfile, level, namespaceprefix_, namespacedef_='', name_='derivatives', pretty_print=pretty_print)
-        if self.sourcedata is not None:
-            namespaceprefix_ = self.sourcedata_nsprefix_ + ':' if (UseCapturedNS_ and self.sourcedata_nsprefix_) else ''
-            self.sourcedata.export(outfile, level, namespaceprefix_, namespacedef_='', name_='sourcedata', pretty_print=pretty_print)
     def to_etree(self, parent_element=None, name_='Dataset', mapping_=None, nsmap_=None):
         element = super(Dataset, self).to_etree(parent_element, name_, mapping_, nsmap_)
         if self.base is not None:
@@ -5051,7 +3439,7 @@ class Dataset(Folder):
             sourcedata_ = self.sourcedata
             sourcedata_.to_etree(element, name_='sourcedata', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[id(self)] = element
+            mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -5146,18 +3534,20 @@ class Dataset(Folder):
             self.LICENSE = obj_
             obj_.original_tagname_ = 'LICENSE'
         elif nodeName_ == 'genetic_info':
-            class_obj_ = self.get_class_obj_(child_, JsonObject)
+            class_obj_ = self.get_class_obj_(child_, File)
             obj_ = class_obj_.factory(parent_object_=self)
             obj_.build(child_, gds_collector_=gds_collector_)
             self.genetic_info = obj_
             obj_.original_tagname_ = 'genetic_info'
         elif nodeName_ == 'participants':
-            obj_ = ParticipantsFile.factory(parent_object_=self)
+            class_obj_ = self.get_class_obj_(child_, File)
+            obj_ = class_obj_.factory(parent_object_=self)
             obj_.build(child_, gds_collector_=gds_collector_)
             self.participants = obj_
             obj_.original_tagname_ = 'participants'
         elif nodeName_ == 'samples':
-            obj_ = SamplesFile.factory(parent_object_=self)
+            class_obj_ = self.get_class_obj_(child_, File)
+            obj_ = class_obj_.factory(parent_object_=self)
             obj_.build(child_, gds_collector_=gds_collector_)
             self.samples = obj_
             obj_.original_tagname_ = 'samples'
@@ -5384,20 +3774,11 @@ RenameMappings_ = {
 # Mapping of namespaces to types defined in them
 # and the file in which each is defined.
 # simpleTypes are marked "ST" and complexTypes "CT".
-NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.7.0': [('JsonOrTsvAllowedExtension',
-                                         '../schema/bids.xsd',
-                                         'ST'),
-                                        ('Dataset', '../schema/bids.xsd', 'CT'),
+NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.7.0': [('Dataset', '../schema/bids.xsd', 'CT'),
                                         ('Subject', '../schema/bids.xsd', 'CT'),
                                         ('Session', '../schema/bids.xsd', 'CT'),
                                         ('File', '../schema/bids.xsd', 'CT'),
-                                        ('JsonObject',
-                                         '../schema/bids.xsd',
-                                         'CT'),
                                         ('DatasetDescriptionFile',
-                                         '../schema/bids.xsd',
-                                         'CT'),
-                                        ('Property',
                                          '../schema/bids.xsd',
                                          'CT'),
                                         ('Folder', '../schema/bids.xsd', 'CT'),
@@ -5435,24 +3816,10 @@ NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.7.0': [('JsonOrTsvAll
                                          'CT'),
                                         ('Metadata',
                                          '../schema/bids.xsd',
-                                         'CT'),
-                                        ('DataframeObject',
-                                         '../schema/bids.xsd',
-                                         'CT'),
-                                        ('DataframeColumn',
-                                         '../schema/bids.xsd',
-                                         'CT'),
-                                        ('ParticipantsFile',
-                                         '../schema/bids.xsd',
-                                         'CT'),
-                                        ('SamplesFile',
-                                         '../schema/bids.xsd',
                                          'CT')]}
 
 __all__ = [
     "Artifact",
-    "DataframeColumn",
-    "DataframeObject",
     "Dataset",
     "DatasetDescriptionFile",
     "Datatype",
@@ -5465,13 +3832,9 @@ __all__ = [
     "EntityRef",
     "File",
     "Folder",
-    "JsonObject",
     "Metadata",
     "ModalitiesContainer",
     "Modality",
-    "ParticipantsFile",
-    "Property",
-    "SamplesFile",
     "Session",
     "Subject",
     "Suffix"

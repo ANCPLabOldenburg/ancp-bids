@@ -19,7 +19,8 @@ class QueryExecutor:
     def __init__(self, dataset: model.Dataset, scm: schema.Schema):
         self.dataset = dataset
         self.scm = scm
-        root = dataset.to_etree(nsmap_=schema.NS_MAP)
+        self.mapping = {}
+        root = dataset.to_etree(mapping_=self.mapping, nsmap_=schema.NS_MAP)
         self.root = root
 
     def execute(self, query: Query) -> QueryResult:

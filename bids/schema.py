@@ -38,9 +38,24 @@ class Schema:
         ds._schema = self
         ds.set_name(os.path.basename(base_dir))
         ds.set_base(base_dir)
+        # 1. pass: load file system structure
         _load_folder(ds, base_dir)
+        # 3. pass: check if any remaining files can be transformed to artifacts
+        _convert_files_to_artifacts(ds)
+        # 2. pass: expand structure based on schema
         _expand_members(ds)
         return ds
+
+
+def _convert_files_to_artifacts(parent: model.Folder):
+    for i, file in enumerate(parent.files):
+        artifact = _convert_to_artifact(file)
+        if not artifact:
+            continue
+        artifact.parent_object_ = parent
+        parent.replace_files_at(i, artifact)
+    for folder in parent.folders:
+        _convert_files_to_artifacts(folder)
 
 
 def _to_type(model_type_name: str):
@@ -82,61 +97,26 @@ def _get_members(element_type, include_superclass=True):
     return super_members + element_members
 
 
-def _dict_to_JsonObject(data: dict):
-    if not data:
-        return None
-    result = model.JsonObject()
-    for k, v in data.items():
-        prop = model.Property()
-        prop.set_key(k)
-        if isinstance(v, dict):
-            obj = _dict_to_JsonObject(v)
-            prop.set_value_obj(obj)
-        elif isinstance(v, list):
-            prop.set_value_multi(v)
-        else:
-            prop.set_value_single(v)
-        result.add_properties(prop)
-    return result
-
-
-def _to_JsonObject(parent: model.Folder, file: str):
-    if not isinstance(parent, model.Folder):
-        return None
-    json_contents = parent.load_file_contents(file)
-    json_object = _dict_to_JsonObject(json_contents)
-    if json_object:
-        json_object.set_name(file)
-    return json_object
-
-
 def _type_handler_DatasetDescriptionFile(parent, member):
-    name = member['name']
-    json_object = _to_JsonObject(parent, name + '.json')
-    if json_object:
-        dsd_file = model.DatasetDescriptionFile()
-        members = _get_members(model.DatasetDescriptionFile, False)
-        direct_props = list(map(lambda m: m['name'], members))
-        for prop in json_object.get_properties():
-            if prop.get_key() in direct_props:
-                if prop.get_value_single():
-                    setattr(dsd_file, prop.get_key(), prop.get_value_single())
-                elif prop.get_value_multi():
-                    setattr(dsd_file, prop.get_key(), prop.get_value_multi())
-                else:
-                    setattr(dsd_file, prop.get_key(), prop.get_value_obj())
-            else:
-                dsd_file.add_properties(prop)
-        setattr(parent, name, dsd_file)
-        parent.remove_file(json_object.name)
+    file_name = member['name'] + '.json'
+    _extract_fields_from_jsonfile(parent, member, file_name, model.DatasetDescriptionFile)
 
 
-def _type_handler_JsonObject(parent, member):
-    name = member['name']
-    json_object = _to_JsonObject(parent, name + '.json')
-    if json_object:
-        setattr(parent, name, json_object)
-        parent.remove_file(json_object.name)
+def _extract_fields_from_jsonfile(parent, member, file_name, model_type):
+    json_object = parent.load_file_contents(file_name)
+    if not json_object:
+        return
+
+    dsd_file = model_type()
+    members = _get_members(model_type, False)
+    actual_props = json_object.keys()
+    direct_props = list(map(lambda m: m['name'], members))
+    for prop_name in direct_props:
+        if prop_name in actual_props:
+            value = json_object[prop_name]
+            setattr(dsd_file, prop_name, value)
+    setattr(parent, member['name'], dsd_file)
+    parent.remove_file(file_name)
 
 
 def _type_handler_File(parent, member):
@@ -153,22 +133,34 @@ def _type_handler_Artifact(parent, member):
     if not isinstance(parent, model.Folder):
         return
     name = member['name']
-    for file in parent.get_files_sorted():
-        match = regex.match(ENTITIES_PATTERN, file.name)
-        if not match:
+    attr = getattr(parent, name)
+    multi = isinstance(attr, list)
+    files = parent.get_files() if multi else list(filter(lambda f: f.name == name, parent.get_files()))
+    for file in files:
+        if not isinstance(file, model.Artifact):
             continue
-        artifact = model.Artifact()
-        artifact.name = file.name
+        file.parent_object_ = parent
         parent.remove_file(file.name)
-        artifact.parent_object_ = parent
-        getattr(parent, name).append(artifact)
-        for pair in zip(match.captures(2), match.captures(3)):
-            entity = model.EntityRef()
-            entity.set_key(pair[0])
-            entity.set_value(pair[1])
-            artifact.add_entities(entity)
-        artifact.set_suffix(match[4])
-        artifact.set_extension(match[5])
+        if multi:
+            attr.append(file)
+        else:
+            setattr(parent, name, file)
+
+
+def _convert_to_artifact(file: model.File):
+    match = regex.match(ENTITIES_PATTERN, file.name)
+    if not match:
+        return None
+    artifact = model.Artifact()
+    artifact.name = file.name
+    for pair in zip(match.captures(2), match.captures(3)):
+        entity = model.EntityRef()
+        entity.set_key(pair[0])
+        entity.set_value(pair[1])
+        artifact.add_entities(entity)
+    artifact.set_suffix(match[4])
+    artifact.set_extension(match[5])
+    return artifact
 
 
 def _type_handler_Folder(parent, member):
@@ -236,13 +228,13 @@ def _expand_members(folder: model.Folder):
 
 def _load_folder(parent: model.Folder, dir_path):
     for root, directories, files in os.walk(dir_path):
-        for directory in directories:
-            folder = model.Folder()
+        for directory in sorted(directories):
+            folder = model.Folder(parent_object_=parent)
             folder.set_name(directory)
             parent.add_folders(folder)
             _load_folder(folder, root + "/" + directory)
-        for file in files:
-            model_file = model.File()
+        for file in sorted(files):
+            model_file = model.File(parent_object_=parent)
             model_file.set_name(file)
             parent.add_files(model_file)
         break

@@ -13,6 +13,8 @@
     				<element name="dataset_description"
     					type="bids:DatasetDescriptionFile" minOccurs="1"
     					maxOccurs="1">
+                        <annotation>
+                        	<documentation>@extensions: json</documentation></annotation>
     				</element>
     				<element name="README" type="bids:File"
     					minOccurs="1" maxOccurs="1">
@@ -23,11 +25,18 @@
     				<element name="LICENSE" type="bids:File"
     					minOccurs="0" maxOccurs="1">
     				</element>
-    				<element name="genetic_info" type="bids:JsonObject"
+    				<element name="genetic_info" type="bids:File"
     					minOccurs="0" maxOccurs="1">
+                        <annotation>
+                        	<documentation>@extensions: json</documentation>
+                        </annotation>
     				</element>
-                    <element name="participants" type="bids:ParticipantsFile" maxOccurs="1" minOccurs="0"></element>
-                    <element name="samples" type="bids:SamplesFile"
+                    <element name="participants" type="bids:File" maxOccurs="1" minOccurs="0">
+                    	<annotation>
+                    		<documentation>@extensions: json, tsv
+@use: test</documentation>
+                    	</annotation></element>
+                    <element name="samples" type="bids:File"
     					minOccurs="0" maxOccurs="1">
     				</element>
     				<element name="stimuli" type="bids:Folder"
@@ -53,13 +62,10 @@
     	<complexContent>
     		<extension base="bids:Folder">
                     <sequence>
-                    	<choice>
-                    		<element name="sessions" type="bids:Session"
-                    			minOccurs="0" maxOccurs="unbounded">
+                    <element name="sessions" type="bids:Session" minOccurs="0" maxOccurs="unbounded">
                     		</element>
-                        <element name="datatypes" type="bids:DatatypeFolder" maxOccurs="unbounded" minOccurs="1"></element>
-                    </choice>
-                    </sequence>
+                    <element name="datatypes" type="bids:DatatypeFolder" maxOccurs="unbounded" minOccurs="1"></element>
+                </sequence>
 
     		</extension>
     	</complexContent>
@@ -76,27 +82,15 @@
     </complexType>
 
     <complexType name="File">
-    	<attribute name="name" type="string" use="required"></attribute>
-        <attribute name="extension" type="string"></attribute>
+        <attribute name="name" type="string" use="required"></attribute>
+    	<attribute name="extension" type="string"></attribute>
     	<attribute name="uri" type="anyURI" use="optional"></attribute>
     </complexType>
 
 
-    <complexType name="JsonObject">
-    	<complexContent>
-    		<extension base="bids:File">
-    			<sequence>
-    				<element name="properties" type="bids:Property"
-    					minOccurs="0" maxOccurs="unbounded">
-    				</element>
-    			</sequence>
-    		</extension>
-    	</complexContent>
-    </complexType>
-
     <complexType name="DatasetDescriptionFile">
     	<complexContent>
-    		<extension base="bids:JsonObject">
+    		<extension base="bids:File">
     			<sequence>
     				<element name="Authors" type="string" minOccurs="0"
     					maxOccurs="unbounded">
@@ -118,20 +112,15 @@
 
     			<attribute name="HEDVersion" type="string"
     				use="optional">
-    				<annotation>
-    					<documentation>
-    						Usage: recommended
-    					</documentation>
-    				</annotation>
+                    <annotation>
+                    	<documentation>@use: recommended</documentation>
+                    	</annotation>
     			</attribute>
-    			<attribute name="DatasetType" use="prohibited" form="unqualified" default="raw">
-    				<annotation>
-    					<documentation>
-    						Usage: recommended
-    					</documentation>
-    				</annotation>
-    				<simpleType>
-    					<restriction base="string">
+    			<attribute name="DatasetType" use="optional" form="unqualified" default="raw">
+                    <annotation>
+                    	<documentation>@use: recommended</documentation></annotation>
+                    <simpleType>
+                        <restriction base="string">
     						<enumeration value="raw"></enumeration>
     						<enumeration value="derivative"></enumeration>
     					</restriction>
@@ -139,11 +128,8 @@
     			</attribute>
     			<attribute name="License" type="string"
     				use="optional">
-    				<annotation>
-    					<documentation>
-    						Usage: recommended
-    					</documentation>
-    				</annotation>
+                    <annotation>
+                    	<documentation>@use: recommended</documentation></annotation>
     			</attribute>
     			<attribute name="Acknowledgements" type="string"
     				use="optional">
@@ -154,20 +140,6 @@
     			<attribute name="DatasetDOI" type="string" use="optional"></attribute>
     		</extension>
     	</complexContent>
-    </complexType>
-
-    <complexType name="Property">
-    	<sequence>
-
-    		<choice>
-    			<element name="value_single" type="anySimpleType"></element>
-    			<element name="value_multi" type="anySimpleType"
-    				minOccurs="0" maxOccurs="unbounded">
-    			</element>
-    			<element name="value_obj" type="bids:JsonObject"></element>
-    		</choice>
-    	</sequence>
-    	<attribute name="key" type="string" use="required"></attribute>
     </complexType>
 
     <element name="dataset" type="bids:Dataset"></element>
@@ -181,7 +153,7 @@
     			maxOccurs="unbounded">
     		</element>
     	</sequence>
-    	<attribute name="name" type="string" use="required"></attribute>
+        <attribute name="name" type="string" use="required"></attribute>
     </complexType>
 
     <complexType name="DatatypeFolder">
@@ -309,44 +281,5 @@
     	</sequence>
     </complexType>
 
-    <complexType name="DataframeObject">
-    	<sequence>
-    		<element name="columns" type="bids:DataframeColumn" maxOccurs="unbounded" minOccurs="0"></element>
-    	</sequence>
-    </complexType>
-
-    <complexType name="DataframeColumn">
-    	<attribute name="name" type="string"></attribute>
-    	<attribute name="type" type="string"></attribute>
-    </complexType>
-
-    <complexType name="ParticipantsFile">
-    	<complexContent>
-    		<extension base="bids:File">
-
-                <attributeGroup ref="bids:JsonOrTsvExtension"></attributeGroup>
-            </extension>
-    	</complexContent>
-    </complexType>
-
-    <complexType name="SamplesFile">
-    	<complexContent>
-    		<extension base="bids:File">
-                <attributeGroup ref="bids:JsonOrTsvExtension"></attributeGroup>
-            </extension>
-    	</complexContent>
-    </complexType>
-
-    <attributeGroup name="JsonOrTsvExtension">
-    	<attribute name="allowedExtensions" type="bids:JsonOrTsvAllowedExtension">
-    	</attribute>
-    </attributeGroup>
-
-    <simpleType name="JsonOrTsvAllowedExtension">
-    			<restriction base="string">
-    				<enumeration value=".tsv"></enumeration>
-    				<enumeration value=".json"></enumeration>
-    			</restriction>
-    		</simpleType>
-    		
+    <attribute name="id" type="int"></attribute>
 </schema>

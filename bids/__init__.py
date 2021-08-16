@@ -16,12 +16,14 @@ def load_contents(file: model.File):
     contents = files.load_contents(file_path)
     return contents
 
+def get_absolute_path_by_file(file: model.File):
+    return get_absolute_path(file.parent_object_, file.name)
 
 def get_absolute_path(folder: model.Folder, file_name):
     segments = [file_name]
     current_folder = folder
     while current_folder is not None:
-        if isinstance(folder, model.Dataset):
+        if isinstance(current_folder, model.Dataset):
             segments.insert(0, current_folder.get_base())
         else:
             segments.insert(0, current_folder.get_name())
@@ -62,6 +64,7 @@ setattr(model.Folder, 'remove_folder', remove_folder)
 setattr(model.Folder, 'get_folder', get_folder)
 setattr(model.Folder, 'get_files_sorted', get_files_sorted)
 setattr(model.Folder, 'get_folders_sorted', get_folders_sorted)
+setattr(model.File, 'get_absolute_path', get_absolute_path_by_file)
 
 # end monkey-patching
 

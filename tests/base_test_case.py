@@ -7,6 +7,7 @@ RESOURCES_FOLDER = TEST_FOLDER + "/data"
 
 DS005_DIR = RESOURCES_FOLDER + "/ds005"
 DS005_CONFLICT_DIR = RESOURCES_FOLDER + "/ds005_conflict"
+SYNTHETIC_DIR = RESOURCES_FOLDER + "/synthetic"
 
 
 class BaseTestCase(unittest.TestCase):

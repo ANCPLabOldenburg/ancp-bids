@@ -1,5 +1,5 @@
-from base_test_case import *
 from bids import BIDSLayout
+from tests.base_test_case import BaseTestCase
 
 
 class BenchmarkTestCase(BaseTestCase):
@@ -7,3 +7,4 @@ class BenchmarkTestCase(BaseTestCase):
         layout = BIDSLayout('/media/erdal/work/datasets/ds001734')
         subjects = layout.get_subjects()
         self.assertEqual(108, len(subjects))
+
