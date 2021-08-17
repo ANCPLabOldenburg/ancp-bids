@@ -1,7 +1,7 @@
 import os
 
-import bids.files as files
-import bids.model as model
+from . import model
+from . import files
 
 
 # start monkey-patching generated code
@@ -16,8 +16,10 @@ def load_contents(file: model.File):
     contents = files.load_contents(file_path)
     return contents
 
+
 def get_absolute_path_by_file(file: model.File):
     return get_absolute_path(file.parent_object_, file.name)
+
 
 def get_absolute_path(folder: model.Folder, file_name):
     segments = [file_name]

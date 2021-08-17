@@ -10,13 +10,13 @@
 #   ('--export', 'etree validate')
 #   ('--member-specs', 'dict')
 #   ('--always-export-default', '')
-#   ('-o', '../bids/model.py')
+#   ('-o', '../ancpbids/model.py')
 #
 # Command line arguments:
-#   ../schema/bids.xsd
+#   ../schema-files/ancpbids.xsd
 #
 # Command line:
-#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../bids/model.py" ../schema/bids.xsd
+#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../schema-files/ancpbids.xsd
 #
 # Current working directory (os.getcwd()):
 #   tools
@@ -81,7 +81,7 @@ def parsexmlstring_(instring, parser=None, **kwargs):
 #
 # The module generatedsnamespaces, if it is importable, must contain
 # a dictionary named GeneratedsNamespaceDefs.  This Python dictionary
-# should map element type names (strings) to XML schema namespace prefix
+# should map element type names (strings) to XML schema-files namespace prefix
 # definitions.  The export method for any class for which there is
 # a namespace prefix definition, will export that definition in the
 # XML representation of that element.  See the export method of
@@ -3713,7 +3713,7 @@ def parseString(inString, silence=False, print_warnings=True):
         sys.stdout.write('<?xml version="1.0" ?>\n')
         rootObj.export(
             sys.stdout, 0, name_=rootTag,
-            namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.7.0"')
+            namespacedef_='xmlns:ancpbids="https://bids.neuroimaging.io/1.7.0"')
     if print_warnings and len(gds_collector.get_messages()) > 0:
         separator = ('-' * 50) + '\n'
         sys.stderr.write(separator)
@@ -3774,48 +3774,48 @@ RenameMappings_ = {
 # Mapping of namespaces to types defined in them
 # and the file in which each is defined.
 # simpleTypes are marked "ST" and complexTypes "CT".
-NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.7.0': [('Dataset', '../schema/bids.xsd', 'CT'),
-                                        ('Subject', '../schema/bids.xsd', 'CT'),
-                                        ('Session', '../schema/bids.xsd', 'CT'),
-                                        ('File', '../schema/bids.xsd', 'CT'),
+NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.7.0': [('Dataset', '../schema-files/ancpbids.xsd', 'CT'),
+                                        ('Subject', '../schema-files/ancpbids.xsd', 'CT'),
+                                        ('Session', '../schema-files/ancpbids.xsd', 'CT'),
+                                        ('File', '../schema-files/ancpbids.xsd', 'CT'),
                                         ('DatasetDescriptionFile',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
-                                        ('Folder', '../schema/bids.xsd', 'CT'),
+                                        ('Folder', '../schema-files/ancpbids.xsd', 'CT'),
                                         ('DatatypeFolder',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('Artifact',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('EntityRef',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
-                                        ('Entity', '../schema/bids.xsd', 'CT'),
-                                        ('Suffix', '../schema/bids.xsd', 'CT'),
+                                        ('Entity', '../schema-files/ancpbids.xsd', 'CT'),
+                                        ('Suffix', '../schema-files/ancpbids.xsd', 'CT'),
                                         ('Modality',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('Datatype',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('EntityDep',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('EntitiesContainer',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('ModalitiesContainer',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('DatatypesContainer',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('DatatypeContext',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT'),
                                         ('Metadata',
-                                         '../schema/bids.xsd',
+                                         '../schema-files/ancpbids.xsd',
                                          'CT')]}
 
 __all__ = [

@@ -2,20 +2,19 @@ import logging
 import os
 import inspect
 import sys
-from collections import OrderedDict
 
 import regex
 
-import bids.files as files
-import bids.model as model
+from . import model
+from . import files
 
 logger = logging.getLogger(__file__)
 
-SCHEMA_PATH = os.path.dirname(__file__) + '/../schema'
+SCHEMA_PATH = os.path.dirname(__file__) + '/data/schema-files'
 ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
 
 NS = 'https://bids.neuroimaging.io/1.7.0'
-NS_PREFIX = 'bids'
+NS_PREFIX = 'ancpbids'
 NS_MAP = {NS_PREFIX: NS}
 
 
@@ -42,7 +41,7 @@ class Schema:
         _load_folder(ds, base_dir)
         # 3. pass: check if any remaining files can be transformed to artifacts
         _convert_files_to_artifacts(ds)
-        # 2. pass: expand structure based on schema
+        # 2. pass: expand structure based on schema-files
         _expand_members(ds)
         return ds
 

@@ -1,10 +1,12 @@
-import bids
+import unittest
+
+from src import ancpbids
 from tests.base_test_case import BaseTestCase, DS005_DIR, SYNTHETIC_DIR
 
 
 class QueryTestCase(BaseTestCase):
     def test_bidslayout(self):
-        layout = bids.BIDSLayout(DS005_DIR)
+        layout = ancpbids.BIDSLayout(DS005_DIR)
 
         subjects = layout.get_subjects()
         subjects_expected = ['sub-%02d' % i for i in range(1, 17)]
@@ -17,7 +19,7 @@ class QueryTestCase(BaseTestCase):
         self.assertListEqual(['mixedgamblestask'], tasks)
 
     def test_bidslayout_get(self):
-        layout = bids.BIDSLayout(SYNTHETIC_DIR)
+        layout = ancpbids.BIDSLayout(SYNTHETIC_DIR)
         mask_niftis = layout.get(scope='derivatives',
                                  return_type='filename',
                                  suffix='mask',

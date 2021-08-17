@@ -1,8 +1,10 @@
+import unittest
+
 import pandas
 
-from base_test_case import *
-from bids.schema import Schema
-import bids.model as model
+from src.ancpbids import model
+from src.ancpbids.schema import Schema
+from tests.base_test_case import BaseTestCase, DS005_DIR
 
 
 class BasicTestCase(BaseTestCase):

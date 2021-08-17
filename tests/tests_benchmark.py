@@ -1,4 +1,4 @@
-from bids import BIDSLayout
+from src.ancpbids import BIDSLayout
 from tests.base_test_case import BaseTestCase
 
 

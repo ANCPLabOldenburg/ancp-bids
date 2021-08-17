@@ -1,5 +1,5 @@
-import bids.model as model
-import bids.schema as schema
+from . import model
+from . import schema
 
 
 class Query:
