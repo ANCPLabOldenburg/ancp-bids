@@ -24,7 +24,14 @@ class BIDSLayout:
         tasks = list(set(tasks))
         return tasks
 
-    def get(self, return_type='object', target=None, scope='all', extension='.*', suffix='.*',
+    def _scalar_or_list(self, attr_name, v):
+        if isinstance(v, list):
+            values = list(map(lambda val: '@%s="%s"' % (attr_name, val), v))
+            return '(' + ' or '.join(values) + ')'
+        else:
+            return '@%s="%s"' % (attr_name, v)
+
+    def get(self, return_type='object', target=None, scope='all', extension=None, suffix=None,
             regex_search=False, absolute_paths=None, invalid_filters='error',
             **entities):
         expr = []
@@ -32,16 +39,14 @@ class BIDSLayout:
             expr.append('//bids:%s' % scope)
         entity_filters = []
         for k, v in entities.items():
-            if isinstance(v, list):
-                values = list(map(lambda val: '@value="%s"' % val, v))
-                v = '(' + ' or '.join(values) + ')'
-            else:
-                v = '@value="%s"' % v
+            v = self._scalar_or_list('value', v)
             entity_filters.append('bids:entities[@key="%s" and %s]' % (k, v))
         if extension:
-            entity_filters.append('@extension="%s"' % extension)
+            v = self._scalar_or_list('extension', extension)
+            entity_filters.append(v)
         if suffix:
-            entity_filters.append('@suffix="%s"' % suffix)
+            v = self._scalar_or_list('suffix', suffix)
+            entity_filters.append(v)
         if entity_filters:
             entity_filters_str = ' and '.join(entity_filters)
             expr.append('//*[%s]' % entity_filters_str)

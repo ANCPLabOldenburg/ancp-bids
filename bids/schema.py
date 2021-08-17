@@ -148,7 +148,7 @@ def _type_handler_Artifact(parent, member):
 
 
 def _convert_to_artifact(file: model.File):
-    match = regex.match(ENTITIES_PATTERN, file.name)
+    match = ENTITIES_PATTERN.match(file.name)
     if not match:
         return None
     artifact = model.Artifact()
