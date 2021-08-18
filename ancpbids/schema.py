@@ -13,8 +13,8 @@ logger = logging.getLogger(__file__)
 SCHEMA_PATH = os.path.dirname(__file__) + '/data/schema-files'
 ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
 
-NS = 'https://bids.neuroimaging.io/1.7.0'
-NS_PREFIX = 'ancpbids'
+NS = 'https://bids.neuroimaging.io/1.6'
+NS_PREFIX = 'bids'
 NS_MAP = {NS_PREFIX: NS}
 
 

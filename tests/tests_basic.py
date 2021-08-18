@@ -2,8 +2,8 @@ import unittest
 
 import pandas
 
-from src.ancpbids import model
-from src.ancpbids.schema import Schema
+from ancpbids import model
+from ancpbids.schema import Schema
 from tests.base_test_case import BaseTestCase, DS005_DIR
 
 

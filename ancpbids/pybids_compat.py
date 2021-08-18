@@ -1,4 +1,4 @@
-from .schema import Schema
+from .schema import Schema, NS_PREFIX
 from .query import QueryExecutor, Query
 
 
@@ -14,33 +14,38 @@ class BIDSLayout:
         return qry_result.result
 
     def get_subjects(self):
-        return self._query('//ancpbids:subjects/@name')
+        return self._query('//bids:subjects/@name')
 
     def get_sessions(self):
-        return self._query('//ancpbids:sessions/@name')
+        return self._query('//bids:sessions/@name')
 
     def get_tasks(self):
-        tasks = self._query('//ancpbids:entities[@key = "task"]/@value')
+        tasks = self._query('//bids:entities[@key = "task"]/@value')
         tasks = list(set(tasks))
         return tasks
 
+    def _gen_scalar_expr(self, k, v):
+        if v is None:
+            return 'not(@%s)' % k
+        return '@%s="%s"' % (k, v)
+
     def _scalar_or_list(self, attr_name, v):
         if isinstance(v, list):
-            values = list(map(lambda val: '@%s="%s"' % (attr_name, val), v))
+            values = list(map(lambda val: self._gen_scalar_expr(attr_name, val), v))
             return '(' + ' or '.join(values) + ')'
         else:
-            return '@%s="%s"' % (attr_name, v)
+            return self._gen_scalar_expr(attr_name, v)
 
     def get(self, return_type='object', target=None, scope='all', extension=None, suffix=None,
             regex_search=False, absolute_paths=None, invalid_filters='error',
             **entities):
         expr = []
         if scope != 'all':
-            expr.append('//ancpbids:%s' % scope)
+            expr.append('//%s:%s' % (NS_PREFIX, scope))
         entity_filters = []
         for k, v in entities.items():
             v = self._scalar_or_list('value', v)
-            entity_filters.append('ancpbids:entities[@key="%s" and %s]' % (k, v))
+            entity_filters.append('%s:entities[@key="%s" and %s]' % (NS_PREFIX, k, v))
         if extension:
             v = self._scalar_or_list('extension', extension)
             entity_filters.append(v)

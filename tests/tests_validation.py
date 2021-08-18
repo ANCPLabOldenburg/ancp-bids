@@ -1,6 +1,6 @@
 from base_test_case import *
-from src.ancpbids import schema, validator
-from src.ancpbids.rules import rules_files
+from ancpbids import schema, validator
+from ancpbids.rules import rules_files
 
 
 class ValidationTestCase(BaseTestCase):

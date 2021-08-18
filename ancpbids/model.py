@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Mon Aug 16 23:03:57 2021 by generateDS.py version 2.39.2.
+# Generated Wed Aug 18 11:18:31 2021 by generateDS.py version 2.39.2.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -13,10 +13,10 @@
 #   ('-o', '../ancpbids/model.py')
 #
 # Command line arguments:
-#   ../schema-files/ancpbids.xsd
+#   ../ancpbids/data/schema-files/bids.xsd
 #
 # Command line:
-#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../schema-files/ancpbids.xsd
+#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../ancpbids/data/schema-files/bids.xsd
 #
 # Current working directory (os.getcwd()):
 #   tools
@@ -81,7 +81,7 @@ def parsexmlstring_(instring, parser=None, **kwargs):
 #
 # The module generatedsnamespaces, if it is importable, must contain
 # a dictionary named GeneratedsNamespaceDefs.  This Python dictionary
-# should map element type names (strings) to XML schema-files namespace prefix
+# should map element type names (strings) to XML schema namespace prefix
 # definitions.  The export method for any class for which there is
 # a namespace prefix definition, will export that definition in the
 # XML representation of that element.  See the export method of
@@ -1044,9 +1044,9 @@ class File(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='File', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.extensiontype_ is not None:
             element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
         if self.name is not None:
@@ -1297,13 +1297,13 @@ class DatasetDescriptionFile(File):
         if self.DatasetDOI is not None:
             element.set('DatasetDOI', self.gds_format_string(self.DatasetDOI))
         for Authors_ in self.Authors:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}Authors').text = self.gds_format_string(Authors_)
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}Authors').text = self.gds_format_string(Authors_)
         for Funding_ in self.Funding:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}Funding').text = self.gds_format_string(Funding_)
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}Funding').text = self.gds_format_string(Funding_)
         for EthicsApprovals_ in self.EthicsApprovals:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}EthicsApprovals').text = self.gds_format_string(EthicsApprovals_)
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}EthicsApprovals').text = self.gds_format_string(EthicsApprovals_)
         for ReferencesAndLinks_ in self.ReferencesAndLinks:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}ReferencesAndLinks').text = self.gds_format_string(ReferencesAndLinks_)
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}ReferencesAndLinks').text = self.gds_format_string(ReferencesAndLinks_)
         if mapping_ is not None:
             mapping_[element] = self
         return element
@@ -1498,9 +1498,9 @@ class Folder(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='Folder', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.extensiontype_ is not None:
             element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
         if self.name is not None:
@@ -1815,9 +1815,9 @@ class EntityRef(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='EntityRef', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.key is not None:
             element.set('key', self.gds_format_string(self.key))
         if self.value is not None:
@@ -1941,9 +1941,9 @@ class Entity(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='Entity', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.name is not None:
             element.set('name', self.gds_format_string(self.name))
         if self.label is not None:
@@ -2078,9 +2078,9 @@ class Suffix(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='Suffix', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.name is not None:
             element.set('name', self.gds_format_string(self.name))
         if self.description is not None:
@@ -2200,15 +2200,15 @@ class Modality(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='Modality', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.key is not None:
             element.set('key', self.gds_format_string(self.key))
         if self.name is not None:
             element.set('name', self.gds_format_string(self.name))
         for datatypes_ in self.datatypes:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}datatypes').text = self.gds_format_string(datatypes_)
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}datatypes').text = self.gds_format_string(datatypes_)
         if mapping_ is not None:
             mapping_[element] = self
         return element
@@ -2317,9 +2317,9 @@ class Datatype(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='Datatype', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.name is not None:
             element.set('name', self.gds_format_string(self.name))
         for contexts_ in self.contexts:
@@ -2415,9 +2415,9 @@ class EntityDep(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='EntityDep', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.key is not None:
             element.set('key', self.gds_format_string(self.key))
         if self.required is not None:
@@ -2520,9 +2520,9 @@ class EntitiesContainer(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='EntitiesContainer', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         for entities_ in self.entities:
             entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
@@ -2613,9 +2613,9 @@ class ModalitiesContainer(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='ModalitiesContainer', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         for modalities_ in self.modalities:
             modalities_.to_etree(element, name_='modalities', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
@@ -2706,9 +2706,9 @@ class DatatypesContainer(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='DatatypesContainer', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         for datatypes_ in self.datatypes:
             datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
@@ -2840,15 +2840,15 @@ class DatatypeContext(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='DatatypeContext', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.name is not None:
             element.set('name', self.gds_format_string(self.name))
         for suffixes_ in self.suffixes:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}suffixes').text = self.gds_format_string(suffixes_)
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}suffixes').text = self.gds_format_string(suffixes_)
         for extensions_ in self.extensions:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.7.0}extensions').text = self.gds_format_string(extensions_)
+            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}extensions').text = self.gds_format_string(extensions_)
         for entities_ in self.entities:
             entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
@@ -2969,9 +2969,9 @@ class Metadata(GeneratedsSuper):
             return False
     def to_etree(self, parent_element=None, name_='Metadata', mapping_=None, nsmap_=None):
         if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.7.0}' + name_, nsmap=nsmap_)
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.datatypes is not None:
             datatypes_ = self.datatypes
             datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
@@ -3713,7 +3713,7 @@ def parseString(inString, silence=False, print_warnings=True):
         sys.stdout.write('<?xml version="1.0" ?>\n')
         rootObj.export(
             sys.stdout, 0, name_=rootTag,
-            namespacedef_='xmlns:ancpbids="https://bids.neuroimaging.io/1.7.0"')
+            namespacedef_='xmlns:bids="https://bids.neuroimaging.io/1.6"')
     if print_warnings and len(gds_collector.get_messages()) > 0:
         separator = ('-' * 50) + '\n'
         sys.stderr.write(separator)
@@ -3774,49 +3774,63 @@ RenameMappings_ = {
 # Mapping of namespaces to types defined in them
 # and the file in which each is defined.
 # simpleTypes are marked "ST" and complexTypes "CT".
-NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.7.0': [('Dataset', '../schema-files/ancpbids.xsd', 'CT'),
-                                        ('Subject', '../schema-files/ancpbids.xsd', 'CT'),
-                                        ('Session', '../schema-files/ancpbids.xsd', 'CT'),
-                                        ('File', '../schema-files/ancpbids.xsd', 'CT'),
-                                        ('DatasetDescriptionFile',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('Folder', '../schema-files/ancpbids.xsd', 'CT'),
-                                        ('DatatypeFolder',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('Artifact',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('EntityRef',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('Entity', '../schema-files/ancpbids.xsd', 'CT'),
-                                        ('Suffix', '../schema-files/ancpbids.xsd', 'CT'),
-                                        ('Modality',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('Datatype',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('EntityDep',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('EntitiesContainer',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('ModalitiesContainer',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('DatatypesContainer',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('DatatypeContext',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT'),
-                                        ('Metadata',
-                                         '../schema-files/ancpbids.xsd',
-                                         'CT')]}
+NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.6': [('Dataset',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Subject',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Session',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('File',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('DatasetDescriptionFile',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Folder',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('DatatypeFolder',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Artifact',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('EntityRef',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Entity',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Suffix',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Modality',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Datatype',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('EntityDep',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('EntitiesContainer',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('ModalitiesContainer',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('DatatypesContainer',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('DatatypeContext',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Metadata',
+                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT')]}
 
 __all__ = [
     "Artifact",

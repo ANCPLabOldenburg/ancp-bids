@@ -3,7 +3,6 @@ import os
 from . import model
 from . import files
 
-
 # start monkey-patching generated code
 def load_file_contents(folder: model.Folder, file_name):
     file_path = get_absolute_path(folder, file_name)
@@ -71,3 +70,8 @@ setattr(model.File, 'get_absolute_path', get_absolute_path_by_file)
 # end monkey-patching
 
 from .pybids_compat import BIDSLayout
+
+from ._version import get_versions
+
+__version__ = get_versions()['version']
+del get_versions

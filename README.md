@@ -1,10 +1,11 @@
 # About ancp-bids
-The 'ancp-bids' is a Python package which allows to:
+A Python package which allows to:
+
 - read/write
 - query
 - validate
 
-BIDS datasets using the BIDS Schema as its foundation.
+BIDS datasets using the **BIDS Schema** as its foundation.
 
 # Current state and further reading
 We are in a proposal/experimental stage and design decisions may change frequently.

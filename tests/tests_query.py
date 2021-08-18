@@ -1,6 +1,6 @@
 import unittest
 
-from src import ancpbids
+import ancpbids
 from tests.base_test_case import BaseTestCase, DS005_DIR, SYNTHETIC_DIR
 
 

@@ -1,6 +1,6 @@
-from src.ancpbids.model import Dataset, GdsCollector_
-from src.ancpbids.schema import Schema
-from src.ancpbids.validator import ValidationRule, ValidationReport
+from ancpbids.model import Dataset, GdsCollector_
+from ancpbids.schema import Schema
+from ancpbids.validator import ValidationRule, ValidationReport
 
 
 class StaticStructureValidationRule(ValidationRule):
