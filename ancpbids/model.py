@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Aug 18 12:52:16 2021 by generateDS.py version 2.39.2.
+# Generated Wed Aug 18 17:22:24 2021 by generateDS.py version 2.39.5.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -16,7 +16,7 @@
 #   ../ancpbids/data/schema-files/bids.xsd
 #
 # Command line:
-#   /home/erdal/Downloads/generateDS-2.39.2/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../ancpbids/data/schema-files/bids.xsd
+#   /home/erdal/Downloads/generateDS-2.39.5/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../ancpbids/data/schema-files/bids.xsd
 #
 # Current working directory (os.getcwd()):
 #   tools
@@ -33,10 +33,7 @@ import re as re_
 import base64
 import datetime as datetime_
 import decimal as decimal_
-try:
-    from lxml import etree as etree_
-except ModulenotfoundExp_ :
-    from xml.etree import ElementTree as etree_
+from lxml import etree as etree_
 
 
 Validate_simpletypes_ = True
@@ -1042,7 +1039,7 @@ class File(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='File', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='File', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -1056,7 +1053,9 @@ class File(GeneratedsSuper):
         if self.uri is not None:
             element.set('uri', self.gds_format_string(self.uri))
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -1278,8 +1277,8 @@ class DatasetDescriptionFile(File):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='DatasetDescriptionFile', mapping_=None, nsmap_=None):
-        element = super(DatasetDescriptionFile, self).to_etree(parent_element, name_, mapping_, nsmap_)
+    def to_etree(self, parent_element=None, name_='DatasetDescriptionFile', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        element = super(DatasetDescriptionFile, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         if self.Name is not None:
             element.set('Name', self.gds_format_string(self.Name))
         if self.BIDSVersion is not None:
@@ -1305,7 +1304,9 @@ class DatasetDescriptionFile(File):
         for ReferencesAndLinks_ in self.ReferencesAndLinks:
             etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}ReferencesAndLinks').text = self.gds_format_string(ReferencesAndLinks_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -1496,7 +1497,7 @@ class Folder(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Folder', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='Folder', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -1506,11 +1507,13 @@ class Folder(GeneratedsSuper):
         if self.name is not None:
             element.set('name', self.gds_format_string(self.name))
         for files_ in self.files:
-            files_.to_etree(element, name_='files', mapping_=mapping_, nsmap_=nsmap_)
+            files_.to_etree(element, name_='files', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         for folders_ in self.folders:
-            folders_.to_etree(element, name_='folders', mapping_=mapping_, nsmap_=nsmap_)
+            folders_.to_etree(element, name_='folders', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -1616,12 +1619,14 @@ class DatatypeFolder(Folder):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='DatatypeFolder', mapping_=None, nsmap_=None):
-        element = super(DatatypeFolder, self).to_etree(parent_element, name_, mapping_, nsmap_)
+    def to_etree(self, parent_element=None, name_='DatatypeFolder', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        element = super(DatatypeFolder, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         for artifacts_ in self.artifacts:
-            artifacts_.to_etree(element, name_='artifacts', mapping_=mapping_, nsmap_=nsmap_)
+            artifacts_.to_etree(element, name_='artifacts', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -1716,14 +1721,16 @@ class Artifact(File):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Artifact', mapping_=None, nsmap_=None):
-        element = super(Artifact, self).to_etree(parent_element, name_, mapping_, nsmap_)
+    def to_etree(self, parent_element=None, name_='Artifact', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        element = super(Artifact, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         if self.suffix is not None:
             element.set('suffix', self.gds_format_string(self.suffix))
         for entities_ in self.entities:
-            entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
+            entities_.to_etree(element, name_='entities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -1813,7 +1820,7 @@ class EntityRef(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='EntityRef', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='EntityRef', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -1823,7 +1830,9 @@ class EntityRef(GeneratedsSuper):
         if self.value is not None:
             element.set('value', self.gds_format_string(self.value))
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -1939,7 +1948,7 @@ class Entity(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Entity', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='Entity', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -1957,7 +1966,9 @@ class Entity(GeneratedsSuper):
         if self.format is not None:
             element.set('format', self.gds_format_string(self.format))
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2076,7 +2087,7 @@ class Suffix(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Suffix', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='Suffix', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -2088,7 +2099,9 @@ class Suffix(GeneratedsSuper):
         if self.unit is not None:
             element.set('unit', self.gds_format_string(self.unit))
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2198,7 +2211,7 @@ class Modality(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Modality', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='Modality', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -2210,7 +2223,9 @@ class Modality(GeneratedsSuper):
         for datatypes_ in self.datatypes:
             etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}datatypes').text = self.gds_format_string(datatypes_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2315,7 +2330,7 @@ class Datatype(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Datatype', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='Datatype', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -2323,9 +2338,11 @@ class Datatype(GeneratedsSuper):
         if self.name is not None:
             element.set('name', self.gds_format_string(self.name))
         for contexts_ in self.contexts:
-            contexts_.to_etree(element, name_='contexts', mapping_=mapping_, nsmap_=nsmap_)
+            contexts_.to_etree(element, name_='contexts', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2413,7 +2430,7 @@ class EntityDep(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='EntityDep', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='EntityDep', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -2423,7 +2440,9 @@ class EntityDep(GeneratedsSuper):
         if self.required is not None:
             element.set('required', self.gds_format_boolean(self.required))
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2518,15 +2537,17 @@ class EntitiesContainer(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='EntitiesContainer', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='EntitiesContainer', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
             element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         for entities_ in self.entities:
-            entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
+            entities_.to_etree(element, name_='entities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2611,15 +2632,17 @@ class ModalitiesContainer(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='ModalitiesContainer', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='ModalitiesContainer', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
             element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         for modalities_ in self.modalities:
-            modalities_.to_etree(element, name_='modalities', mapping_=mapping_, nsmap_=nsmap_)
+            modalities_.to_etree(element, name_='modalities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2704,15 +2727,17 @@ class DatatypesContainer(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='DatatypesContainer', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='DatatypesContainer', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
             element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         for datatypes_ in self.datatypes:
-            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
+            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2838,7 +2863,7 @@ class DatatypeContext(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='DatatypeContext', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='DatatypeContext', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
@@ -2850,9 +2875,11 @@ class DatatypeContext(GeneratedsSuper):
         for extensions_ in self.extensions:
             etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}extensions').text = self.gds_format_string(extensions_)
         for entities_ in self.entities:
-            entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
+            entities_.to_etree(element, name_='entities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -2967,22 +2994,24 @@ class Metadata(GeneratedsSuper):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Metadata', mapping_=None, nsmap_=None):
+    def to_etree(self, parent_element=None, name_='Metadata', mapping_=None, reverse_mapping_=None, nsmap_=None):
         if parent_element is None:
             element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         else:
             element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
         if self.datatypes is not None:
             datatypes_ = self.datatypes
-            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
+            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.entities is not None:
             entities_ = self.entities
-            entities_.to_etree(element, name_='entities', mapping_=mapping_, nsmap_=nsmap_)
+            entities_.to_etree(element, name_='entities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.modalities is not None:
             modalities_ = self.modalities
-            modalities_.to_etree(element, name_='modalities', mapping_=mapping_, nsmap_=nsmap_)
+            modalities_.to_etree(element, name_='modalities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3085,12 +3114,14 @@ class Session(Folder):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Session', mapping_=None, nsmap_=None):
-        element = super(Session, self).to_etree(parent_element, name_, mapping_, nsmap_)
+    def to_etree(self, parent_element=None, name_='Session', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        element = super(Session, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         for datatypes_ in self.datatypes:
-            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
+            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3195,14 +3226,16 @@ class Subject(Folder):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Subject', mapping_=None, nsmap_=None):
-        element = super(Subject, self).to_etree(parent_element, name_, mapping_, nsmap_)
+    def to_etree(self, parent_element=None, name_='Subject', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        element = super(Subject, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         for sessions_ in self.sessions:
-            sessions_.to_etree(element, name_='sessions', mapping_=mapping_, nsmap_=nsmap_)
+            sessions_.to_etree(element, name_='sessions', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         for datatypes_ in self.datatypes:
-            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, nsmap_=nsmap_)
+            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3247,14 +3280,10 @@ class Subject(Folder):
 
 
 class Dataset(Folder):
-    """dataset_description --
-    @extensions: json
-      
-    * genetic_info --
-      @extensions: json
-      
-    * participants --
-      @extensions: json, tsv @use: test
+    """dataset_description -- @extensions: json
+    genetic_info -- @extensions: json
+    participants -- @extensions: json, tsv
+    @use: test
     
     """
     __hash__ = GeneratedsSuper.__hash__
@@ -3403,47 +3432,49 @@ class Dataset(Folder):
             return True
         else:
             return False
-    def to_etree(self, parent_element=None, name_='Dataset', mapping_=None, nsmap_=None):
-        element = super(Dataset, self).to_etree(parent_element, name_, mapping_, nsmap_)
+    def to_etree(self, parent_element=None, name_='Dataset', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        element = super(Dataset, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         if self.base is not None:
             element.set('base', self.gds_format_string(self.base))
         for subjects_ in self.subjects:
-            subjects_.to_etree(element, name_='subjects', mapping_=mapping_, nsmap_=nsmap_)
+            subjects_.to_etree(element, name_='subjects', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.dataset_description is not None:
             dataset_description_ = self.dataset_description
-            dataset_description_.to_etree(element, name_='dataset_description', mapping_=mapping_, nsmap_=nsmap_)
+            dataset_description_.to_etree(element, name_='dataset_description', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.README is not None:
             README_ = self.README
-            README_.to_etree(element, name_='README', mapping_=mapping_, nsmap_=nsmap_)
+            README_.to_etree(element, name_='README', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.CHANGES is not None:
             CHANGES_ = self.CHANGES
-            CHANGES_.to_etree(element, name_='CHANGES', mapping_=mapping_, nsmap_=nsmap_)
+            CHANGES_.to_etree(element, name_='CHANGES', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.LICENSE is not None:
             LICENSE_ = self.LICENSE
-            LICENSE_.to_etree(element, name_='LICENSE', mapping_=mapping_, nsmap_=nsmap_)
+            LICENSE_.to_etree(element, name_='LICENSE', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.genetic_info is not None:
             genetic_info_ = self.genetic_info
-            genetic_info_.to_etree(element, name_='genetic_info', mapping_=mapping_, nsmap_=nsmap_)
+            genetic_info_.to_etree(element, name_='genetic_info', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.participants is not None:
             participants_ = self.participants
-            participants_.to_etree(element, name_='participants', mapping_=mapping_, nsmap_=nsmap_)
+            participants_.to_etree(element, name_='participants', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.samples is not None:
             samples_ = self.samples
-            samples_.to_etree(element, name_='samples', mapping_=mapping_, nsmap_=nsmap_)
+            samples_.to_etree(element, name_='samples', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.stimuli is not None:
             stimuli_ = self.stimuli
-            stimuli_.to_etree(element, name_='stimuli', mapping_=mapping_, nsmap_=nsmap_)
+            stimuli_.to_etree(element, name_='stimuli', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.code is not None:
             code_ = self.code
-            code_.to_etree(element, name_='code', mapping_=mapping_, nsmap_=nsmap_)
+            code_.to_etree(element, name_='code', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.derivatives is not None:
             derivatives_ = self.derivatives
-            derivatives_.to_etree(element, name_='derivatives', mapping_=mapping_, nsmap_=nsmap_)
+            derivatives_.to_etree(element, name_='derivatives', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.sourcedata is not None:
             sourcedata_ = self.sourcedata
-            sourcedata_.to_etree(element, name_='sourcedata', mapping_=mapping_, nsmap_=nsmap_)
+            sourcedata_.to_etree(element, name_='sourcedata', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
-            mapping_[element] = self
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
         return element
     def validate_(self, gds_collector, recursive=False):
         self.gds_collector_ = gds_collector
@@ -3657,7 +3688,7 @@ def parse(inFileName, silence=False, print_warnings=True):
 
 
 def parseEtree(inFileName, silence=False, print_warnings=True,
-               mapping=None, nsmap=None):
+               mapping=None, reverse_mapping=None, nsmap=None):
     parser = None
     doc = parsexml_(inFileName, parser)
     gds_collector = GdsCollector_()
@@ -3668,12 +3699,15 @@ def parseEtree(inFileName, silence=False, print_warnings=True,
         rootClass = Dataset
     rootObj = rootClass.factory()
     rootObj.build(rootNode, gds_collector_=gds_collector)
-    # Enable Python to collect the space used by the DOM.
     if mapping is None:
         mapping = {}
+    if reverse_mapping is None:
+        reverse_mapping = {}
     rootElement = rootObj.to_etree(
-        None, name_=rootTag, mapping_=mapping, nsmap_=nsmap)
-    reverse_mapping = rootObj.gds_reverse_node_mapping(mapping)
+        None, name_=rootTag, mapping_=mapping,
+        reverse_mapping_=reverse_mapping, nsmap_=nsmap)
+    reverse_node_mapping = rootObj.gds_reverse_node_mapping(mapping)
+    # Enable Python to collect the space used by the DOM.
     if not SaveElementTreeNode:
         doc = None
         rootNode = None
@@ -3690,7 +3724,7 @@ def parseEtree(inFileName, silence=False, print_warnings=True,
             len(gds_collector.get_messages()), ))
         gds_collector.write_messages(sys.stderr)
         sys.stderr.write(separator)
-    return rootObj, rootElement, mapping, reverse_mapping
+    return rootObj, rootElement, mapping, reverse_node_mapping
 
 
 def parseString(inString, silence=False, print_warnings=True):

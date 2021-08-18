@@ -10,8 +10,8 @@ class BIDSLayout:
         self.dataset = self.sc.load_dataset(ds_dir)
         self.query = XPathQuery(self.dataset, self.sc)
 
-    def _query(self, expr: str):
-        qry_result = self.query.execute(expr)
+    def _query(self, expr: str, search_node=None):
+        qry_result = self.query.execute(expr, search_node)
         return qry_result
 
     def get_subjects(self):
@@ -37,11 +37,12 @@ class BIDSLayout:
         else:
             return self._gen_scalar_expr(attr_name, v)
 
-    def get(self, return_type='object', target=None, scope=None, extension=None, suffix=None,
+    def get(self, return_type='object', target=None, scope: str = None, extension=None, suffix=None,
             regex_search=False, absolute_paths=None, invalid_filters='error',
             **entities):
         expr = []
         if scope:
+            # TODO split into paths and set the last path as search context
             expr.append('//%s:%s' % (NS_PREFIX, scope))
         entity_filters = []
         for k, v in entities.items():
@@ -59,7 +60,7 @@ class BIDSLayout:
             expr.append('//*[%s]' % entity_filters_str)
         expr_final = ''.join(expr)
         artifacts = self._query(expr_final)
-        artifacts = list(map(lambda e: self.query.mapping[e], artifacts))
+        artifacts = list(map(lambda e: self.query.x2m[e], artifacts))
         if return_type and return_type.startswith("file"):
             artifacts = list(map(lambda e: e.get_absolute_path(), artifacts))
         return artifacts
