@@ -75,6 +75,8 @@ class Schema:
         return artifact
 
     def process_entity_value(self, key, value):
+        if not value or key not in self.entities:
+            return value
         sc_entity = self.entities[key]
         # remove paddings/fillers in index values
         if value and sc_entity and 'format' in sc_entity and sc_entity['format'] == 'index':
