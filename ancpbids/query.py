@@ -1,29 +1,38 @@
+import lxml
+
 from . import model
 from . import schema
 
 
 class Query:
-    def __init__(self, expr: str):
-        self.expr = expr
-
-    def get_expression(self):
-        return self.expr
-
-
-class QueryResult:
-    def __init__(self, result):
-        self.result = result
-
-
-class QueryExecutor:
     def __init__(self, dataset: model.Dataset, scm: schema.Schema):
         self.dataset = dataset
         self.scm = scm
         self.mapping = {}
-        root = dataset.to_etree(mapping_=self.mapping, nsmap_=schema.NS_MAP)
-        self.root = root
+        self.root = dataset.to_etree(mapping_=self.mapping, nsmap_=schema.NS_MAP)
 
-    def execute(self, query: Query) -> QueryResult:
-        expr = query.get_expression()
+    def execute(self, expr):
+        raise NotImplemented()
+
+
+class XPathQuery(Query):
+    def __init__(self, dataset: model.Dataset, scm: schema.Schema):
+        super(XPathQuery, self).__init__(dataset, scm)
+
+    def execute(self, expr):
         result = self.root.xpath(expr, namespaces=schema.NS_MAP)
-        return QueryResult(result)
+        return result
+
+class CSSQuery(Query):
+    def __init__(self, dataset: model.Dataset, scm: schema.Schema):
+        super(CSSQuery, self).__init__(dataset, scm)
+
+    def execute(self, expr):
+        raise NotImplemented()
+
+class ObjectPathQuery(Query):
+    def __init__(self, dataset: model.Dataset, scm: schema.Schema):
+        super(ObjectPathQuery, self).__init__(dataset, scm)
+
+    def execute(self, expr):
+        raise NotImplemented()

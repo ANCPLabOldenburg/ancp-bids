@@ -22,6 +22,8 @@ class Schema:
     def __init__(self):
         self.modalities = files.load_contents(SCHEMA_PATH + "/modalities.yaml")
         self.entities = files.load_contents(SCHEMA_PATH + "/entities.yaml")
+        # convert to dictionary for faster lookup by entity keys
+        self.entities = {e['key']: e for e in self.entities}
         self.datatypes = self.merge_to_dict(SCHEMA_PATH + "/datatypes")
 
     def merge_to_dict(self, dir_path):
@@ -40,21 +42,47 @@ class Schema:
         # 1. pass: load file system structure
         _load_folder(ds, base_dir)
         # 3. pass: check if any remaining files can be transformed to artifacts
-        _convert_files_to_artifacts(ds)
+        self._convert_files_to_artifacts(ds)
         # 2. pass: expand structure based on schema-files
         _expand_members(ds)
         return ds
 
+    def _convert_files_to_artifacts(self, parent: model.Folder):
+        for i, file in enumerate(parent.files):
+            artifact = self._convert_to_artifact(file)
+            if not artifact:
+                continue
+            artifact.parent_object_ = parent
+            parent.replace_files_at(i, artifact)
+        for folder in parent.folders:
+            self._convert_files_to_artifacts(folder)
 
-def _convert_files_to_artifacts(parent: model.Folder):
-    for i, file in enumerate(parent.files):
-        artifact = _convert_to_artifact(file)
-        if not artifact:
-            continue
-        artifact.parent_object_ = parent
-        parent.replace_files_at(i, artifact)
-    for folder in parent.folders:
-        _convert_files_to_artifacts(folder)
+    def _convert_to_artifact(self, file: model.File):
+        match = ENTITIES_PATTERN.match(file.name)
+        if not match:
+            return None
+        artifact = model.Artifact()
+        artifact.name = file.name
+        for pair in zip(match.captures(2), match.captures(3)):
+            entity = model.EntityRef()
+            key = pair[0]
+            entity.set_key(key)
+            value = self.process_entity_value(key, pair[1])
+            entity.set_value(value)
+            artifact.add_entities(entity)
+        artifact.set_suffix(match[4])
+        artifact.set_extension(match[5])
+        return artifact
+
+    def process_entity_value(self, key, value):
+        sc_entity = self.entities[key]
+        # remove paddings/fillers in index values
+        if value and sc_entity and 'format' in sc_entity and sc_entity['format'] == 'index':
+            if isinstance(value, list):
+                return list(map(lambda v: str(int(v)), value))
+            else:
+                return str(int(value))
+        return value
 
 
 def _to_type(model_type_name: str):
@@ -144,22 +172,6 @@ def _type_handler_Artifact(parent, member):
             attr.append(file)
         else:
             setattr(parent, name, file)
-
-
-def _convert_to_artifact(file: model.File):
-    match = ENTITIES_PATTERN.match(file.name)
-    if not match:
-        return None
-    artifact = model.Artifact()
-    artifact.name = file.name
-    for pair in zip(match.captures(2), match.captures(3)):
-        entity = model.EntityRef()
-        entity.set_key(pair[0])
-        entity.set_value(pair[1])
-        artifact.add_entities(entity)
-    artifact.set_suffix(match[4])
-    artifact.set_extension(match[5])
-    return artifact
 
 
 def _type_handler_Folder(parent, member):

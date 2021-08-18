@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Aug 18 11:18:31 2021 by generateDS.py version 2.39.2.
+# Generated Wed Aug 18 12:52:16 2021 by generateDS.py version 2.39.2.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -3247,10 +3247,14 @@ class Subject(Folder):
 
 
 class Dataset(Folder):
-    """dataset_description -- @extensions: json
-    genetic_info -- @extensions: json
-    participants -- @extensions: json, tsv
-    @use: test
+    """dataset_description --
+    @extensions: json
+      
+    * genetic_info --
+      @extensions: json
+      
+    * participants --
+      @extensions: json, tsv @use: test
     
     """
     __hash__ = GeneratedsSuper.__hash__
