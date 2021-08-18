@@ -14,16 +14,19 @@ class BIDSLayout:
         qry_result = self.query.execute(expr, search_node)
         return qry_result
 
+    def _query_entities(self, entity_key):
+        entities = self._query('//bids:entities[@key = "%s"]/@value' % entity_key)
+        entities = sorted(list(set(entities)))
+        return entities
+
     def get_subjects(self):
-        return self._query('//bids:subjects/@name')
+        return self._query_entities('sub')
 
     def get_sessions(self):
-        return self._query('//bids:sessions/@name')
+        return self._query_entities('ses')
 
     def get_tasks(self):
-        tasks = self._query('//bids:entities[@key = "task"]/@value')
-        tasks = list(set(tasks))
-        return tasks
+        return self._query_entities('task')
 
     def _gen_scalar_expr(self, k, v):
         if v is None:

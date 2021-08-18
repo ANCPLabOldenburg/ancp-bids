@@ -24,7 +24,7 @@ class QueryTestCase(BaseTestCase):
         layout = ancpbids.BIDSLayout(DS005_DIR)
 
         subjects = layout.get_subjects()
-        subjects_expected = ['sub-%02d' % i for i in range(1, 17)]
+        subjects_expected = ['%02d' % i for i in range(1, 17)]
         self.assertListEqual(subjects_expected, subjects)
 
         sessions = layout.get_sessions()
