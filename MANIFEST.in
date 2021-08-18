@@ -1,3 +1,3 @@
-recursive-include src/ancpbids/data *
+recursive-include ancpbids/data *
 include versioneer.py
 include ancpbids/_version.py
