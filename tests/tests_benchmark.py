@@ -1,5 +1,5 @@
 from ancpbids import BIDSLayout
-from tests.base_test_case import BaseTestCase
+from base_test_case import *
 
 
 class BenchmarkTestCase(BaseTestCase):

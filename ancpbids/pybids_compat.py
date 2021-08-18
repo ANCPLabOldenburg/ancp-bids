@@ -63,7 +63,6 @@ class BIDSLayout:
             expr.append('//*[%s]' % entity_filters_str)
         expr_final = ''.join(expr)
         artifacts = self._query(expr_final)
-        artifacts = list(map(lambda e: self.query.x2m[e], artifacts))
         if return_type and return_type.startswith("file"):
             artifacts = list(map(lambda e: e.get_absolute_path(), artifacts))
         return artifacts

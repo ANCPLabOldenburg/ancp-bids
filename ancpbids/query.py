@@ -9,8 +9,8 @@ class Query:
         self.dataset = dataset
         self.scm = scm
         self.id2x = {}
-        self.x2m = {}
-        self.root = dataset.to_etree(mapping_=self.id2x, reverse_mapping_=self.x2m, nsmap_=schema.NS_MAP)
+        self.x2id = {}
+        self.root = dataset.to_etree(mapping_=self.id2x, reverse_mapping_=self.x2id, nsmap_=schema.NS_MAP)
 
     def execute(self, expr, search_node: lxml.etree.Element = None):
         raise NotImplemented()
@@ -25,6 +25,7 @@ class XPathQuery(Query):
         if search_node:
             context = search_node
         result = context.xpath(expr, namespaces=schema.NS_MAP)
+        result = list(map(lambda e: self.x2id[e] if e in self.x2id else e, result))
         return result
 
 

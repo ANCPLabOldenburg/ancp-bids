@@ -1,7 +1,7 @@
 import unittest
 
 import ancpbids
-from tests.base_test_case import BaseTestCase, DS005_DIR, SYNTHETIC_DIR, ENTITIES_DIR
+from base_test_case import *
 
 
 class QueryTestCase(BaseTestCase):
@@ -9,16 +9,16 @@ class QueryTestCase(BaseTestCase):
         layout = ancpbids.BIDSLayout(ENTITIES_DIR)
         files = layout.get(sub='02', run='3', return_type='filename')
         self.assertEqual(1, len(files))
-        self.assertTrue(files[0].endswith("sub-02_run-00003_task-abc_events.tsv"))
+        self.assertTrue(files[0].endswith("sub-02_task-abc_run-00003_events.tsv"))
 
         files = layout.get(sub='02', run=['000000003'], return_type='filename')
         self.assertEqual(1, len(files))
-        self.assertTrue(files[0].endswith("sub-02_run-00003_task-abc_events.tsv"))
+        self.assertTrue(files[0].endswith("sub-02_task-abc_run-00003_events.tsv"))
 
         # should also handle invalid formats, i.e. run not as an index but a label
         files = layout.get(sub='02', run='xyz', return_type='filename')
         self.assertEqual(1, len(files))
-        self.assertTrue(files[0].endswith("sub-02_run-xyz_task-abc_events.tsv"))
+        self.assertTrue(files[0].endswith("sub-02_task-abc_run-xyz_events.tsv"))
 
     def test_bidslayout(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)

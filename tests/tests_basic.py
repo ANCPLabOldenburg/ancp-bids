@@ -1,10 +1,8 @@
-import unittest
-
 import pandas
 
 from ancpbids import model
 from ancpbids.schema import Schema
-from tests.base_test_case import BaseTestCase, DS005_DIR
+from base_test_case import *
 
 
 class BasicTestCase(BaseTestCase):
@@ -77,7 +75,7 @@ class BasicTestCase(BaseTestCase):
 
         entity = entities[2]
         self.assertEqual("run", entity.get_key())
-        self.assertEqual("01", entity.get_value())
+        self.assertEqual("1", entity.get_value())
 
 
 if __name__ == '__main__':

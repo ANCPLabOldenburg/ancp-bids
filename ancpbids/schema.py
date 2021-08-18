@@ -2,6 +2,7 @@ import logging
 import os
 import inspect
 import sys
+from collections import OrderedDict
 
 import regex
 
@@ -23,7 +24,8 @@ class Schema:
         self.modalities = files.load_contents(SCHEMA_PATH + "/modalities.yaml")
         self.entities = files.load_contents(SCHEMA_PATH + "/entities.yaml")
         # convert to dictionary for faster lookup by entity keys
-        self.entities = {e['key']: e for e in self.entities}
+        # and keep order of entities in sync with entries in file
+        self.entities = OrderedDict([(e['key'], e) for e in self.entities])
         self.datatypes = self.merge_to_dict(SCHEMA_PATH + "/datatypes")
 
     def merge_to_dict(self, dir_path):

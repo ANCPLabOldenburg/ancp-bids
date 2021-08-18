@@ -2,7 +2,7 @@ import logging
 
 from .schema import Schema
 from .model import Dataset
-from . import rules
+from . import rules, XPathQuery
 
 logger = logging.getLogger(__file__)
 
@@ -14,13 +14,14 @@ class Validator:
     def validate(self, schema: Schema, dataset: Dataset):
         validation_rules = rules.collect_rules()
         report = ValidationReport()
+        query = XPathQuery(dataset, schema)
         for rule in validation_rules:
             # if rule is disabled, skip it
             if self.ruleAcceptor is not None and not self.ruleAcceptor(rule):
                 continue
             try:
                 instance = rule()
-                instance.validate(schema, dataset, report)
+                instance.validate(schema=schema, dataset=dataset, report=report, query=query)
             except Exception as e:
                 logger.error("Could not execute validation rule %s: %s" % (rule.__name__, e))
                 raise e
@@ -39,5 +40,5 @@ class ValidationReport:
 
 
 class ValidationRule:
-    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
+    def validate(self, **kwargs):
         raise NotImplemented()

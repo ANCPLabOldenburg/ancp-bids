@@ -1,10 +1,11 @@
-from ancpbids.model import Dataset, GdsCollector_
+from ancpbids import XPathQuery
+from ancpbids.model import Dataset, GdsCollector_, Session, Subject, Datatype
 from ancpbids.schema import Schema
 from ancpbids.validator import ValidationRule, ValidationReport
 
 
 class StaticStructureValidationRule(ValidationRule):
-    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
+    def validate(self, dataset: Dataset, report: ValidationReport, **kwargs):
         collector = GdsCollector_()
         dataset.validate_(collector, recursive=True)
         for message in collector.messages:
@@ -12,62 +13,45 @@ class StaticStructureValidationRule(ValidationRule):
 
 
 class DatatypesValidationRule(ValidationRule):
-    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
+    def validate(self, dataset: Dataset, report: ValidationReport, **kwargs):
+        dangling_folders = []
         for subject in dataset.get_subjects():
+            dangling_folders.extend(subject.get_folders())
             for session in subject.get_sessions():
-                for datatype in session.get_datatypes():
-                    if datatype.name not in schema.datatypes:
-                        dt_path = "%s/%s/%s" % (subject.name, session.name, datatype.name)
-                        report.error("Unsupported datatype folder '%s'" % dt_path)
+                dangling_folders.extend(session.get_folders())
+
+        for folder in dangling_folders:
+            report.error("Unsupported datatype folder '%s'" % folder.get_relative_path())
 
 
 class EntitiesValidationRule(ValidationRule):
-    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
-        for subject in dataset.get_subjects():
-            for session in subject.get_sessions():
-                for datatype in session.get_datatypes():
-                    if datatype.name not in schema.datatypes:
-                        continue
-                    dt_config = schema.datatypes[datatype.name]
-                    for artifact in datatype.get_artifacts():
-                        entities = {**artifact.get_entities()}
-                        if not entities:
-                            report.error("Artifact name does not match expected pattern '%s'" % artifact.name)
-                            continue
-                        suffix = entities.pop('suffix')
-                        if not suffix:
-                            report.error(
-                                "Artifact has no suffix '%s'" % artifact.file.file_path)
-                            continue
-                        dt_found = next(filter(lambda dt: suffix in dt['suffixes'], dt_config))
-                        if not dt_found:
-                            report.error("Datatype '%s' does not support suffix '%s'" % (datatype.name, suffix))
-                            continue
-                        extension = entities.pop('extension')
-                        if extension not in dt_found['extensions']:
-                            report.error(
-                                "Datatype '%s' does not support artifact extension '%s'" % (datatype.name, extension))
-                            continue
-                        dt_entities = dt_found['entities']
-                        for key in entities.keys():
-                            entity_name = schema.get_entity_by_abbrev(key)
-                            if entity_name is None:
-                                report.error(
-                                    "Invalid entity '%s' in artifact '%s'" % (key, artifact.name))
-                                continue
-                            if entity_name not in dt_entities:
-                                report.error(
-                                    "Datatype '%s' does not support entity '%s' in artifact  '%s'" % (
-                                        datatype.name, key, artifact.name))
-                                continue
-                        # TODO check if order of entities is as expected
-                        if False and list(dt_entities.keys()) != list(entities.keys()):
-                            report.error(
-                                "Invalid entities order in artifact: expected %s, encountered %s" % (
-                                    list(dt_entities.keys()), list(entities.keys())))
-                            continue
+    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, query: XPathQuery):
+        artifacts = query.execute('//bids:entities/..')
+        expected_key_order = {k: i for i, k in enumerate(schema.entities.keys())}
+        expected_order_key = {i: k for i, k in enumerate(schema.entities.keys())}
+        for artifact in artifacts:
+            entity_refs = artifact.get_entities()
+            found_invalid_key = False
+            for ref in entity_refs:
+                if ref.key not in schema.entities:
+                    report.error(
+                        "Invalid entity '%s' in artifact '%s'" % (ref.key, artifact.get_relative_path()))
+                    found_invalid_key = True
+            if found_invalid_key:
+                # we cannot check the order of entities if invalid entity found
+                continue
+            # now, check if order of entities matches order in schema
+            keys = list(map(lambda e: e.key, entity_refs))
+            actual_keys_order = list(map(lambda k: expected_key_order[k], keys))
+            for i in range(0, len(actual_keys_order) - 1):
+                if actual_keys_order[i] > actual_keys_order[i + 1]:
+                    expected = tuple(map(lambda k: expected_order_key[k], sorted(actual_keys_order)))
+                    report.error(
+                        "Invalid entities order: expected=%s, found=%s, artifact=%s" % (
+                        expected, tuple(keys), artifact.get_relative_path()))
+                    break
 
 
 class SuffixesValidationRule(ValidationRule):
-    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport):
+    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, query: XPathQuery):
         pass
