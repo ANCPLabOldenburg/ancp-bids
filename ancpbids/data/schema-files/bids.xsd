@@ -10,11 +10,14 @@
     				<element name="subjects" type="bids:Subject"
     					minOccurs="0" maxOccurs="unbounded">
     				</element>
-    				<element name="dataset_description"
+    				<element name="dataset_description.json"
     					type="bids:DatasetDescriptionFile" minOccurs="1"
     					maxOccurs="1">
-                        <annotation>
-                        	<documentation>@extensions: json</documentation></annotation>
+    					<annotation>
+    						<documentation>
+    							@extensions: json
+    						</documentation>
+    					</annotation>
     				</element>
     				<element name="README" type="bids:File"
     					minOccurs="1" maxOccurs="1">
@@ -25,18 +28,13 @@
     				<element name="LICENSE" type="bids:File"
     					minOccurs="0" maxOccurs="1">
     				</element>
-    				<element name="genetic_info" type="bids:File"
+    				<element name="genetic_info.json" type="bids:File"
     					minOccurs="0" maxOccurs="1">
-                        <annotation>
-                        	<documentation>@extensions: json</documentation>
-                        </annotation>
+    					<annotation>
+    						<documentation></documentation>
+    					</annotation>
     				</element>
-                    <element name="participants" type="bids:File" maxOccurs="1" minOccurs="0">
-                    	<annotation>
-                    		<documentation>@extensions: json, tsv
-@use: test</documentation>
-                    	</annotation></element>
-                    <element name="samples" type="bids:File"
+    				<element name="samples.json" type="bids:File"
     					minOccurs="0" maxOccurs="1">
     				</element>
     				<element name="stimuli" type="bids:Folder"
@@ -51,6 +49,19 @@
     				<element name="sourcedata" type="bids:Folder"
     					minOccurs="0" maxOccurs="1">
     				</element>
+    				<choice>
+    					<element name="participants.json"
+    						type="bids:File" maxOccurs="1" minOccurs="0">
+    						<annotation>
+    							<documentation>
+    								@extensions: json, tsv @use: test
+    							</documentation>
+    						</annotation>
+    					</element>
+    					<element name="participants.tsv"
+    						type="bids:File" minOccurs="0" maxOccurs="1">
+    					</element>
+    				</choice>
     			</sequence>
 
     			<attribute name="base" type="string" use="required"></attribute>
@@ -281,5 +292,9 @@
     	</sequence>
     </complexType>
 
-    <attribute name="id" type="int"></attribute>
+
+    <complexType name="Annotation">
+    	<attribute name="key" type="string" use="required"></attribute>
+    	<attribute name="value" type="string" use="required"></attribute>
+    </complexType>
 </schema>

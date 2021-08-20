@@ -10,6 +10,20 @@ class BasicTestCase(BaseTestCase):
         bids_schema = Schema()
         ds005 = bids_schema.load_dataset(DS005_DIR)
         self.assertEqual("ds005", ds005.name)
+
+        ds_descr = ds005.get_dataset_description_json()
+        self.assertTrue(isinstance(ds_descr, model.DatasetDescriptionFile))
+        self.assertEqual("1.0.0rc2", ds_descr.get_BIDSVersion())
+        self.assertEqual("Mixed-gambles task", ds_descr.get_Name())
+        self.assertTrue(ds_descr.get_License().startswith(
+            "This dataset is made available under the Public Domain Dedication and License"))
+        self.assertEqual([
+            "Tom, S.M., Fox, C.R., Trepel, C., "
+            "Poldrack, R.A. (2007). "
+            "The neural basis of loss aversion in decision-making under risk. "
+            "Science, 315(5811):515-8"],
+            ds_descr.get_ReferencesAndLinks())
+
         subjects = ds005.get_subjects()
         self.assertEqual(16, len(subjects))
 

@@ -35,6 +35,9 @@ class Schema:
             result[name_wo_ext] = files.load_contents(file)
         return result
 
+    def save_dataset(self, target_dir):
+        pass
+
     def load_dataset(self, base_dir):
         ds = model.Dataset()
         ds.set_ns_prefix_(NS_PREFIX)
@@ -43,9 +46,9 @@ class Schema:
         ds.set_base(base_dir)
         # 1. pass: load file system structure
         _load_folder(ds, base_dir)
-        # 3. pass: check if any remaining files can be transformed to artifacts
+        # 2. pass: transform files to artifacts, i.e. files containing entities in their name
         self._convert_files_to_artifacts(ds)
-        # 2. pass: expand structure based on schema-files
+        # 3. pass: expand structure based on schema-files
         _expand_members(ds)
         return ds
 
@@ -102,7 +105,7 @@ def _to_type(model_type_name: str):
 
 
 def _normalize(member):
-    result = {'name': member['name'], 'typ': _to_type(member['type'])}
+    result = {'name': member['name'], 'name_raw': member['name_raw'], 'typ': _to_type(member['type'])}
     if 'use' in member:
         result['lower'] = 1 if member['use'] == 'required' else 0
         result['upper'] = 1
@@ -126,24 +129,31 @@ def _get_members(element_type, include_superclass=True):
 
     element_members = []
     try:
-        element_members = list(map(lambda member: {'name': member.name, 'type': member.data_type, **member.child_attrs},
-                                   element_type.member_data_items_.values()))
+        # name is the class member name compatible with Python naming conventions
+        # name_raw contains the name as modeled in schema and may contain invalid characters such as dots
+        element_members = list(
+            map(lambda member: {'name_raw': member.child_attrs['name'], 'type': member.data_type, **member.child_attrs,
+                                'name': member.name},
+                element_type.member_data_items_.values()))
         element_members = list(map(_normalize, element_members))
     except AttributeError as ae:
         pass
     return super_members + element_members
 
 
-def _type_handler_DatasetDescriptionFile(parent, member):
-    file_name = member['name'] + '.json'
-    _extract_fields_from_jsonfile(parent, member, file_name, model.DatasetDescriptionFile)
+def _type_handler_default(parent, member):
+    typ = member['typ']
+    if issubclass(typ, model.File):
+        file_name = member['name_raw']
+        _, ext = os.path.splitext(file_name)
+        if ext and ext in FIELDS_EXTRACTORS:
+            FIELDS_EXTRACTORS[ext](parent, member, file_name, typ)
 
 
 def _extract_fields_from_jsonfile(parent, member, file_name, model_type):
     json_object = parent.load_file_contents(file_name)
     if not json_object:
         return
-
     dsd_file = model_type()
     members = _get_members(model_type, False)
     actual_props = json_object.keys()
@@ -236,7 +246,7 @@ def _expand_member(parent, member):
     typ = member['typ']
     mapper_name = '_type_handler_' + typ.__name__
     if mapper_name not in _TYPE_MAPPERS:
-        return
+        mapper_name = '_type_handler_default'
     mapper = _TYPE_MAPPERS[mapper_name]
     mapper(parent, member)
 
@@ -260,6 +270,10 @@ def _load_folder(parent: model.Folder, dir_path):
             parent.add_files(model_file)
         break
 
+
+FIELDS_EXTRACTORS = {
+    '.json': _extract_fields_from_jsonfile
+}
 
 _MODEL_CLASSES = {name: obj for name, obj in inspect.getmembers(model) if inspect.isclass(obj)}
 _TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(sys.modules[__name__]) if

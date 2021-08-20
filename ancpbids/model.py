@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Aug 18 17:22:24 2021 by generateDS.py version 2.39.5.
+# Generated Fri Aug 20 14:26:40 2021 by generateDS.py version 2.39.6.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -16,7 +16,7 @@
 #   ../ancpbids/data/schema-files/bids.xsd
 #
 # Command line:
-#   /home/erdal/Downloads/generateDS-2.39.5/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../ancpbids/data/schema-files/bids.xsd
+#   ../../../hg-repos/generateds-code/generateDS.py -f --export="etree validate" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../ancpbids/data/schema-files/bids.xsd
 #
 # Current working directory (os.getcwd()):
 #   tools
@@ -875,7 +875,7 @@ class MixedContainer:
                 self.name,
                 base64.b64encode(self.value),
                 self.name))
-    def to_etree(self, element, mapping_=None, nsmap_=None):
+    def to_etree(self, element, mapping_=None, reverse_mapping_=None, nsmap_=None):
         if self.category == MixedContainer.CategoryText:
             # Prevent exporting empty content as empty lines.
             if self.value.strip():
@@ -895,7 +895,7 @@ class MixedContainer:
             subelement.text = self.to_etree_simple()
         else:    # category == MixedContainer.CategoryComplex
             self.value.to_etree(element)
-    def to_etree_simple(self, mapping_=None, nsmap_=None):
+    def to_etree_simple(self, mapping_=None, reverse_mapping_=None, nsmap_=None):
         if self.content_type == MixedContainer.TypeString:
             text = self.value
         elif (self.content_type == MixedContainer.TypeInteger or
@@ -984,9 +984,9 @@ class DatasetTypeType(str, Enum):
 class File(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required'}),
-        'extension': MemberSpec_('extension', 'string', 0, 1, {'use': 'optional'}),
-        'uri': MemberSpec_('uri', 'anyURI', 0, 1, {'use': 'optional'}),
+        'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required', 'name': 'name'}),
+        'extension': MemberSpec_('extension', 'string', 0, 1, {'use': 'optional', 'name': 'extension'}),
+        'uri': MemberSpec_('uri', 'anyURI', 0, 1, {'use': 'optional', 'name': 'uri'}),
     }
     subclass = None
     superclass = None
@@ -1106,16 +1106,21 @@ class File(GeneratedsSuper):
 
 
 class DatasetDescriptionFile(File):
+    """HEDVersion -- @use: recommended
+    DatasetType -- @use: recommended
+    License -- @use: recommended
+    
+    """
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'Name': MemberSpec_('Name', 'string', 0, 0, {'use': 'required'}),
-        'BIDSVersion': MemberSpec_('BIDSVersion', 'string', 0, 0, {'use': 'required'}),
-        'HEDVersion': MemberSpec_('HEDVersion', 'string', 0, 1, {'use': 'optional'}),
-        'DatasetType': MemberSpec_('DatasetType', 'DatasetTypeType', 0, 1, {'use': 'optional'}),
-        'License': MemberSpec_('License', 'string', 0, 1, {'use': 'optional'}),
-        'Acknowledgements': MemberSpec_('Acknowledgements', 'string', 0, 1, {'use': 'optional'}),
-        'HowToAcknowledge': MemberSpec_('HowToAcknowledge', 'string', 0, 1, {'use': 'optional'}),
-        'DatasetDOI': MemberSpec_('DatasetDOI', 'string', 0, 1, {'use': 'optional'}),
+        'Name': MemberSpec_('Name', 'string', 0, 0, {'use': 'required', 'name': 'Name'}),
+        'BIDSVersion': MemberSpec_('BIDSVersion', 'string', 0, 0, {'use': 'required', 'name': 'BIDSVersion'}),
+        'HEDVersion': MemberSpec_('HEDVersion', 'string', 0, 1, {'use': 'optional', 'name': 'HEDVersion'}),
+        'DatasetType': MemberSpec_('DatasetType', 'DatasetTypeType', 0, 1, {'use': 'optional', 'name': 'DatasetType'}),
+        'License': MemberSpec_('License', 'string', 0, 1, {'use': 'optional', 'name': 'License'}),
+        'Acknowledgements': MemberSpec_('Acknowledgements', 'string', 0, 1, {'use': 'optional', 'name': 'Acknowledgements'}),
+        'HowToAcknowledge': MemberSpec_('HowToAcknowledge', 'string', 0, 1, {'use': 'optional', 'name': 'HowToAcknowledge'}),
+        'DatasetDOI': MemberSpec_('DatasetDOI', 'string', 0, 1, {'use': 'optional', 'name': 'DatasetDOI'}),
         'Authors': MemberSpec_('Authors', 'string', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'Authors', 'type': 'string'}, None),
         'Funding': MemberSpec_('Funding', 'string', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'Funding', 'type': 'string'}, None),
         'EthicsApprovals': MemberSpec_('EthicsApprovals', 'string', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'EthicsApprovals', 'type': 'string'}, None),
@@ -1423,7 +1428,7 @@ class DatasetDescriptionFile(File):
 class Folder(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required'}),
+        'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required', 'name': 'name'}),
         'files': MemberSpec_('files', 'File', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'files', 'type': 'File'}, None),
         'folders': MemberSpec_('folders', 'Folder', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'folders', 'type': 'Folder'}, None),
     }
@@ -1665,7 +1670,7 @@ class DatatypeFolder(Folder):
 class Artifact(File):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'suffix': MemberSpec_('suffix', 'string', 0, 0, {'use': 'required'}),
+        'suffix': MemberSpec_('suffix', 'string', 0, 0, {'use': 'required', 'name': 'suffix'}),
         'entities': MemberSpec_('entities', 'EntityRef', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'entities', 'type': 'EntityRef'}, None),
     }
     subclass = None
@@ -1775,8 +1780,8 @@ class Artifact(File):
 class EntityRef(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'key': MemberSpec_('key', 'string', 0, 1, {'use': 'optional'}),
-        'value': MemberSpec_('value', 'string', 0, 1, {'use': 'optional'}),
+        'key': MemberSpec_('key', 'string', 0, 1, {'use': 'optional', 'name': 'key'}),
+        'value': MemberSpec_('value', 'string', 0, 1, {'use': 'optional', 'name': 'value'}),
     }
     subclass = None
     superclass = None
@@ -1875,12 +1880,12 @@ class EntityRef(GeneratedsSuper):
 class Entity(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required'}),
-        'label': MemberSpec_('label', 'string', 0, 1, {'use': 'optional'}),
-        'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required'}),
-        'description': MemberSpec_('description', 'string', 0, 0, {'use': 'required'}),
-        'type_': MemberSpec_('type_', 'string', 0, 0, {'use': 'required'}),
-        'format': MemberSpec_('format', 'string', 0, 1, {'use': 'optional'}),
+        'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required', 'name': 'name'}),
+        'label': MemberSpec_('label', 'string', 0, 1, {'use': 'optional', 'name': 'label'}),
+        'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required', 'name': 'key'}),
+        'description': MemberSpec_('description', 'string', 0, 0, {'use': 'required', 'name': 'description'}),
+        'type_': MemberSpec_('type_', 'string', 0, 0, {'use': 'required', 'name': 'type_'}),
+        'format': MemberSpec_('format', 'string', 0, 1, {'use': 'optional', 'name': 'format'}),
     }
     subclass = None
     superclass = None
@@ -2035,9 +2040,9 @@ class Entity(GeneratedsSuper):
 class Suffix(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required'}),
-        'description': MemberSpec_('description', 'string', 0, 0, {'use': 'required'}),
-        'unit': MemberSpec_('unit', 'string', 0, 1, {'use': 'optional'}),
+        'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required', 'name': 'name'}),
+        'description': MemberSpec_('description', 'string', 0, 0, {'use': 'required', 'name': 'description'}),
+        'unit': MemberSpec_('unit', 'string', 0, 1, {'use': 'optional', 'name': 'unit'}),
     }
     subclass = None
     superclass = None
@@ -2150,8 +2155,8 @@ class Suffix(GeneratedsSuper):
 class Modality(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'key': MemberSpec_('key', 'string', 0, 1, {'use': 'optional'}),
-        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional'}),
+        'key': MemberSpec_('key', 'string', 0, 1, {'use': 'optional', 'name': 'key'}),
+        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional', 'name': 'name'}),
         'datatypes': MemberSpec_('datatypes', 'string', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'datatypes', 'type': 'string'}, None),
     }
     subclass = None
@@ -2276,7 +2281,7 @@ class Modality(GeneratedsSuper):
 class Datatype(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional'}),
+        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional', 'name': 'name'}),
         'contexts': MemberSpec_('contexts', 'DatatypeContext', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'contexts', 'type': 'DatatypeContext'}, None),
     }
     subclass = None
@@ -2385,8 +2390,8 @@ class Datatype(GeneratedsSuper):
 class EntityDep(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required'}),
-        'required': MemberSpec_('required', 'boolean', 0, 0, {'use': 'required'}),
+        'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required', 'name': 'key'}),
+        'required': MemberSpec_('required', 'boolean', 0, 0, {'use': 'required', 'name': 'required'}),
     }
     subclass = None
     superclass = None
@@ -2775,7 +2780,7 @@ class DatatypesContainer(GeneratedsSuper):
 class DatatypeContext(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional'}),
+        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional', 'name': 'name'}),
         'suffixes': MemberSpec_('suffixes', 'string', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'suffixes', 'type': 'string'}, None),
         'extensions': MemberSpec_('extensions', 'string', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'extensions', 'type': 'string'}, None),
         'entities': MemberSpec_('entities', 'EntityDep', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'entities', 'type': 'EntityDep'}, None),
@@ -3062,6 +3067,106 @@ class Metadata(GeneratedsSuper):
 # end class Metadata
 
 
+class Annotation(GeneratedsSuper):
+    __hash__ = GeneratedsSuper.__hash__
+    member_data_items_ = {
+        'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required', 'name': 'key'}),
+        'value': MemberSpec_('value', 'string', 0, 0, {'use': 'required', 'name': 'value'}),
+    }
+    subclass = None
+    superclass = None
+    def __init__(self, key=None, value=None, gds_collector_=None, **kwargs_):
+        self.gds_collector_ = gds_collector_
+        self.gds_elementtree_node_ = None
+        self.original_tagname_ = None
+        self.parent_object_ = kwargs_.get('parent_object_')
+        self.ns_prefix_ = None
+        self.key = _cast(None, key)
+        self.key_nsprefix_ = None
+        self.value = _cast(None, value)
+        self.value_nsprefix_ = None
+    def factory(*args_, **kwargs_):
+        if CurrentSubclassModule_ is not None:
+            subclass = getSubclassFromModule_(
+                CurrentSubclassModule_, Annotation)
+            if subclass is not None:
+                return subclass(*args_, **kwargs_)
+        if Annotation.subclass:
+            return Annotation.subclass(*args_, **kwargs_)
+        else:
+            return Annotation(*args_, **kwargs_)
+    factory = staticmethod(factory)
+    def get_ns_prefix_(self):
+        return self.ns_prefix_
+    def set_ns_prefix_(self, ns_prefix):
+        self.ns_prefix_ = ns_prefix
+    def get_key(self):
+        return self.key
+    def set_key(self, key):
+        self.key = key
+    def get_value(self):
+        return self.value
+    def set_value(self, value):
+        self.value = value
+    def _hasContent(self):
+        if (
+
+        ):
+            return True
+        else:
+            return False
+    def to_etree(self, parent_element=None, name_='Annotation', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
+        if self.key is not None:
+            element.set('key', self.gds_format_string(self.key))
+        if self.value is not None:
+            element.set('value', self.gds_format_string(self.value))
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
+        return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
+        self.gds_check_cardinality_(self.key, 'key', required=True)
+        self.gds_validate_builtin_ST_(self.gds_validate_string, self.value, 'value')
+        self.gds_check_cardinality_(self.value, 'value', required=True)
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
+    def build(self, node, gds_collector_=None):
+        self.gds_collector_ = gds_collector_
+        if SaveElementTreeNode:
+            self.gds_elementtree_node_ = node
+        already_processed = set()
+        self.ns_prefix_ = node.prefix
+        self._buildAttributes(node, node.attrib, already_processed)
+        for child in node:
+            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
+            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
+        return self
+    def _buildAttributes(self, node, attrs, already_processed):
+        value = find_attr_value_('key', node)
+        if value is not None and 'key' not in already_processed:
+            already_processed.add('key')
+            self.key = value
+        value = find_attr_value_('value', node)
+        if value is not None and 'value' not in already_processed:
+            already_processed.add('value')
+            self.value = value
+    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
+        pass
+# end class Annotation
+
+
 class Session(Folder):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
@@ -3280,31 +3385,33 @@ class Subject(Folder):
 
 
 class Dataset(Folder):
-    """dataset_description -- @extensions: json
-    genetic_info -- @extensions: json
-    participants -- @extensions: json, tsv
-    @use: test
+    """dataset_description.json --
+    @extensions: json
+      
+    * participants.json --
+      @extensions: json, tsv @use: test
     
     """
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'base': MemberSpec_('base', 'string', 0, 0, {'use': 'required'}),
+        'base': MemberSpec_('base', 'string', 0, 0, {'use': 'required', 'name': 'base'}),
         'subjects': MemberSpec_('subjects', 'Subject', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'subjects', 'type': 'Subject'}, None),
-        'dataset_description': MemberSpec_('dataset_description', 'DatasetDescriptionFile', 0, 0, {'maxOccurs': '1', 'minOccurs': '1', 'name': 'dataset_description', 'type': 'DatasetDescriptionFile'}, None),
+        'dataset_description_json': MemberSpec_('dataset_description_json', 'DatasetDescriptionFile', 0, 0, {'maxOccurs': '1', 'minOccurs': '1', 'name': 'dataset_description.json', 'type': 'DatasetDescriptionFile'}, None),
         'README': MemberSpec_('README', 'File', 0, 0, {'maxOccurs': '1', 'minOccurs': '1', 'name': 'README', 'type': 'File'}, None),
         'CHANGES': MemberSpec_('CHANGES', 'File', 0, 0, {'maxOccurs': '1', 'minOccurs': '1', 'name': 'CHANGES', 'type': 'File'}, None),
         'LICENSE': MemberSpec_('LICENSE', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'LICENSE', 'type': 'File'}, None),
-        'genetic_info': MemberSpec_('genetic_info', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'genetic_info', 'type': 'File'}, None),
-        'participants': MemberSpec_('participants', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'participants', 'type': 'File'}, None),
-        'samples': MemberSpec_('samples', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'samples', 'type': 'File'}, None),
+        'genetic_info_json': MemberSpec_('genetic_info_json', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'genetic_info.json', 'type': 'File'}, None),
+        'samples_json': MemberSpec_('samples_json', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'samples.json', 'type': 'File'}, None),
         'stimuli': MemberSpec_('stimuli', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'stimuli', 'type': 'Folder'}, None),
         'code': MemberSpec_('code', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'code', 'type': 'Folder'}, None),
         'derivatives': MemberSpec_('derivatives', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'derivatives', 'type': 'Folder'}, None),
         'sourcedata': MemberSpec_('sourcedata', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'sourcedata', 'type': 'Folder'}, None),
+        'participants_json': MemberSpec_('participants_json', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'participants.json', 'type': 'File'}, 1),
+        'participants_tsv': MemberSpec_('participants_tsv', 'File', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'participants.tsv', 'type': 'File'}, 1),
     }
     subclass = None
     superclass = Folder
-    def __init__(self, name=None, files=None, folders=None, base=None, subjects=None, dataset_description=None, README=None, CHANGES=None, LICENSE=None, genetic_info=None, participants=None, samples=None, stimuli=None, code=None, derivatives=None, sourcedata=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, files=None, folders=None, base=None, subjects=None, dataset_description_json=None, README=None, CHANGES=None, LICENSE=None, genetic_info_json=None, samples_json=None, stimuli=None, code=None, derivatives=None, sourcedata=None, participants_json=None, participants_tsv=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -3318,20 +3425,18 @@ class Dataset(Folder):
         else:
             self.subjects = subjects
         self.subjects_nsprefix_ = None
-        self.dataset_description = dataset_description
-        self.dataset_description_nsprefix_ = None
+        self.dataset_description_json = dataset_description_json
+        self.dataset_description_json_nsprefix_ = None
         self.README = README
         self.README_nsprefix_ = None
         self.CHANGES = CHANGES
         self.CHANGES_nsprefix_ = None
         self.LICENSE = LICENSE
         self.LICENSE_nsprefix_ = None
-        self.genetic_info = genetic_info
-        self.genetic_info_nsprefix_ = None
-        self.participants = participants
-        self.participants_nsprefix_ = None
-        self.samples = samples
-        self.samples_nsprefix_ = None
+        self.genetic_info_json = genetic_info_json
+        self.genetic_info_json_nsprefix_ = None
+        self.samples_json = samples_json
+        self.samples_json_nsprefix_ = None
         self.stimuli = stimuli
         self.stimuli_nsprefix_ = None
         self.code = code
@@ -3340,6 +3445,10 @@ class Dataset(Folder):
         self.derivatives_nsprefix_ = None
         self.sourcedata = sourcedata
         self.sourcedata_nsprefix_ = None
+        self.participants_json = participants_json
+        self.participants_json_nsprefix_ = None
+        self.participants_tsv = participants_tsv
+        self.participants_tsv_nsprefix_ = None
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -3365,10 +3474,10 @@ class Dataset(Folder):
         self.subjects.insert(index, value)
     def replace_subjects_at(self, index, value):
         self.subjects[index] = value
-    def get_dataset_description(self):
-        return self.dataset_description
-    def set_dataset_description(self, dataset_description):
-        self.dataset_description = dataset_description
+    def get_dataset_description_json(self):
+        return self.dataset_description_json
+    def set_dataset_description_json(self, dataset_description_json):
+        self.dataset_description_json = dataset_description_json
     def get_README(self):
         return self.README
     def set_README(self, README):
@@ -3381,18 +3490,14 @@ class Dataset(Folder):
         return self.LICENSE
     def set_LICENSE(self, LICENSE):
         self.LICENSE = LICENSE
-    def get_genetic_info(self):
-        return self.genetic_info
-    def set_genetic_info(self, genetic_info):
-        self.genetic_info = genetic_info
-    def get_participants(self):
-        return self.participants
-    def set_participants(self, participants):
-        self.participants = participants
-    def get_samples(self):
-        return self.samples
-    def set_samples(self, samples):
-        self.samples = samples
+    def get_genetic_info_json(self):
+        return self.genetic_info_json
+    def set_genetic_info_json(self, genetic_info_json):
+        self.genetic_info_json = genetic_info_json
+    def get_samples_json(self):
+        return self.samples_json
+    def set_samples_json(self, samples_json):
+        self.samples_json = samples_json
     def get_stimuli(self):
         return self.stimuli
     def set_stimuli(self, stimuli):
@@ -3409,6 +3514,14 @@ class Dataset(Folder):
         return self.sourcedata
     def set_sourcedata(self, sourcedata):
         self.sourcedata = sourcedata
+    def get_participants_json(self):
+        return self.participants_json
+    def set_participants_json(self, participants_json):
+        self.participants_json = participants_json
+    def get_participants_tsv(self):
+        return self.participants_tsv
+    def set_participants_tsv(self, participants_tsv):
+        self.participants_tsv = participants_tsv
     def get_base(self):
         return self.base
     def set_base(self, base):
@@ -3416,17 +3529,18 @@ class Dataset(Folder):
     def _hasContent(self):
         if (
             self.subjects or
-            self.dataset_description is not None or
+            self.dataset_description_json is not None or
             self.README is not None or
             self.CHANGES is not None or
             self.LICENSE is not None or
-            self.genetic_info is not None or
-            self.participants is not None or
-            self.samples is not None or
+            self.genetic_info_json is not None or
+            self.samples_json is not None or
             self.stimuli is not None or
             self.code is not None or
             self.derivatives is not None or
             self.sourcedata is not None or
+            self.participants_json is not None or
+            self.participants_tsv is not None or
             super(Dataset, self)._hasContent()
         ):
             return True
@@ -3438,9 +3552,9 @@ class Dataset(Folder):
             element.set('base', self.gds_format_string(self.base))
         for subjects_ in self.subjects:
             subjects_.to_etree(element, name_='subjects', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        if self.dataset_description is not None:
-            dataset_description_ = self.dataset_description
-            dataset_description_.to_etree(element, name_='dataset_description', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        if self.dataset_description_json is not None:
+            dataset_description_json_ = self.dataset_description_json
+            dataset_description_json_.to_etree(element, name_='dataset_description.json', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.README is not None:
             README_ = self.README
             README_.to_etree(element, name_='README', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
@@ -3450,15 +3564,12 @@ class Dataset(Folder):
         if self.LICENSE is not None:
             LICENSE_ = self.LICENSE
             LICENSE_.to_etree(element, name_='LICENSE', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        if self.genetic_info is not None:
-            genetic_info_ = self.genetic_info
-            genetic_info_.to_etree(element, name_='genetic_info', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        if self.participants is not None:
-            participants_ = self.participants
-            participants_.to_etree(element, name_='participants', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        if self.samples is not None:
-            samples_ = self.samples
-            samples_.to_etree(element, name_='samples', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        if self.genetic_info_json is not None:
+            genetic_info_json_ = self.genetic_info_json
+            genetic_info_json_.to_etree(element, name_='genetic_info.json', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        if self.samples_json is not None:
+            samples_json_ = self.samples_json
+            samples_json_.to_etree(element, name_='samples.json', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if self.stimuli is not None:
             stimuli_ = self.stimuli
             stimuli_.to_etree(element, name_='stimuli', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
@@ -3471,6 +3582,12 @@ class Dataset(Folder):
         if self.sourcedata is not None:
             sourcedata_ = self.sourcedata
             sourcedata_.to_etree(element, name_='sourcedata', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        if self.participants_json is not None:
+            participants_json_ = self.participants_json
+            participants_json_.to_etree(element, name_='participants.json', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        if self.participants_tsv is not None:
+            participants_tsv_ = self.participants_tsv
+            participants_tsv_.to_etree(element, name_='participants.tsv', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         if reverse_mapping_ is not None:
@@ -3485,34 +3602,35 @@ class Dataset(Folder):
         # validate simple type children
         # validate complex type children
         self.gds_check_cardinality_(self.subjects, 'subjects', min_occurs=0, max_occurs=9999999)
-        self.gds_check_cardinality_(self.dataset_description, 'dataset_description', min_occurs=1, max_occurs=1)
+        self.gds_check_cardinality_(self.dataset_description_json, 'dataset_description_json', min_occurs=1, max_occurs=1)
         self.gds_check_cardinality_(self.README, 'README', min_occurs=1, max_occurs=1)
         self.gds_check_cardinality_(self.CHANGES, 'CHANGES', min_occurs=1, max_occurs=1)
         self.gds_check_cardinality_(self.LICENSE, 'LICENSE', min_occurs=0, max_occurs=1)
-        self.gds_check_cardinality_(self.genetic_info, 'genetic_info', min_occurs=0, max_occurs=1)
-        self.gds_check_cardinality_(self.participants, 'participants', min_occurs=0, max_occurs=1)
-        self.gds_check_cardinality_(self.samples, 'samples', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.genetic_info_json, 'genetic_info_json', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.samples_json, 'samples_json', min_occurs=0, max_occurs=1)
         self.gds_check_cardinality_(self.stimuli, 'stimuli', min_occurs=0, max_occurs=1)
         self.gds_check_cardinality_(self.code, 'code', min_occurs=0, max_occurs=1)
         self.gds_check_cardinality_(self.derivatives, 'derivatives', min_occurs=0, max_occurs=1)
         self.gds_check_cardinality_(self.sourcedata, 'sourcedata', min_occurs=0, max_occurs=1)
+        # cardinality check omitted for choice item participants_json
+        #self.gds_check_cardinality_(self.participants_json, 'participants_json', min_occurs=0, max_occurs=1)
+        # cardinality check omitted for choice item participants_tsv
+        #self.gds_check_cardinality_(self.participants_tsv, 'participants_tsv', min_occurs=0, max_occurs=1)
         if recursive:
             for item in self.subjects:
                 item.validate_(gds_collector, recursive=True)
-            if self.dataset_description is not None:
-                self.dataset_description.validate_(gds_collector, recursive=True)
+            if self.dataset_description_json is not None:
+                self.dataset_description_json.validate_(gds_collector, recursive=True)
             if self.README is not None:
                 self.README.validate_(gds_collector, recursive=True)
             if self.CHANGES is not None:
                 self.CHANGES.validate_(gds_collector, recursive=True)
             if self.LICENSE is not None:
                 self.LICENSE.validate_(gds_collector, recursive=True)
-            if self.genetic_info is not None:
-                self.genetic_info.validate_(gds_collector, recursive=True)
-            if self.participants is not None:
-                self.participants.validate_(gds_collector, recursive=True)
-            if self.samples is not None:
-                self.samples.validate_(gds_collector, recursive=True)
+            if self.genetic_info_json is not None:
+                self.genetic_info_json.validate_(gds_collector, recursive=True)
+            if self.samples_json is not None:
+                self.samples_json.validate_(gds_collector, recursive=True)
             if self.stimuli is not None:
                 self.stimuli.validate_(gds_collector, recursive=True)
             if self.code is not None:
@@ -3521,6 +3639,10 @@ class Dataset(Folder):
                 self.derivatives.validate_(gds_collector, recursive=True)
             if self.sourcedata is not None:
                 self.sourcedata.validate_(gds_collector, recursive=True)
+            if self.participants_json is not None:
+                self.participants_json.validate_(gds_collector, recursive=True)
+            if self.participants_tsv is not None:
+                self.participants_tsv.validate_(gds_collector, recursive=True)
         return message_count == len(self.gds_collector_.get_messages())
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -3545,11 +3667,11 @@ class Dataset(Folder):
             obj_.build(child_, gds_collector_=gds_collector_)
             self.subjects.append(obj_)
             obj_.original_tagname_ = 'subjects'
-        elif nodeName_ == 'dataset_description':
+        elif nodeName_ == 'dataset_description.json':
             obj_ = DatasetDescriptionFile.factory(parent_object_=self)
             obj_.build(child_, gds_collector_=gds_collector_)
-            self.dataset_description = obj_
-            obj_.original_tagname_ = 'dataset_description'
+            self.dataset_description_json = obj_
+            obj_.original_tagname_ = 'dataset_description.json'
         elif nodeName_ == 'README':
             class_obj_ = self.get_class_obj_(child_, File)
             obj_ = class_obj_.factory(parent_object_=self)
@@ -3568,24 +3690,18 @@ class Dataset(Folder):
             obj_.build(child_, gds_collector_=gds_collector_)
             self.LICENSE = obj_
             obj_.original_tagname_ = 'LICENSE'
-        elif nodeName_ == 'genetic_info':
+        elif nodeName_ == 'genetic_info.json':
             class_obj_ = self.get_class_obj_(child_, File)
             obj_ = class_obj_.factory(parent_object_=self)
             obj_.build(child_, gds_collector_=gds_collector_)
-            self.genetic_info = obj_
-            obj_.original_tagname_ = 'genetic_info'
-        elif nodeName_ == 'participants':
+            self.genetic_info_json = obj_
+            obj_.original_tagname_ = 'genetic_info.json'
+        elif nodeName_ == 'samples.json':
             class_obj_ = self.get_class_obj_(child_, File)
             obj_ = class_obj_.factory(parent_object_=self)
             obj_.build(child_, gds_collector_=gds_collector_)
-            self.participants = obj_
-            obj_.original_tagname_ = 'participants'
-        elif nodeName_ == 'samples':
-            class_obj_ = self.get_class_obj_(child_, File)
-            obj_ = class_obj_.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.samples = obj_
-            obj_.original_tagname_ = 'samples'
+            self.samples_json = obj_
+            obj_.original_tagname_ = 'samples.json'
         elif nodeName_ == 'stimuli':
             class_obj_ = self.get_class_obj_(child_, Folder)
             obj_ = class_obj_.factory(parent_object_=self)
@@ -3610,6 +3726,18 @@ class Dataset(Folder):
             obj_.build(child_, gds_collector_=gds_collector_)
             self.sourcedata = obj_
             obj_.original_tagname_ = 'sourcedata'
+        elif nodeName_ == 'participants.json':
+            class_obj_ = self.get_class_obj_(child_, File)
+            obj_ = class_obj_.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.participants_json = obj_
+            obj_.original_tagname_ = 'participants.json'
+        elif nodeName_ == 'participants.tsv':
+            class_obj_ = self.get_class_obj_(child_, File)
+            obj_ = class_obj_.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.participants_tsv = obj_
+            obj_.original_tagname_ = 'participants.tsv'
         super(Dataset, self)._buildChildren(child_, node, nodeName_, True)
 # end class Dataset
 
@@ -3868,9 +3996,13 @@ NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.6': [('Dataset',
                                        'CT'),
                                       ('Metadata',
                                        '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('Annotation',
+                                       '../ancpbids/data/schema-files/bids.xsd',
                                        'CT')]}
 
 __all__ = [
+    "Annotation",
     "Artifact",
     "Dataset",
     "DatasetDescriptionFile",
