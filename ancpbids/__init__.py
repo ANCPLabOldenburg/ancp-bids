@@ -2,6 +2,21 @@ import os
 
 from . import model
 from . import files
+from .dsloader import DatasetLoader
+from .dssaver import DatasetSaver
+from .schema import Schema
+from . import utils
+
+
+def load_dataset(base_dir: str):
+    schema = Schema()
+    loader = DatasetLoader(schema)
+    ds = loader.load(base_dir)
+    return ds
+
+def save_dataset(ds: model.Dataset, target_dir: str):
+    saver = DatasetSaver(ds._schema)
+    saver.save(target_dir)
 
 # start monkey-patching generated code
 from .query import XPathQuery
@@ -41,6 +56,7 @@ def _folder_get_relative_path(folder: model.Folder):
 
 
 setattr(model.Folder, 'get_relative_path', _folder_get_relative_path)
+
 
 def _file_get_relative_path(file: model.File):
     return _get_path(file.parent_object_, file.name, False)
@@ -109,6 +125,7 @@ def get_folders_sorted(folder: model.Folder):
 setattr(model.Folder, 'get_folders_sorted', get_folders_sorted)
 
 # end monkey-patching
+
 
 from .pybids_compat import BIDSLayout
 

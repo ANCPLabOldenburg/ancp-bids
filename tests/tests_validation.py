@@ -1,12 +1,12 @@
-from base_test_case import *
-from ancpbids import schema, validator
+from ancpbids import validator, load_dataset
 from ancpbids.rules import rules_files
+from base_test_case import *
 
 
 class ValidationTestCase(BaseTestCase):
     def createSUT(self, ds_dir, rule_class):
-        bids_schema = schema.Schema()
-        test_ds = bids_schema.load_dataset(ds_dir)
+        test_ds = load_dataset(ds_dir)
+        bids_schema = test_ds._schema
         val = validator.Validator()
         # only test this rule
         val.ruleAcceptor = lambda rule: rule == rule_class

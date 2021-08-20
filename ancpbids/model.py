@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Fri Aug 20 14:26:40 2021 by generateDS.py version 2.39.6.
+# Generated Fri Aug 20 14:52:20 2021 by generateDS.py version 2.39.6.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -3067,106 +3067,6 @@ class Metadata(GeneratedsSuper):
 # end class Metadata
 
 
-class Annotation(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required', 'name': 'key'}),
-        'value': MemberSpec_('value', 'string', 0, 0, {'use': 'required', 'name': 'value'}),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, key=None, value=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        self.key = _cast(None, key)
-        self.key_nsprefix_ = None
-        self.value = _cast(None, value)
-        self.value_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, Annotation)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if Annotation.subclass:
-            return Annotation.subclass(*args_, **kwargs_)
-        else:
-            return Annotation(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_key(self):
-        return self.key
-    def set_key(self, key):
-        self.key = key
-    def get_value(self):
-        return self.value
-    def set_value(self, value):
-        self.value = value
-    def _hasContent(self):
-        if (
-
-        ):
-            return True
-        else:
-            return False
-    def to_etree(self, parent_element=None, name_='Annotation', mapping_=None, reverse_mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        if self.key is not None:
-            element.set('key', self.gds_format_string(self.key))
-        if self.value is not None:
-            element.set('value', self.gds_format_string(self.value))
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        if reverse_mapping_ is not None:
-            reverse_mapping_[element] = self
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
-        self.gds_check_cardinality_(self.key, 'key', required=True)
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.value, 'value')
-        self.gds_check_cardinality_(self.value, 'value', required=True)
-        # validate simple type children
-        # validate complex type children
-        if recursive:
-            pass
-        return message_count == len(self.gds_collector_.get_messages())
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('key', node)
-        if value is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            self.key = value
-        value = find_attr_value_('value', node)
-        if value is not None and 'value' not in already_processed:
-            already_processed.add('value')
-            self.value = value
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        pass
-# end class Annotation
-
-
 class Session(Folder):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
@@ -3385,13 +3285,6 @@ class Subject(Folder):
 
 
 class Dataset(Folder):
-    """dataset_description.json --
-    @extensions: json
-      
-    * participants.json --
-      @extensions: json, tsv @use: test
-    
-    """
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
         'base': MemberSpec_('base', 'string', 0, 0, {'use': 'required', 'name': 'base'}),
@@ -3996,13 +3889,9 @@ NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.6': [('Dataset',
                                        'CT'),
                                       ('Metadata',
                                        '../ancpbids/data/schema-files/bids.xsd',
-                                       'CT'),
-                                      ('Annotation',
-                                       '../ancpbids/data/schema-files/bids.xsd',
                                        'CT')]}
 
 __all__ = [
-    "Annotation",
     "Artifact",
     "Dataset",
     "DatasetDescriptionFile",

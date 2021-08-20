@@ -1,13 +1,12 @@
-from functools import reduce
-
+from . import load_dataset
 from .query import XPathQuery
-from .schema import Schema, NS_PREFIX
+from .schema import NS_PREFIX
 
 
 class BIDSLayout:
     def __init__(self, ds_dir: str):
-        self.sc = Schema()
-        self.dataset = self.sc.load_dataset(ds_dir)
+        self.dataset = load_dataset(ds_dir)
+        self.sc = self.dataset._schema
         self.query = XPathQuery(self.dataset, self.sc)
 
     def _query(self, expr: str, search_node=None):
