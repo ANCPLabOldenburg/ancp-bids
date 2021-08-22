@@ -4,7 +4,7 @@ from . import model
 from . import files
 from .dsloader import DatasetLoader
 from .dssaver import DatasetSaver
-from .schema import Schema
+from .schema import Schema, NS_MAP
 from . import utils
 
 
@@ -14,9 +14,15 @@ def load_dataset(base_dir: str):
     ds = loader.load(base_dir)
     return ds
 
+
 def save_dataset(ds: model.Dataset, target_dir: str):
     saver = DatasetSaver(ds._schema)
-    saver.save(target_dir)
+    return saver.save(ds, target_dir)
+
+
+def to_etree(ds: model.Dataset):
+    return ds.to_etree(nsmap_=NS_MAP)
+
 
 # start monkey-patching generated code
 from .query import XPathQuery
@@ -73,13 +79,13 @@ def _get_path(folder: model.Folder, file_name, absolute=True):
     while current_folder is not None:
         if isinstance(current_folder, model.Dataset):
             if absolute:
-                segments.insert(0, current_folder.get_base())
+                segments.insert(0, current_folder.base_dir_)
             # assume we reached the highest level, maybe not good for nested datasets
             break
         else:
             segments.insert(0, current_folder.get_name())
         current_folder = current_folder.parent_object_
-    _path = os.path.join(*segments)
+    _path = os.path.join(*segments) if segments else ''
     return _path
 
 

@@ -28,3 +28,21 @@ class Schema:
             name_wo_ext = os.path.basename(file)[:-5]
             result[name_wo_ext] = files.load_contents(file)
         return result
+
+    def _trim_int(self, value):
+        try:
+            # remove paddings/fillers in index values: 001 -> 1, 000230 -> 230
+            return str(int(value))
+        except ValueError:
+            return value
+
+    def process_entity_value(self, key, value):
+        if not value or key not in self.entities:
+            return value
+        sc_entity = self.entities[key]
+        if value and sc_entity and 'format' in sc_entity and sc_entity['format'] == 'index':
+            if isinstance(value, list):
+                return list(map(lambda v: self._trim_int(v), value))
+            else:
+                return self._trim_int(value)
+        return value

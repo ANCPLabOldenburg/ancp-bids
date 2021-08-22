@@ -60,7 +60,6 @@
     				</choice>
     			</sequence>
 
-    			<attribute name="base" type="string" use="required"></attribute>
     		</extension>
     	</complexContent>
     </complexType>
@@ -97,7 +96,7 @@
 
     <complexType name="DatasetDescriptionFile">
     	<complexContent>
-    		<extension base="bids:File">
+    		<extension base="bids:JsonFile">
     			<sequence>
     				<element name="Authors" type="string" minOccurs="0"
     					maxOccurs="unbounded">
@@ -289,4 +288,19 @@
     </complexType>
 
 
+
+    <complexType name="JsonFile">
+    	<complexContent>
+    		<extension base="bids:File">
+    			<sequence>
+    				<element name="keys" type="bids:JsonFileFlatEntry" minOccurs="0" maxOccurs="unbounded"></element>
+    			</sequence>
+    		</extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="JsonFileFlatEntry">
+    	<attribute name="key" type="string" use="required"></attribute>
+    	<attribute name="value" type="string" use="required"></attribute>
+    </complexType>
 </schema>
