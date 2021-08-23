@@ -107,7 +107,7 @@ class DatasetLoader:
     def _type_handler_File(self, parent, member):
         if not isinstance(parent, model.Folder):
             return
-        file = parent.get_file(member['name_raw'])
+        file = parent.get_file(member['name'])
         if file:
             setattr(parent, member['name'], file)
             parent.remove_file(file.name)
@@ -117,7 +117,7 @@ class DatasetLoader:
             return
         attr = getattr(parent, member['name'])
         multi = isinstance(attr, list)
-        name = member['name_raw']
+        name = member['name']
         files = parent.get_files() if multi else list(filter(lambda f: f.name == name, parent.get_files()))
         for file in files:
             if not isinstance(file, model.Artifact):
@@ -149,13 +149,14 @@ class DatasetLoader:
         self._handle_direct_folders(parent, member, pattern, model.DatatypeFolder)
 
     def _type_handler_JsonFile(self, parent, member):
-        name = member['name_raw']
-        json_object = parent.load_file_contents(name)
+        name = member['name']
+        file_name = name + '.json'
+        json_object = parent.load_file_contents(file_name)
         if not json_object:
             return
         model_type = member['typ']
         dsd_file = model_type()
-        dsd_file.name = name
+        dsd_file.name = file_name
         members = utils.get_members(model_type, False)
         actual_props = json_object.keys()
         direct_props = list(map(lambda m: m['name'], members))

@@ -10,8 +10,9 @@ class BasicTestCase(BaseTestCase):
         ds005 = load_dataset(DS005_DIR)
         self.assertEqual("ds005", ds005.name)
 
-        ds_descr = ds005.get_dataset_description_json()
+        ds_descr = ds005.get_dataset_description()
         self.assertTrue(isinstance(ds_descr, model.DatasetDescriptionFile))
+        self.assertEqual('dataset_description.json', ds_descr.name)
         self.assertEqual("1.0.0rc2", ds_descr.get_BIDSVersion())
         self.assertEqual("Mixed-gambles task", ds_descr.get_Name())
         self.assertTrue(ds_descr.get_License().startswith(
