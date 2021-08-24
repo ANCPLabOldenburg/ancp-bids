@@ -48,6 +48,7 @@ class BIDSLayout:
             expr.append('//%s:%s' % (NS_PREFIX, scope))
         entity_filters = []
         for k, v in entities.items():
+            k = self.sc.fuzzy_match_entity_key(k)
             v = self.sc.process_entity_value(k, v)
             v = self._scalar_or_list('value', v)
             entity_filters.append('%s:entities[@key="%s" and %s]' % (NS_PREFIX, k, v))
