@@ -1,6 +1,7 @@
 import logging
 import os
 from collections import OrderedDict
+from difflib import SequenceMatcher
 
 from . import files
 
@@ -46,3 +47,11 @@ class Schema:
             else:
                 return self._trim_int(value)
         return value
+
+    def fuzzy_match_entity_key(self, user_key):
+        ratios = list(
+            map(lambda e: (
+                e, 1.0 if e['name'].startswith(user_key) else SequenceMatcher(None, user_key, e['name']).quick_ratio()),
+                self.entities.values()))
+        ratios = sorted(ratios, key=lambda t: t[1])
+        return ratios[-1][0]['key']
