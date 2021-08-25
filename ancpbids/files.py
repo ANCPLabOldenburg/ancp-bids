@@ -25,8 +25,8 @@ def read_plain_text(file_path: str):
 
 
 def read_tsv(file_path: str):
-    import pandas
-    df = pandas.read_csv(file_path, sep='\t')
+    import numpy
+    df = numpy.genfromtxt(file_path, delimiter='\t', dtype=None, names=True)
     return df
 
 

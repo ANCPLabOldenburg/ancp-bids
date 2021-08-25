@@ -1,5 +1,3 @@
-import unittest
-
 import ancpbids
 from base_test_case import *
 

@@ -1,7 +1,6 @@
-import pandas
+import numpy
 
 from ancpbids import model, load_dataset
-from ancpbids.schema import Schema
 from base_test_case import *
 
 
@@ -58,8 +57,8 @@ class BasicTestCase(BaseTestCase):
     def test_tsv_file_contents(self):
         ds005 = load_dataset(DS005_DIR)
         participants = ds005.load_file_contents("participants.tsv")
-        self.assertTrue(isinstance(participants, pandas.DataFrame), "Expected a pandas.DataFrame")
-        self.assertListEqual(['participant_id', 'sex', 'age'], list(participants.columns))
+        self.assertTrue(isinstance(participants, numpy.ndarray), "Expected a pandas.DataFrame")
+        self.assertListEqual(['participant_id', 'sex', 'age'], list(participants.dtype.names))
         self.assertEqual(16, participants.shape[0])
 
     def test_parse_entities_in_filenames(self):
