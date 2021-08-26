@@ -33,14 +33,13 @@
 					<element name="samples" type="bids:JsonFile"
 						minOccurs="0" maxOccurs="1">
 					</element>
-                    <element name="participants" type="bids:ParticipantsFile" maxOccurs="1" minOccurs="0">
-							<annotation>
-								<documentation></documentation>
-							</annotation>
-						</element>
-                    <element name="stimuli" type="bids:Folder"
-						minOccurs="0" maxOccurs="1">
+					<element name="participants.tsv"
+						type="bids:ParticipantsTsvFile" maxOccurs="1" minOccurs="0">
+						<annotation>
+							<documentation></documentation>
+						</annotation>
 					</element>
+                    <element name="participants.json" type="bids:SidecarFile" minOccurs="0" maxOccurs="1"></element>
 					<element name="code" type="bids:Folder"
 						minOccurs="0" maxOccurs="1">
 					</element>
@@ -50,8 +49,10 @@
 					<element name="sourcedata" type="bids:Folder"
 						minOccurs="0" maxOccurs="1">
 					</element>
-				</sequence>
-
+                    <element name="stimuli" type="bids:Folder" minOccurs="0" maxOccurs="1">
+					</element>
+                </sequence>
+				
 			</extension>
 		</complexContent>
 	</complexType>
@@ -107,6 +108,10 @@
 					<element name="ReferencesAndLinks" type="string"
 						minOccurs="0" maxOccurs="unbounded">
 					</element>
+					<element name="GeneratedBy" type="bids:GeneratedBy"
+						minOccurs="0" maxOccurs="unbounded">
+					</element>
+					<element name="SourceDatasets" type="bids:SourceDatasets" minOccurs="0" maxOccurs="unbounded"></element>
 				</sequence>
 				<attribute name="Name" type="string" use="required"></attribute>
 				<attribute name="BIDSVersion" type="string"
@@ -305,9 +310,115 @@
 
 	<complexType name="FileMatcher"></complexType>
 
-	<complexType name="ParticipantsFile">
+	<complexType name="ParticipantsTsvFile">
 		<complexContent>
-			<extension base="bids:File"></extension>
+			<extension base="bids:TsvFile">
+				<sequence>
+					<element name="entries" type="bids:ParticipantsTsvFileEntry" minOccurs="1" maxOccurs="unbounded"></element>
+				</sequence>
+			</extension>
 		</complexContent>
 	</complexType>
+
+	<complexType name="SidecarFile">
+		<complexContent>
+			<extension base="bids:JsonFile">
+				<sequence>
+					<element name="columns" type="bids:SidecarColumnDescriptor" minOccurs="1" maxOccurs="unbounded"></element>
+				</sequence>
+			</extension>
+		</complexContent>
+	</complexType>
+
+	<complexType name="TsvFile">
+    	<complexContent>
+    		<extension base="bids:File"></extension>
+    	</complexContent>
+    </complexType>
+
+    <complexType name="ParticipantsTsvFileEntry">
+    	<attribute name="participant_id" type="string" use="required"></attribute>
+    	<attribute name="age" type="float"></attribute>
+    	<attribute name="sex">
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="male"></enumeration>
+    				<enumeration value="Male"></enumeration>
+    				<enumeration value="MALE"></enumeration>
+    				<enumeration value="m"></enumeration>
+    				<enumeration value="M"></enumeration>
+    				<enumeration value="female"></enumeration>
+    				<enumeration value="Female"></enumeration>
+    				<enumeration value="f"></enumeration>
+    				<enumeration value="F"></enumeration>
+    				<enumeration value="other"></enumeration>
+    				<enumeration value="Other"></enumeration>
+    				<enumeration value="OTHER"></enumeration>
+    				<enumeration value="o"></enumeration>
+    				<enumeration value="O"></enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    	<attribute name="handedness">
+    		<simpleType>
+    			<restriction base="string">
+    				<enumeration value="left"></enumeration>
+    				<enumeration value="Left"></enumeration>
+    				<enumeration value="LEFT"></enumeration>
+    				<enumeration value="l"></enumeration>
+    				<enumeration value="L"></enumeration>
+    				<enumeration value="right"></enumeration>
+    				<enumeration value="Right"></enumeration>
+    				<enumeration value="RIGHT"></enumeration>
+    				<enumeration value="r"></enumeration>
+    				<enumeration value="R"></enumeration>
+    				<enumeration value="ambidextrous"></enumeration>
+    				<enumeration value="Ambidextrous"></enumeration>
+    				<enumeration value="AMBIDEXTROUS"></enumeration>
+    				<enumeration value="a"></enumeration>
+    				<enumeration value="A"></enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    </complexType>
+
+    <complexType name="SidecarColumnDescriptor">
+    	<sequence>
+    		<element name="Levels" type="bids:KeyValuePair"
+    			minOccurs="0" maxOccurs="unbounded">
+    		</element>
+    	</sequence>
+        <attribute name="Name" type="string" use="required"></attribute>
+        <attribute name="LongName" type="string"></attribute>
+    	<attribute name="Description" type="string"></attribute>
+    	<attribute name="Units" type="string"></attribute>
+    	<attribute name="TermURL" type="string"></attribute>
+    </complexType>
+    
+    <complexType name="KeyValuePair">
+    	<attribute name="key" type="string" use="required"></attribute>
+    	<attribute name="value" type="string" use="required"></attribute>
+    </complexType>
+
+    <complexType name="GeneratedBy">
+    	<sequence>
+    		<element name="Container" type="bids:GeneratedByContainer" minOccurs="0" maxOccurs="1"></element>
+    	</sequence>
+    	<attribute name="Name" type="string" use="required"></attribute>
+    	<attribute name="Version" type="string"></attribute>
+    	<attribute name="Description" type="string"></attribute>
+    	<attribute name="CodeURL" type="string"></attribute>
+    </complexType>
+
+    <complexType name="SourceDatasets">
+    	<attribute name="DOI" type="string"></attribute>
+    	<attribute name="URL" type="anyURI"></attribute>
+    	<attribute name="Version" type="string"></attribute>
+    </complexType>
+
+    <complexType name="GeneratedByContainer">
+    	<attribute name="Type" type="string"></attribute>
+    	<attribute name="Tag" type="string"></attribute>
+    	<attribute name="URI" type="anyURI"></attribute>
+    </complexType>
 </schema>
