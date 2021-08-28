@@ -1,9 +1,8 @@
 import tempfile
-import tempfile
 import unittest
 
 from ancpbids import load_dataset, save_dataset, model
-from tests.base_test_case import BaseTestCase, RESOURCES_FOLDER
+from base_test_case import BaseTestCase, RESOURCES_FOLDER
 
 
 class WritingTestCase(BaseTestCase):

@@ -57,7 +57,7 @@ class BasicTestCase(BaseTestCase):
     def test_tsv_file_contents(self):
         ds005 = load_dataset(DS005_DIR)
         participants = ds005.load_file_contents("participants.tsv")
-        self.assertTrue(isinstance(participants, numpy.ndarray), "Expected a pandas.DataFrame")
+        self.assertTrue(isinstance(participants, numpy.ndarray), "Expected a numpy.ndarray")
         self.assertListEqual(['participant_id', 'sex', 'age'], list(participants.dtype.names))
         self.assertEqual(16, participants.shape[0])
 
