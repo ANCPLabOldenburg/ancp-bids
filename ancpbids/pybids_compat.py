@@ -14,7 +14,8 @@ class BIDSLayout:
         return qry_result
 
     def _query_entities(self, entity_key):
-        entities = self._query('//bids:entities[@key = "%s"]/@value' % entity_key)
+        # consider only direct subject folders
+        entities = self._query('//%s:subjects//%s:entities[@key = "%s"]/@value' % (NS_PREFIX, NS_PREFIX, entity_key))
         entities = sorted(list(set(entities)))
         return entities
 

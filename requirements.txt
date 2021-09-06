@@ -2,3 +2,4 @@ six>=1.12
 lxml>=4.6
 regex>=2018.11
 numpy>=1.16.0
+pyyaml>=3.13

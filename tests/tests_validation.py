@@ -16,9 +16,9 @@ class ValidationTestCase(BaseTestCase):
 
     def test_validate_static_structure(self):
         report = self.createSUT(DS005_CONFLICT_DIR, rules_files.StaticStructureValidationRule)
-        self.assertEqual(2, len(report.messages))
-        self.assertTrue('README' in report.messages[0]['message'], 'README file not expected')
-        self.assertTrue('CHANGES' in report.messages[1]['message'], 'CHANGES file not expected')
+        self.assertEqual(1, len(report.messages))
+        self.assertTrue('dataset_description' in report.messages[0]['message'],
+                        'dataset_description file should have been reported as missing')
 
     def test_validate_datatypes(self):
         report = self.createSUT(DS005_CONFLICT_DIR, rules_files.DatatypesValidationRule)

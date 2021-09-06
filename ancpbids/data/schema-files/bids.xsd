@@ -16,10 +16,10 @@
 						type="bids:DatasetDescriptionFile" minOccurs="1" maxOccurs="1">
 					</element>
 					<element name="README" type="bids:File"
-						minOccurs="1" maxOccurs="1">
+						minOccurs="0" maxOccurs="1">
 					</element>
 					<element name="CHANGES" type="bids:File"
-						minOccurs="1" maxOccurs="1">
+						minOccurs="0" maxOccurs="1">
 					</element>
 					<element name="LICENSE" type="bids:File"
 						minOccurs="0" maxOccurs="1">
@@ -39,7 +39,7 @@
 							<documentation></documentation>
 						</annotation>
 					</element>
-                    <element name="participants.json" type="bids:SidecarFile" minOccurs="0" maxOccurs="1"></element>
+                    <element name="participants.json" type="bids:TsvSidecarFile" minOccurs="0" maxOccurs="1"></element>
 					<element name="code" type="bids:Folder"
 						minOccurs="0" maxOccurs="1">
 					</element>
@@ -320,7 +320,7 @@
 		</complexContent>
 	</complexType>
 
-	<complexType name="SidecarFile">
+	<complexType name="TsvSidecarFile">
 		<complexContent>
 			<extension base="bids:JsonFile">
 				<sequence>
