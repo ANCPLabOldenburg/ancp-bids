@@ -102,7 +102,7 @@ class DatasetLoader:
     def _type_handler_default(self, parent, member):
         typ = member['typ']
         if issubclass(typ, model.JsonFile):
-            self._type_handler_JsonFile(parent, member)
+            self._type_handler_JsonFile(parent, member, True)
 
     def _type_handler_File(self, parent, member):
         if not isinstance(parent, model.Folder):
@@ -148,22 +148,31 @@ class DatasetLoader:
         pattern = '|'.join(self.schema.datatypes.keys())
         self._handle_direct_folders(parent, member, pattern, model.DatatypeFolder)
 
-    def _type_handler_JsonFile(self, parent, member):
+    def _map_object(self, model_type, json_object):
+        target = model_type()
+        members = utils.get_members(model_type, False)
+        actual_props = json_object.keys()
+        direct_props = list(map(lambda m: (m['name'], m), members))
+        for prop_name, prop in direct_props:
+            if prop_name in actual_props:
+                value_type = prop['typ']
+                value = json_object[prop_name]
+                if isinstance(value, list) and len(value) > 0:
+                    value = list(map(lambda o: self._map_object(value_type, o) if isinstance(o, dict) else o, value))
+                if isinstance(value, dict):
+                    value = self._map_object(value_type, value)
+                setattr(target, prop_name, value)
+        return target
+
+    def _type_handler_JsonFile(self, parent, member, is_subclass=False):
         name = member['name']
         file_name = name + '.json'
         json_object = parent.load_file_contents(file_name)
         if not json_object:
             return
         model_type = member['typ']
-        dsd_file = model_type()
+        dsd_file = self._map_object(model_type, json_object)
         dsd_file.name = file_name
-        members = utils.get_members(model_type, False)
-        actual_props = json_object.keys()
-        direct_props = list(map(lambda m: m['name'], members))
-        for prop_name in direct_props:
-            if prop_name in actual_props:
-                value = json_object[prop_name]
-                setattr(dsd_file, prop_name, value)
         setattr(parent, member['name'], dsd_file)
         parent.remove_file(name)
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Sep  1 20:38:20 2021 by generateDS.py version 2.39.7.
+# Generated Wed Sep  8 21:59:47 2021 by generateDS.py version 2.39.7.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -2587,22 +2587,16 @@ class Metadata(GeneratedsSuper):
 class JsonFile(File):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
-        'keys': MemberSpec_('keys', 'JsonFileFlatEntry', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'keys', 'type': 'JsonFileFlatEntry'}, None),
     }
     subclass = None
     superclass = File
-    def __init__(self, name=None, extension=None, uri=None, keys=None, extensiontype_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, extension=None, uri=None, extensiontype_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
         super(globals().get("JsonFile"), self).__init__(name, extension, uri, extensiontype_,  **kwargs_)
-        if keys is None:
-            self.keys = []
-        else:
-            self.keys = keys
-        self.keys_nsprefix_ = None
         self.extensiontype_ = extensiontype_
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
@@ -2619,21 +2613,10 @@ class JsonFile(File):
         return self.ns_prefix_
     def set_ns_prefix_(self, ns_prefix):
         self.ns_prefix_ = ns_prefix
-    def get_keys(self):
-        return self.keys
-    def set_keys(self, keys):
-        self.keys = keys
-    def add_keys(self, value):
-        self.keys.append(value)
-    def insert_keys_at(self, index, value):
-        self.keys.insert(index, value)
-    def replace_keys_at(self, index, value):
-        self.keys[index] = value
     def get_extensiontype_(self): return self.extensiontype_
     def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
     def _hasContent(self):
         if (
-            self.keys or
             super(JsonFile, self)._hasContent()
         ):
             return True
@@ -2643,8 +2626,6 @@ class JsonFile(File):
         element = super(JsonFile, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         if self.extensiontype_ is not None:
             element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
-        for keys_ in self.keys:
-            keys_.to_etree(element, name_='keys', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         if reverse_mapping_ is not None:
@@ -2654,117 +2635,6 @@ class JsonFile(File):
         self.gds_collector_ = gds_collector
         message_count = len(self.gds_collector_.get_messages())
         # validate simple type attributes
-        # validate simple type children
-        # validate complex type children
-        self.gds_check_cardinality_(self.keys, 'keys', min_occurs=0, max_occurs=9999999)
-        if recursive:
-            for item in self.keys:
-                item.validate_(gds_collector, recursive=True)
-        return message_count == len(self.gds_collector_.get_messages())
-    def generateRecursively_(self, level=0):
-        yield (self, level)
-        # generate complex type children
-        level += 1
-        if self.keys:
-            for o in self.keys:
-                yield from o.generateRecursively_(level)
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('xsi:type', node)
-        if value is not None and 'xsi:type' not in already_processed:
-            already_processed.add('xsi:type')
-            self.extensiontype_ = value
-        super(JsonFile, self)._buildAttributes(node, attrs, already_processed)
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'keys':
-            obj_ = JsonFileFlatEntry.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.keys.append(obj_)
-            obj_.original_tagname_ = 'keys'
-        super(JsonFile, self)._buildChildren(child_, node, nodeName_, True)
-# end class JsonFile
-
-
-class JsonFileFlatEntry(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'key': MemberSpec_('key', 'string', 0, 0, {'use': 'required', 'name': 'key'}),
-        'value': MemberSpec_('value', 'string', 0, 0, {'use': 'required', 'name': 'value'}),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, key=None, value=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        self.key = _cast(None, key)
-        self.key_nsprefix_ = None
-        self.value = _cast(None, value)
-        self.value_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, JsonFileFlatEntry)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if JsonFileFlatEntry.subclass:
-            return JsonFileFlatEntry.subclass(*args_, **kwargs_)
-        else:
-            return JsonFileFlatEntry(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_key(self):
-        return self.key
-    def set_key(self, key):
-        self.key = key
-    def get_value(self):
-        return self.value
-    def set_value(self, value):
-        self.value = value
-    def _hasContent(self):
-        if (
-
-        ):
-            return True
-        else:
-            return False
-    def to_etree(self, parent_element=None, name_='JsonFileFlatEntry', mapping_=None, reverse_mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        if self.key is not None:
-            element.set('key', self.gds_format_string(self.key))
-        if self.value is not None:
-            element.set('value', self.gds_format_string(self.value))
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        if reverse_mapping_ is not None:
-            reverse_mapping_[element] = self
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
-        self.gds_check_cardinality_(self.key, 'key', required=True)
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.value, 'value')
-        self.gds_check_cardinality_(self.value, 'value', required=True)
         # validate simple type children
         # validate complex type children
         if recursive:
@@ -2784,17 +2654,15 @@ class JsonFileFlatEntry(GeneratedsSuper):
             self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
         return self
     def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('key', node)
-        if value is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            self.key = value
-        value = find_attr_value_('value', node)
-        if value is not None and 'value' not in already_processed:
-            already_processed.add('value')
-            self.value = value
+        value = find_attr_value_('xsi:type', node)
+        if value is not None and 'xsi:type' not in already_processed:
+            already_processed.add('xsi:type')
+            self.extensiontype_ = value
+        super(JsonFile, self)._buildAttributes(node, attrs, already_processed)
     def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
+        super(JsonFile, self)._buildChildren(child_, node, nodeName_, True)
         pass
-# end class JsonFileFlatEntry
+# end class JsonFile
 
 
 class FileMatcher(GeneratedsSuper):
@@ -2877,13 +2745,13 @@ class TsvSidecarFile(JsonFile):
     }
     subclass = None
     superclass = JsonFile
-    def __init__(self, name=None, extension=None, uri=None, keys=None, columns=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, extension=None, uri=None, columns=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
-        super(globals().get("TsvSidecarFile"), self).__init__(name, extension, uri, keys,  **kwargs_)
+        super(globals().get("TsvSidecarFile"), self).__init__(name, extension, uri,  **kwargs_)
         if columns is None:
             self.columns = []
         else:
@@ -3766,7 +3634,7 @@ class GeneratedByContainer(GeneratedsSuper):
     member_data_items_ = {
         'Type': MemberSpec_('Type', 'string', 0, 1, {'use': 'optional', 'name': 'Type'}),
         'Tag': MemberSpec_('Tag', 'string', 0, 1, {'use': 'optional', 'name': 'Tag'}),
-        'URI': MemberSpec_('URI', 'anyURI', 0, 1, {'use': 'optional', 'name': 'URI'}),
+        'URI': MemberSpec_('URI', 'string', 0, 1, {'use': 'optional', 'name': 'URI'}),
     }
     subclass = None
     superclass = None
@@ -4005,13 +3873,13 @@ class DatasetDescriptionFile(JsonFile):
     }
     subclass = None
     superclass = JsonFile
-    def __init__(self, name=None, extension=None, uri=None, keys=None, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType='raw', License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=None, Funding=None, EthicsApprovals=None, ReferencesAndLinks=None, GeneratedBy=None, SourceDatasets=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, extension=None, uri=None, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType='raw', License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=None, Funding=None, EthicsApprovals=None, ReferencesAndLinks=None, GeneratedBy=None, SourceDatasets=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
-        super(globals().get("DatasetDescriptionFile"), self).__init__(name, extension, uri, keys,  **kwargs_)
+        super(globals().get("DatasetDescriptionFile"), self).__init__(name, extension, uri,  **kwargs_)
         self.Name = _cast(None, Name)
         self.Name_nsprefix_ = None
         self.BIDSVersion = _cast(None, BIDSVersion)
@@ -5209,9 +5077,6 @@ NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.6': [('Dataset',
                                       ('JsonFile',
                                        '../ancpbids/data/schema-files/bids.xsd',
                                        'CT'),
-                                      ('JsonFileFlatEntry',
-                                       '../ancpbids/data/schema-files/bids.xsd',
-                                       'CT'),
                                       ('FileMatcher',
                                        '../ancpbids/data/schema-files/bids.xsd',
                                        'CT'),
@@ -5259,7 +5124,6 @@ __all__ = [
     "GeneratedBy",
     "GeneratedByContainer",
     "JsonFile",
-    "JsonFileFlatEntry",
     "KeyValuePair",
     "Metadata",
     "Modality",

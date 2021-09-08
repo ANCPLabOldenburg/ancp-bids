@@ -39,7 +39,9 @@
 							<documentation></documentation>
 						</annotation>
 					</element>
-                    <element name="participants.json" type="bids:TsvSidecarFile" minOccurs="0" maxOccurs="1"></element>
+					<element name="participants.json"
+						type="bids:TsvSidecarFile" minOccurs="0" maxOccurs="1">
+					</element>
 					<element name="code" type="bids:Folder"
 						minOccurs="0" maxOccurs="1">
 					</element>
@@ -49,10 +51,11 @@
 					<element name="sourcedata" type="bids:Folder"
 						minOccurs="0" maxOccurs="1">
 					</element>
-                    <element name="stimuli" type="bids:Folder" minOccurs="0" maxOccurs="1">
+					<element name="stimuli" type="bids:Folder"
+						minOccurs="0" maxOccurs="1">
 					</element>
-                </sequence>
-				
+				</sequence>
+
 			</extension>
 		</complexContent>
 	</complexType>
@@ -294,19 +297,10 @@
 	<complexType name="JsonFile">
 		<complexContent>
 			<extension base="bids:File">
-				<sequence>
-					<element name="keys" type="bids:JsonFileFlatEntry"
-						minOccurs="0" maxOccurs="unbounded">
-					</element>
-				</sequence>
 			</extension>
 		</complexContent>
 	</complexType>
 
-	<complexType name="JsonFileFlatEntry">
-		<attribute name="key" type="string" use="required"></attribute>
-		<attribute name="value" type="string" use="required"></attribute>
-	</complexType>
 
 	<complexType name="FileMatcher"></complexType>
 
@@ -419,6 +413,6 @@
     <complexType name="GeneratedByContainer">
     	<attribute name="Type" type="string"></attribute>
     	<attribute name="Tag" type="string"></attribute>
-    	<attribute name="URI" type="anyURI"></attribute>
+    	<attribute name="URI" type="string"></attribute>
     </complexType>
 </schema>
