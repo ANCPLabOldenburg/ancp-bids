@@ -12,3 +12,9 @@ We are in a proposal/experimental stage and design decisions may change frequent
 You can follow the progress of the proposal in the following slides:
 
 https://docs.google.com/presentation/d/12x3cQGRD9-T1bkpK--t0e_OdgMb3UuO4jn5fGpj0a4w
+
+
+# Installation
+
+You can install the tool directly from PyPI:
+pip install ancpbids
