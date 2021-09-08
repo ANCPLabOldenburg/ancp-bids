@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Sep  8 21:59:47 2021 by generateDS.py version 2.39.7.
+# Generated Wed Sep  8 22:11:21 2021 by generateDS.py version 2.39.7.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -1021,7 +1021,7 @@ class File(GeneratedsSuper):
     member_data_items_ = {
         'name': MemberSpec_('name', 'string', 0, 0, {'use': 'required', 'name': 'name'}),
         'extension': MemberSpec_('extension', 'string', 0, 1, {'use': 'optional', 'name': 'extension'}),
-        'uri': MemberSpec_('uri', 'anyURI', 0, 1, {'use': 'optional', 'name': 'uri'}),
+        'uri': MemberSpec_('uri', 'string', 0, 1, {'use': 'optional', 'name': 'uri'}),
     }
     subclass = None
     superclass = None
@@ -3516,7 +3516,7 @@ class SourceDatasets(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
         'DOI': MemberSpec_('DOI', 'string', 0, 1, {'use': 'optional', 'name': 'DOI'}),
-        'URL': MemberSpec_('URL', 'anyURI', 0, 1, {'use': 'optional', 'name': 'URL'}),
+        'URL': MemberSpec_('URL', 'string', 0, 1, {'use': 'optional', 'name': 'URL'}),
         'Version': MemberSpec_('Version', 'string', 0, 1, {'use': 'optional', 'name': 'Version'}),
     }
     subclass = None

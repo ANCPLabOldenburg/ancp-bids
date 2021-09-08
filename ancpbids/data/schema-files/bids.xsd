@@ -91,7 +91,7 @@
 	<complexType name="File">
 		<attribute name="name" type="string" use="required"></attribute>
 		<attribute name="extension" type="string"></attribute>
-		<attribute name="uri" type="anyURI" use="optional"></attribute>
+		<attribute name="uri" type="string" use="optional"></attribute>
 	</complexType>
 
 
@@ -406,7 +406,7 @@
 
     <complexType name="SourceDatasets">
     	<attribute name="DOI" type="string"></attribute>
-    	<attribute name="URL" type="anyURI"></attribute>
+    	<attribute name="URL" type="string"></attribute>
     	<attribute name="Version" type="string"></attribute>
     </complexType>
 
