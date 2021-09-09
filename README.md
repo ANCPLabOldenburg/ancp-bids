@@ -1,3 +1,4 @@
+
 # About ancp-bids
 A Python package which allows to:
 
@@ -18,4 +19,21 @@ https://docs.google.com/presentation/d/12x3cQGRD9-T1bkpK--t0e_OdgMb3UuO4jn5fGpj0
 
 You can install the tool directly from PyPI:
 
-pip install ancpbids
+`pip install ancpbids`
+
+# Basic Usage, the PyBIDS way
+
+    from ancpbids import BIDSLayout
+    ds_path = "my-datasets/bids-001"
+    layout = BIDSLayout(ds_path)
+    first_run_bold_files = layout.get(run='1', suffix='bold', return_type='filename')
+    ...
+
+# Validation
+`...`
+
+# Complex Queries
+`...`
+
+# Creating new datasets
+`...`
