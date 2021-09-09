@@ -1,3 +1,5 @@
+from functools import partial
+
 from . import load_dataset
 from .query import XPathQuery
 from .schema import NS_PREFIX
@@ -19,14 +21,10 @@ class BIDSLayout:
         entities = sorted(list(set(entities)))
         return entities
 
-    def get_subjects(self):
-        return self._query_entities('sub')
-
-    def get_sessions(self):
-        return self._query_entities('ses')
-
-    def get_tasks(self):
-        return self._query_entities('task')
+    def __getattr__(self, key):
+        k = key if not key.startswith("get_") else key[4:]
+        k = self.sc.fuzzy_match_entity_key(k)
+        return partial(self._query_entities, k)
 
     def _gen_scalar_expr(self, k, v):
         if v is None:
