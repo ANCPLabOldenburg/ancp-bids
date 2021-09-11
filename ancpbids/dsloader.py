@@ -4,7 +4,7 @@ import os
 import regex
 
 from ancpbids import model
-from ancpbids.schema import Schema, NS_PREFIX
+from ancpbids.schema import Schema
 from . import utils
 
 ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
@@ -16,7 +16,7 @@ class DatasetLoader:
 
     def load(self, base_dir):
         ds = model.Dataset()
-        ds.set_ns_prefix_(NS_PREFIX)
+        ds.set_ns_prefix_(self.schema.ns_prefix)
         ds._schema = self.schema
         ds.set_name(os.path.basename(base_dir))
         ds.set_name(os.path.basename(base_dir))

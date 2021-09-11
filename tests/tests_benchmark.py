@@ -1,3 +1,5 @@
+from unittest import skip
+
 import sys
 
 import ancpbids
@@ -24,5 +26,6 @@ class BenchmarkTestCase(BaseTestCase):
     def test_ancpbids_openneuro_ds001734(self):
         self._assert_on(ancpbids.BIDSLayout)
 
+    @skip
     def test_pybids_measure_scan_ds001734(self):
         self._assert_on(bids.BIDSLayout)

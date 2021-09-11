@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Sep  8 22:11:21 2021 by generateDS.py version 2.39.7.
+# Generated Sat Sep 11 11:34:19 2021 by generateDS.py version 2.39.7.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -1303,10 +1303,11 @@ class DatatypeFolder(Folder):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
         'artifacts': MemberSpec_('artifacts', 'Artifact', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'artifacts', 'type': 'Artifact'}, None),
+        'metafiles': MemberSpec_('metafiles', 'MetadataFile', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'metafiles', 'type': 'MetadataFile'}, None),
     }
     subclass = None
     superclass = Folder
-    def __init__(self, name=None, files=None, folders=None, artifacts=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, files=None, folders=None, artifacts=None, metafiles=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -1318,6 +1319,11 @@ class DatatypeFolder(Folder):
         else:
             self.artifacts = artifacts
         self.artifacts_nsprefix_ = None
+        if metafiles is None:
+            self.metafiles = []
+        else:
+            self.metafiles = metafiles
+        self.metafiles_nsprefix_ = None
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -1343,9 +1349,20 @@ class DatatypeFolder(Folder):
         self.artifacts.insert(index, value)
     def replace_artifacts_at(self, index, value):
         self.artifacts[index] = value
+    def get_metafiles(self):
+        return self.metafiles
+    def set_metafiles(self, metafiles):
+        self.metafiles = metafiles
+    def add_metafiles(self, value):
+        self.metafiles.append(value)
+    def insert_metafiles_at(self, index, value):
+        self.metafiles.insert(index, value)
+    def replace_metafiles_at(self, index, value):
+        self.metafiles[index] = value
     def _hasContent(self):
         if (
             self.artifacts or
+            self.metafiles or
             super(DatatypeFolder, self)._hasContent()
         ):
             return True
@@ -1355,6 +1372,8 @@ class DatatypeFolder(Folder):
         element = super(DatatypeFolder, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         for artifacts_ in self.artifacts:
             artifacts_.to_etree(element, name_='artifacts', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        for metafiles_ in self.metafiles:
+            metafiles_.to_etree(element, name_='metafiles', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         if reverse_mapping_ is not None:
@@ -1367,8 +1386,11 @@ class DatatypeFolder(Folder):
         # validate simple type children
         # validate complex type children
         self.gds_check_cardinality_(self.artifacts, 'artifacts', min_occurs=0, max_occurs=9999999)
+        self.gds_check_cardinality_(self.metafiles, 'metafiles', min_occurs=0, max_occurs=9999999)
         if recursive:
             for item in self.artifacts:
+                item.validate_(gds_collector, recursive=True)
+            for item in self.metafiles:
                 item.validate_(gds_collector, recursive=True)
         return message_count == len(self.gds_collector_.get_messages())
     def generateRecursively_(self, level=0):
@@ -1377,6 +1399,9 @@ class DatatypeFolder(Folder):
         level += 1
         if self.artifacts:
             for o in self.artifacts:
+                yield from o.generateRecursively_(level)
+        if self.metafiles:
+            for o in self.metafiles:
                 yield from o.generateRecursively_(level)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -1393,10 +1418,16 @@ class DatatypeFolder(Folder):
         super(DatatypeFolder, self)._buildAttributes(node, attrs, already_processed)
     def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
         if nodeName_ == 'artifacts':
-            obj_ = Artifact.factory(parent_object_=self)
+            class_obj_ = self.get_class_obj_(child_, Artifact)
+            obj_ = class_obj_.factory(parent_object_=self)
             obj_.build(child_, gds_collector_=gds_collector_)
             self.artifacts.append(obj_)
             obj_.original_tagname_ = 'artifacts'
+        elif nodeName_ == 'metafiles':
+            obj_ = MetadataFile.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.metafiles.append(obj_)
+            obj_.original_tagname_ = 'metafiles'
         super(DatatypeFolder, self)._buildChildren(child_, node, nodeName_, True)
 # end class DatatypeFolder
 
@@ -1409,13 +1440,13 @@ class Artifact(File):
     }
     subclass = None
     superclass = File
-    def __init__(self, name=None, extension=None, uri=None, suffix=None, entities=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, extension=None, uri=None, suffix=None, entities=None, extensiontype_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
-        super(globals().get("Artifact"), self).__init__(name, extension, uri,  **kwargs_)
+        super(globals().get("Artifact"), self).__init__(name, extension, uri, extensiontype_,  **kwargs_)
         self.suffix = _cast(None, suffix)
         self.suffix_nsprefix_ = None
         if entities is None:
@@ -1423,6 +1454,7 @@ class Artifact(File):
         else:
             self.entities = entities
         self.entities_nsprefix_ = None
+        self.extensiontype_ = extensiontype_
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -1452,6 +1484,8 @@ class Artifact(File):
         return self.suffix
     def set_suffix(self, suffix):
         self.suffix = suffix
+    def get_extensiontype_(self): return self.extensiontype_
+    def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
     def _hasContent(self):
         if (
             self.entities or
@@ -1462,6 +1496,8 @@ class Artifact(File):
             return False
     def to_etree(self, parent_element=None, name_='Artifact', mapping_=None, reverse_mapping_=None, nsmap_=None):
         element = super(Artifact, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
+        if self.extensiontype_ is not None:
+            element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
         if self.suffix is not None:
             element.set('suffix', self.gds_format_string(self.suffix))
         for entities_ in self.entities:
@@ -1507,6 +1543,10 @@ class Artifact(File):
         if value is not None and 'suffix' not in already_processed:
             already_processed.add('suffix')
             self.suffix = value
+        value = find_attr_value_('xsi:type', node)
+        if value is not None and 'xsi:type' not in already_processed:
+            already_processed.add('xsi:type')
+            self.extensiontype_ = value
         super(Artifact, self)._buildAttributes(node, attrs, already_processed)
     def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
         if nodeName_ == 'entities':
@@ -3746,6 +3786,78 @@ class GeneratedByContainer(GeneratedsSuper):
 # end class GeneratedByContainer
 
 
+class MetadataFile(Artifact):
+    __hash__ = GeneratedsSuper.__hash__
+    member_data_items_ = {
+    }
+    subclass = None
+    superclass = Artifact
+    def __init__(self, name=None, extension=None, uri=None, suffix=None, entities=None, gds_collector_=None, **kwargs_):
+        self.gds_collector_ = gds_collector_
+        self.gds_elementtree_node_ = None
+        self.original_tagname_ = None
+        self.parent_object_ = kwargs_.get('parent_object_')
+        self.ns_prefix_ = None
+        super(globals().get("MetadataFile"), self).__init__(name, extension, uri, suffix, entities,  **kwargs_)
+    def factory(*args_, **kwargs_):
+        if CurrentSubclassModule_ is not None:
+            subclass = getSubclassFromModule_(
+                CurrentSubclassModule_, MetadataFile)
+            if subclass is not None:
+                return subclass(*args_, **kwargs_)
+        if MetadataFile.subclass:
+            return MetadataFile.subclass(*args_, **kwargs_)
+        else:
+            return MetadataFile(*args_, **kwargs_)
+    factory = staticmethod(factory)
+    def get_ns_prefix_(self):
+        return self.ns_prefix_
+    def set_ns_prefix_(self, ns_prefix):
+        self.ns_prefix_ = ns_prefix
+    def _hasContent(self):
+        if (
+            super(MetadataFile, self)._hasContent()
+        ):
+            return True
+        else:
+            return False
+    def to_etree(self, parent_element=None, name_='MetadataFile', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        element = super(MetadataFile, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
+        return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
+    def generateRecursively_(self, level=0):
+        yield (self, level)
+    def build(self, node, gds_collector_=None):
+        self.gds_collector_ = gds_collector_
+        if SaveElementTreeNode:
+            self.gds_elementtree_node_ = node
+        already_processed = set()
+        self.ns_prefix_ = node.prefix
+        self._buildAttributes(node, node.attrib, already_processed)
+        for child in node:
+            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
+            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
+        return self
+    def _buildAttributes(self, node, attrs, already_processed):
+        super(MetadataFile, self)._buildAttributes(node, attrs, already_processed)
+    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
+        super(MetadataFile, self)._buildChildren(child_, node, nodeName_, True)
+        pass
+# end class MetadataFile
+
+
 class ParticipantsTsvFile(TsvFile):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
@@ -4235,10 +4347,11 @@ class Session(Folder):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
         'datatypes': MemberSpec_('datatypes', 'DatatypeFolder', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'datatypes', 'type': 'DatatypeFolder'}, None),
+        'metafiles': MemberSpec_('metafiles', 'MetadataFile', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'metafiles', 'type': 'MetadataFile'}, None),
     }
     subclass = None
     superclass = Folder
-    def __init__(self, name=None, files=None, folders=None, datatypes=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, files=None, folders=None, datatypes=None, metafiles=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4250,6 +4363,11 @@ class Session(Folder):
         else:
             self.datatypes = datatypes
         self.datatypes_nsprefix_ = None
+        if metafiles is None:
+            self.metafiles = []
+        else:
+            self.metafiles = metafiles
+        self.metafiles_nsprefix_ = None
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -4275,9 +4393,20 @@ class Session(Folder):
         self.datatypes.insert(index, value)
     def replace_datatypes_at(self, index, value):
         self.datatypes[index] = value
+    def get_metafiles(self):
+        return self.metafiles
+    def set_metafiles(self, metafiles):
+        self.metafiles = metafiles
+    def add_metafiles(self, value):
+        self.metafiles.append(value)
+    def insert_metafiles_at(self, index, value):
+        self.metafiles.insert(index, value)
+    def replace_metafiles_at(self, index, value):
+        self.metafiles[index] = value
     def _hasContent(self):
         if (
             self.datatypes or
+            self.metafiles or
             super(Session, self)._hasContent()
         ):
             return True
@@ -4287,6 +4416,8 @@ class Session(Folder):
         element = super(Session, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         for datatypes_ in self.datatypes:
             datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        for metafiles_ in self.metafiles:
+            metafiles_.to_etree(element, name_='metafiles', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         if reverse_mapping_ is not None:
@@ -4299,8 +4430,11 @@ class Session(Folder):
         # validate simple type children
         # validate complex type children
         self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
+        self.gds_check_cardinality_(self.metafiles, 'metafiles', min_occurs=0, max_occurs=9999999)
         if recursive:
             for item in self.datatypes:
+                item.validate_(gds_collector, recursive=True)
+            for item in self.metafiles:
                 item.validate_(gds_collector, recursive=True)
         return message_count == len(self.gds_collector_.get_messages())
     def generateRecursively_(self, level=0):
@@ -4309,6 +4443,9 @@ class Session(Folder):
         level += 1
         if self.datatypes:
             for o in self.datatypes:
+                yield from o.generateRecursively_(level)
+        if self.metafiles:
+            for o in self.metafiles:
                 yield from o.generateRecursively_(level)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -4329,6 +4466,11 @@ class Session(Folder):
             obj_.build(child_, gds_collector_=gds_collector_)
             self.datatypes.append(obj_)
             obj_.original_tagname_ = 'datatypes'
+        elif nodeName_ == 'metafiles':
+            obj_ = MetadataFile.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.metafiles.append(obj_)
+            obj_.original_tagname_ = 'metafiles'
         super(Session, self)._buildChildren(child_, node, nodeName_, True)
 # end class Session
 
@@ -4338,10 +4480,11 @@ class Subject(Folder):
     member_data_items_ = {
         'sessions': MemberSpec_('sessions', 'Session', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'sessions', 'type': 'Session'}, None),
         'datatypes': MemberSpec_('datatypes', 'DatatypeFolder', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'datatypes', 'type': 'DatatypeFolder'}, None),
+        'metafiles': MemberSpec_('metafiles', 'MetadataFile', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'metafiles', 'type': 'MetadataFile'}, None),
     }
     subclass = None
     superclass = Folder
-    def __init__(self, name=None, files=None, folders=None, sessions=None, datatypes=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, files=None, folders=None, sessions=None, datatypes=None, metafiles=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4358,6 +4501,11 @@ class Subject(Folder):
         else:
             self.datatypes = datatypes
         self.datatypes_nsprefix_ = None
+        if metafiles is None:
+            self.metafiles = []
+        else:
+            self.metafiles = metafiles
+        self.metafiles_nsprefix_ = None
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -4393,10 +4541,21 @@ class Subject(Folder):
         self.datatypes.insert(index, value)
     def replace_datatypes_at(self, index, value):
         self.datatypes[index] = value
+    def get_metafiles(self):
+        return self.metafiles
+    def set_metafiles(self, metafiles):
+        self.metafiles = metafiles
+    def add_metafiles(self, value):
+        self.metafiles.append(value)
+    def insert_metafiles_at(self, index, value):
+        self.metafiles.insert(index, value)
+    def replace_metafiles_at(self, index, value):
+        self.metafiles[index] = value
     def _hasContent(self):
         if (
             self.sessions or
             self.datatypes or
+            self.metafiles or
             super(Subject, self)._hasContent()
         ):
             return True
@@ -4408,6 +4567,8 @@ class Subject(Folder):
             sessions_.to_etree(element, name_='sessions', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         for datatypes_ in self.datatypes:
             datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        for metafiles_ in self.metafiles:
+            metafiles_.to_etree(element, name_='metafiles', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         if reverse_mapping_ is not None:
@@ -4421,10 +4582,13 @@ class Subject(Folder):
         # validate complex type children
         self.gds_check_cardinality_(self.sessions, 'sessions', min_occurs=0, max_occurs=9999999)
         self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
+        self.gds_check_cardinality_(self.metafiles, 'metafiles', min_occurs=0, max_occurs=9999999)
         if recursive:
             for item in self.sessions:
                 item.validate_(gds_collector, recursive=True)
             for item in self.datatypes:
+                item.validate_(gds_collector, recursive=True)
+            for item in self.metafiles:
                 item.validate_(gds_collector, recursive=True)
         return message_count == len(self.gds_collector_.get_messages())
     def generateRecursively_(self, level=0):
@@ -4436,6 +4600,9 @@ class Subject(Folder):
                 yield from o.generateRecursively_(level)
         if self.datatypes:
             for o in self.datatypes:
+                yield from o.generateRecursively_(level)
+        if self.metafiles:
+            for o in self.metafiles:
                 yield from o.generateRecursively_(level)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
@@ -4461,6 +4628,11 @@ class Subject(Folder):
             obj_.build(child_, gds_collector_=gds_collector_)
             self.datatypes.append(obj_)
             obj_.original_tagname_ = 'datatypes'
+        elif nodeName_ == 'metafiles':
+            obj_ = MetadataFile.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.metafiles.append(obj_)
+            obj_.original_tagname_ = 'metafiles'
         super(Subject, self)._buildChildren(child_, node, nodeName_, True)
 # end class Subject
 
@@ -4481,10 +4653,11 @@ class Dataset(Folder):
         'derivatives': MemberSpec_('derivatives', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'derivatives', 'type': 'Folder'}, None),
         'sourcedata': MemberSpec_('sourcedata', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'sourcedata', 'type': 'Folder'}, None),
         'stimuli': MemberSpec_('stimuli', 'Folder', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'stimuli', 'type': 'Folder'}, None),
+        'metafiles': MemberSpec_('metafiles', 'MetadataFile', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'metafiles', 'type': 'MetadataFile'}, None),
     }
     subclass = None
     superclass = Folder
-    def __init__(self, name=None, files=None, folders=None, subjects=None, dataset_description=None, README=None, CHANGES=None, LICENSE=None, genetic_info=None, samples=None, participants_tsv=None, participants_json=None, code=None, derivatives=None, sourcedata=None, stimuli=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, files=None, folders=None, subjects=None, dataset_description=None, README=None, CHANGES=None, LICENSE=None, genetic_info=None, samples=None, participants_tsv=None, participants_json=None, code=None, derivatives=None, sourcedata=None, stimuli=None, metafiles=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
@@ -4520,6 +4693,11 @@ class Dataset(Folder):
         self.sourcedata_nsprefix_ = None
         self.stimuli = stimuli
         self.stimuli_nsprefix_ = None
+        if metafiles is None:
+            self.metafiles = []
+        else:
+            self.metafiles = metafiles
+        self.metafiles_nsprefix_ = None
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
             subclass = getSubclassFromModule_(
@@ -4593,6 +4771,16 @@ class Dataset(Folder):
         return self.stimuli
     def set_stimuli(self, stimuli):
         self.stimuli = stimuli
+    def get_metafiles(self):
+        return self.metafiles
+    def set_metafiles(self, metafiles):
+        self.metafiles = metafiles
+    def add_metafiles(self, value):
+        self.metafiles.append(value)
+    def insert_metafiles_at(self, index, value):
+        self.metafiles.insert(index, value)
+    def replace_metafiles_at(self, index, value):
+        self.metafiles[index] = value
     def _hasContent(self):
         if (
             self.subjects or
@@ -4608,6 +4796,7 @@ class Dataset(Folder):
             self.derivatives is not None or
             self.sourcedata is not None or
             self.stimuli is not None or
+            self.metafiles or
             super(Dataset, self)._hasContent()
         ):
             return True
@@ -4653,6 +4842,8 @@ class Dataset(Folder):
         if self.stimuli is not None:
             stimuli_ = self.stimuli
             stimuli_.to_etree(element, name_='stimuli', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
+        for metafiles_ in self.metafiles:
+            metafiles_.to_etree(element, name_='metafiles', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         if reverse_mapping_ is not None:
@@ -4677,6 +4868,7 @@ class Dataset(Folder):
         self.gds_check_cardinality_(self.derivatives, 'derivatives', min_occurs=0, max_occurs=1)
         self.gds_check_cardinality_(self.sourcedata, 'sourcedata', min_occurs=0, max_occurs=1)
         self.gds_check_cardinality_(self.stimuli, 'stimuli', min_occurs=0, max_occurs=1)
+        self.gds_check_cardinality_(self.metafiles, 'metafiles', min_occurs=0, max_occurs=9999999)
         if recursive:
             for item in self.subjects:
                 item.validate_(gds_collector, recursive=True)
@@ -4704,6 +4896,8 @@ class Dataset(Folder):
                 self.sourcedata.validate_(gds_collector, recursive=True)
             if self.stimuli is not None:
                 self.stimuli.validate_(gds_collector, recursive=True)
+            for item in self.metafiles:
+                item.validate_(gds_collector, recursive=True)
         return message_count == len(self.gds_collector_.get_messages())
     def generateRecursively_(self, level=0):
         yield (self, level)
@@ -4736,6 +4930,9 @@ class Dataset(Folder):
             yield from self.sourcedata.generateRecursively_(level)
         if self.stimuli:
             yield from self.stimuli.generateRecursively_(level)
+        if self.metafiles:
+            for o in self.metafiles:
+                yield from o.generateRecursively_(level)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -4824,6 +5021,11 @@ class Dataset(Folder):
             obj_.build(child_, gds_collector_=gds_collector_)
             self.stimuli = obj_
             obj_.original_tagname_ = 'stimuli'
+        elif nodeName_ == 'metafiles':
+            obj_ = MetadataFile.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.metafiles.append(obj_)
+            obj_.original_tagname_ = 'metafiles'
         super(Dataset, self)._buildChildren(child_, node, nodeName_, True)
 # end class Dataset
 
@@ -5106,6 +5308,9 @@ NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.6': [('Dataset',
                                        'CT'),
                                       ('GeneratedByContainer',
                                        '../ancpbids/data/schema-files/bids.xsd',
+                                       'CT'),
+                                      ('MetadataFile',
+                                       '../ancpbids/data/schema-files/bids.xsd',
                                        'CT')]}
 
 __all__ = [
@@ -5126,6 +5331,7 @@ __all__ = [
     "JsonFile",
     "KeyValuePair",
     "Metadata",
+    "MetadataFile",
     "Modality",
     "ParticipantsTsvFile",
     "ParticipantsTsvFileEntry",

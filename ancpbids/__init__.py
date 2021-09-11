@@ -4,13 +4,16 @@ from . import model
 from . import files
 from .dsloader import DatasetLoader
 from .dssaver import DatasetSaver
-from .schema import Schema, NS_MAP
+from .schema import Schema
 from . import utils
 
+SCHEMA_FILES_PATH = os.path.dirname(__file__)
+SCHEMA_PATH_V16 = SCHEMA_FILES_PATH + '/data/schema-files/v1_6'
+SCHEMA_V16 = Schema(schema_path=SCHEMA_PATH_V16, ns_prefix='bids', ns='https://bids.neuroimaging.io/1.6')
 
-def load_dataset(base_dir: str):
-    schema = Schema()
-    loader = DatasetLoader(schema)
+
+def load_dataset(base_dir: str, bids_schema=SCHEMA_V16):
+    loader = DatasetLoader(bids_schema)
     ds = loader.load(base_dir)
     return ds
 
@@ -21,7 +24,8 @@ def save_dataset(ds: model.Dataset, target_dir: str):
 
 
 def to_etree(ds: model.Dataset):
-    return ds.to_etree(nsmap_=NS_MAP)
+    ns_map = ds._schema.get_ns_map()
+    return ds.to_etree(nsmap_=ns_map)
 
 
 # start monkey-patching generated code

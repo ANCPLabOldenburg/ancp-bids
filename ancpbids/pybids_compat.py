@@ -2,13 +2,13 @@ from functools import partial
 
 from . import load_dataset
 from .query import XPathQuery
-from .schema import NS_PREFIX
 
 
 class BIDSLayout:
     def __init__(self, ds_dir: str):
         self.dataset = load_dataset(ds_dir)
         self.sc = self.dataset._schema
+        self.ns_prefix = self.sc.ns_prefix
         self.query = XPathQuery(self.dataset, self.sc)
 
     def _query(self, expr: str, search_node=None):
@@ -17,7 +17,8 @@ class BIDSLayout:
 
     def _query_entities(self, entity_key):
         # consider only direct subject folders
-        entities = self._query('//%s:subjects//%s:entities[@key = "%s"]/@value' % (NS_PREFIX, NS_PREFIX, entity_key))
+        entities = self._query(
+            '//%s:subjects//%s:entities[@key = "%s"]/@value' % (self.ns_prefix, self.ns_prefix, entity_key))
         entities = sorted(list(set(entities)))
         return entities
 
@@ -44,13 +45,13 @@ class BIDSLayout:
         expr = []
         if scope:
             # TODO split into paths and set the last path as search context
-            expr.append('//%s:%s' % (NS_PREFIX, scope))
+            expr.append('//%s:%s' % (self.ns_prefix, scope))
         entity_filters = []
         for k, v in entities.items():
             k = self.sc.fuzzy_match_entity_key(k)
             v = self.sc.process_entity_value(k, v)
             v = self._scalar_or_list('value', v)
-            entity_filters.append('%s:entities[@key="%s" and %s]' % (NS_PREFIX, k, v))
+            entity_filters.append('%s:entities[@key="%s" and %s]' % (self.ns_prefix, k, v))
         if extension:
             v = self._scalar_or_list('extension', extension)
             entity_filters.append(v)

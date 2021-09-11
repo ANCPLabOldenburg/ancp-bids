@@ -7,21 +7,21 @@ from . import files
 
 logger = logging.getLogger(__file__)
 
-SCHEMA_PATH = os.path.dirname(__file__) + '/data/schema-files'
-
-NS = 'https://bids.neuroimaging.io/1.6'
-NS_PREFIX = 'bids'
-NS_MAP = {NS_PREFIX: NS}
-
 
 class Schema:
-    def __init__(self):
-        self.modalities = files.load_contents(SCHEMA_PATH + "/modalities.yaml")
-        self.entities = files.load_contents(SCHEMA_PATH + "/entities.yaml")
-        # convert to dictionary for faster lookup by entity keys
-        # and keep order of entities in sync with entries in file
-        self.entities = OrderedDict([(e['key'], e) for e in self.entities])
-        self.datatypes = self.merge_to_dict(SCHEMA_PATH + "/datatypes")
+    def __init__(self, schema_path, ns, ns_prefix):
+        self.ns = ns
+        self.ns_prefix = ns_prefix
+        self.ns_map = {
+            self.ns_prefix: self.ns
+        }
+        self.modalities = files.load_contents(schema_path + "/modalities.yaml")
+        # self.modalities = list(map(lambda item: {'key': item[0], **item[1]}, self.modalities.items()))
+        self.entities = files.load_contents(schema_path + "/entities.yaml")
+        self.datatypes = self.merge_to_dict(schema_path + "/datatypes")
+
+    def get_ns_map(self):
+        return self.ns_map
 
     def merge_to_dict(self, dir_path):
         result = {}
@@ -50,8 +50,8 @@ class Schema:
 
     def fuzzy_match_entity_key(self, user_key):
         ratios = list(
-            map(lambda e: (
-                e, 1.0 if e['name'].startswith(user_key) else SequenceMatcher(None, user_key, e['name']).quick_ratio()),
-                self.entities.values()))
+            map(lambda item: (
+                item[1], 1.0 if item[0].startswith(user_key) else SequenceMatcher(None, user_key, item[0]).quick_ratio()),
+                self.entities.items()))
         ratios = sorted(ratios, key=lambda t: t[1])
-        return ratios[-1][0]['key']
+        return ratios[-1][0]['entity']

@@ -27,13 +27,14 @@ class DatatypesValidationRule(ValidationRule):
 class EntitiesValidationRule(ValidationRule):
     def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, query: XPathQuery):
         artifacts = query.execute('//bids:entities/..')
-        expected_key_order = {k: i for i, k in enumerate(schema.entities.keys())}
-        expected_order_key = {i: k for i, k in enumerate(schema.entities.keys())}
+        entities = list(map(lambda e: e['entity'], schema.entities.values()))
+        expected_key_order = {k: i for i, k in enumerate(entities)}
+        expected_order_key = {i: k for i, k in enumerate(entities)}
         for artifact in artifacts:
             entity_refs = artifact.get_entities()
             found_invalid_key = False
             for ref in entity_refs:
-                if ref.key not in schema.entities:
+                if ref.key not in entities:
                     report.error(
                         "Invalid entity '%s' in artifact '%s'" % (ref.key, artifact.get_relative_path()))
                     found_invalid_key = True
