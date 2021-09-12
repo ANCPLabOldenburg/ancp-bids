@@ -38,6 +38,12 @@ class ValidationReport:
             'message': message
         })
 
+    def warn(self, message):
+        self.messages.append({
+            'severity': 'warn',
+            'message': message
+        })
+
 
 class ValidationRule:
     def validate(self, **kwargs):

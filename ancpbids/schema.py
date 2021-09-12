@@ -10,6 +10,7 @@ logger = logging.getLogger(__file__)
 
 class Schema:
     def __init__(self, schema_path, ns, ns_prefix):
+        self.schema_path = schema_path
         self.ns = ns
         self.ns_prefix = ns_prefix
         self.ns_map = {

@@ -37,6 +37,16 @@ class ValidationTestCase(BaseTestCase):
                          "'sub-01/func/sub-01_task-mixedgamblestask_run-03_xyz-001_events.tsv'",
                          report.messages[1]['message'])
 
+    def test_schematron_rules(self):
+        report = self.createSUT(DS005_CONFLICT_DIR, rules_files.SchematronValidationRule)
+        self.assertEqual(2, len(report.messages))
+
+        self.assertEqual("error", report.messages[0]['severity'])
+        self.assertEqual("A dataset must have a dataset_description file.", report.messages[0]['message'])
+
+        self.assertEqual("warn", report.messages[1]['severity'])
+        self.assertTrue('HEDVersion' in report.messages[1]['message'])
+
 
 if __name__ == '__main__':
     unittest.main()
