@@ -15,21 +15,16 @@ class BIDSLayout:
         qry_result = self.query.execute(expr, search_node)
         return qry_result
 
-    def _query_entities(self, entity_key):
-        # consider only direct subject folders
-        entities = self._query(
-            '//%s:subjects//%s:entities[@key = "%s"]/@value' % (self.ns_prefix, self.ns_prefix, entity_key))
-        entities = sorted(list(set(entities)))
-        return entities
-
     def __getattr__(self, key):
         k = key if not key.startswith("get_") else key[4:]
         k = self.sc.fuzzy_match_entity_key(k)
-        return partial(self._query_entities, k)
+        return partial(self.get, return_type='id', target=k, **{k: '*'})
 
     def _gen_scalar_expr(self, k, v):
         if v is None:
             return 'not(@%s)' % k
+        if v == '*':
+            return '@%s' % k
         return '@%s="%s"' % (k, v)
 
     def _scalar_or_list(self, attr_name, v):
@@ -64,5 +59,9 @@ class BIDSLayout:
         expr_final = ''.join(expr)
         artifacts = self._query(expr_final)
         if return_type and return_type.startswith("file"):
-            artifacts = list(map(lambda e: e.get_absolute_path(), artifacts))
+            return list(map(lambda e: e.get_absolute_path(), artifacts))
+        elif return_type == 'id' and target is not None:
+            keys = sorted(set(
+                [entity.value for a in artifacts for entity in filter(lambda e: e.key == target, a.get_entities())]))
+            return keys
         return artifacts

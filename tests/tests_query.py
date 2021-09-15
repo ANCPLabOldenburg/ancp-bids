@@ -18,6 +18,19 @@ class QueryTestCase(BaseTestCase):
         self.assertEqual(1, len(files))
         self.assertTrue(files[0].endswith("sub-02_task-abc_run-xyz_events.tsv"))
 
+    def test_bidslayout_entities_any(self):
+        layout = ancpbids.BIDSLayout(ENTITIES_DIR)
+        files = layout.get(sub='*', suffix='test', task='abc', return_type='filename')
+        self.assertEqual(2, len(files))
+        self.assertTrue(files[0].endswith("sub-bar_task-abc_test.txt"))
+        self.assertTrue(files[1].endswith("sub-foo_task-abc_test.txt"))
+
+    def test_bidslayout_subjects_filtered(self):
+        layout = ancpbids.BIDSLayout(ENTITIES_DIR)
+        subjects = layout.get_subjects(task='abc')
+        self.assertEqual(3, len(subjects))
+        self.assertListEqual(['02', 'bar', 'foo'], subjects)
+
     def test_bidslayout(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
 
