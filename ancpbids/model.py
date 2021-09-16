@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Sat Sep 11 11:34:19 2021 by generateDS.py version 2.39.7.
+# Generated Thu Sep 16 18:48:25 2021 by generateDS.py version 2.39.7.
 # Python 3.9.5 (default, May 11 2021, 08:20:37)  [GCC 10.3.0]
 #
 # Command line options:
@@ -13,10 +13,10 @@
 #   ('-o', '../ancpbids/model.py')
 #
 # Command line arguments:
-#   ../ancpbids/data/schema-files/bids.xsd
+#   ../ancpbids/data/schema-files/v1_6/bids.xsd
 #
 # Command line:
-#   ../../../hg-repos/generateds-code/generateDS.py -f --export="etree validate generator" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../ancpbids/data/schema-files/bids.xsd
+#   ../../../hg-repos/generateds-code/generateDS.py -f --export="etree validate generator" --member-specs="dict" --always-export-default -o "../ancpbids/model.py" ../ancpbids/data/schema-files/v1_6/bids.xsd
 #
 # Current working directory (os.getcwd()):
 #   tools
@@ -1939,250 +1939,6 @@ class Suffix(GeneratedsSuper):
 # end class Suffix
 
 
-class Modality(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'key': MemberSpec_('key', 'string', 0, 1, {'use': 'optional', 'name': 'key'}),
-        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional', 'name': 'name'}),
-        'datatypes': MemberSpec_('datatypes', 'string', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'datatypes', 'type': 'string'}, None),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, key=None, name=None, datatypes=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        self.key = _cast(None, key)
-        self.key_nsprefix_ = None
-        self.name = _cast(None, name)
-        self.name_nsprefix_ = None
-        if datatypes is None:
-            self.datatypes = []
-        else:
-            self.datatypes = datatypes
-        self.datatypes_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, Modality)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if Modality.subclass:
-            return Modality.subclass(*args_, **kwargs_)
-        else:
-            return Modality(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_datatypes(self):
-        return self.datatypes
-    def set_datatypes(self, datatypes):
-        self.datatypes = datatypes
-    def add_datatypes(self, value):
-        self.datatypes.append(value)
-    def insert_datatypes_at(self, index, value):
-        self.datatypes.insert(index, value)
-    def replace_datatypes_at(self, index, value):
-        self.datatypes[index] = value
-    def get_key(self):
-        return self.key
-    def set_key(self, key):
-        self.key = key
-    def get_name(self):
-        return self.name
-    def set_name(self, name):
-        self.name = name
-    def _hasContent(self):
-        if (
-            self.datatypes
-        ):
-            return True
-        else:
-            return False
-    def to_etree(self, parent_element=None, name_='Modality', mapping_=None, reverse_mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        if self.key is not None:
-            element.set('key', self.gds_format_string(self.key))
-        if self.name is not None:
-            element.set('name', self.gds_format_string(self.name))
-        for datatypes_ in self.datatypes:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}datatypes').text = self.gds_format_string(datatypes_)
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        if reverse_mapping_ is not None:
-            reverse_mapping_[element] = self
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.key, 'key')
-        self.gds_check_cardinality_(self.key, 'key', required=False)
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
-        self.gds_check_cardinality_(self.name, 'name', required=False)
-        # validate simple type children
-        for item in self.datatypes:
-            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'datatypes')
-        self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=1, max_occurs=9999999)
-        # validate complex type children
-        if recursive:
-            pass
-        return message_count == len(self.gds_collector_.get_messages())
-    def generateRecursively_(self, level=0):
-        yield (self, level)
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('key', node)
-        if value is not None and 'key' not in already_processed:
-            already_processed.add('key')
-            self.key = value
-        value = find_attr_value_('name', node)
-        if value is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            self.name = value
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'datatypes':
-            value_ = child_.text
-            value_ = self.gds_parse_string(value_, node, 'datatypes')
-            value_ = self.gds_validate_string(value_, node, 'datatypes')
-            self.datatypes.append(value_)
-            self.datatypes_nsprefix_ = child_.prefix
-# end class Modality
-
-
-class Datatype(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional', 'name': 'name'}),
-        'contexts': MemberSpec_('contexts', 'DatatypeContext', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'contexts', 'type': 'DatatypeContext'}, None),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, name=None, contexts=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        self.name = _cast(None, name)
-        self.name_nsprefix_ = None
-        if contexts is None:
-            self.contexts = []
-        else:
-            self.contexts = contexts
-        self.contexts_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, Datatype)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if Datatype.subclass:
-            return Datatype.subclass(*args_, **kwargs_)
-        else:
-            return Datatype(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_contexts(self):
-        return self.contexts
-    def set_contexts(self, contexts):
-        self.contexts = contexts
-    def add_contexts(self, value):
-        self.contexts.append(value)
-    def insert_contexts_at(self, index, value):
-        self.contexts.insert(index, value)
-    def replace_contexts_at(self, index, value):
-        self.contexts[index] = value
-    def get_name(self):
-        return self.name
-    def set_name(self, name):
-        self.name = name
-    def _hasContent(self):
-        if (
-            self.contexts
-        ):
-            return True
-        else:
-            return False
-    def to_etree(self, parent_element=None, name_='Datatype', mapping_=None, reverse_mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        if self.name is not None:
-            element.set('name', self.gds_format_string(self.name))
-        for contexts_ in self.contexts:
-            contexts_.to_etree(element, name_='contexts', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        if reverse_mapping_ is not None:
-            reverse_mapping_[element] = self
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
-        self.gds_check_cardinality_(self.name, 'name', required=False)
-        # validate simple type children
-        # validate complex type children
-        self.gds_check_cardinality_(self.contexts, 'contexts', min_occurs=1, max_occurs=9999999)
-        if recursive:
-            for item in self.contexts:
-                item.validate_(gds_collector, recursive=True)
-        return message_count == len(self.gds_collector_.get_messages())
-    def generateRecursively_(self, level=0):
-        yield (self, level)
-        # generate complex type children
-        level += 1
-        if self.contexts:
-            for o in self.contexts:
-                yield from o.generateRecursively_(level)
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('name', node)
-        if value is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            self.name = value
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'contexts':
-            obj_ = DatatypeContext.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.contexts.append(obj_)
-            obj_.original_tagname_ = 'contexts'
-# end class Datatype
-
-
 class EntityDep(GeneratedsSuper):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
@@ -2290,353 +2046,22 @@ class EntityDep(GeneratedsSuper):
 # end class EntityDep
 
 
-class DatatypeContext(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'name': MemberSpec_('name', 'string', 0, 1, {'use': 'optional', 'name': 'name'}),
-        'suffixes': MemberSpec_('suffixes', 'string', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'suffixes', 'type': 'string'}, None),
-        'extensions': MemberSpec_('extensions', 'string', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'extensions', 'type': 'string'}, None),
-        'entities': MemberSpec_('entities', 'EntityDep', 1, 0, {'maxOccurs': 'unbounded', 'minOccurs': '1', 'name': 'entities', 'type': 'EntityDep'}, None),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, name=None, suffixes=None, extensions=None, entities=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        self.name = _cast(None, name)
-        self.name_nsprefix_ = None
-        if suffixes is None:
-            self.suffixes = []
-        else:
-            self.suffixes = suffixes
-        self.suffixes_nsprefix_ = None
-        if extensions is None:
-            self.extensions = []
-        else:
-            self.extensions = extensions
-        self.extensions_nsprefix_ = None
-        if entities is None:
-            self.entities = []
-        else:
-            self.entities = entities
-        self.entities_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, DatatypeContext)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if DatatypeContext.subclass:
-            return DatatypeContext.subclass(*args_, **kwargs_)
-        else:
-            return DatatypeContext(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_suffixes(self):
-        return self.suffixes
-    def set_suffixes(self, suffixes):
-        self.suffixes = suffixes
-    def add_suffixes(self, value):
-        self.suffixes.append(value)
-    def insert_suffixes_at(self, index, value):
-        self.suffixes.insert(index, value)
-    def replace_suffixes_at(self, index, value):
-        self.suffixes[index] = value
-    def get_extensions(self):
-        return self.extensions
-    def set_extensions(self, extensions):
-        self.extensions = extensions
-    def add_extensions(self, value):
-        self.extensions.append(value)
-    def insert_extensions_at(self, index, value):
-        self.extensions.insert(index, value)
-    def replace_extensions_at(self, index, value):
-        self.extensions[index] = value
-    def get_entities(self):
-        return self.entities
-    def set_entities(self, entities):
-        self.entities = entities
-    def add_entities(self, value):
-        self.entities.append(value)
-    def insert_entities_at(self, index, value):
-        self.entities.insert(index, value)
-    def replace_entities_at(self, index, value):
-        self.entities[index] = value
-    def get_name(self):
-        return self.name
-    def set_name(self, name):
-        self.name = name
-    def _hasContent(self):
-        if (
-            self.suffixes or
-            self.extensions or
-            self.entities
-        ):
-            return True
-        else:
-            return False
-    def to_etree(self, parent_element=None, name_='DatatypeContext', mapping_=None, reverse_mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        if self.name is not None:
-            element.set('name', self.gds_format_string(self.name))
-        for suffixes_ in self.suffixes:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}suffixes').text = self.gds_format_string(suffixes_)
-        for extensions_ in self.extensions:
-            etree_.SubElement(element, '{https://bids.neuroimaging.io/1.6}extensions').text = self.gds_format_string(extensions_)
-        for entities_ in self.entities:
-            entities_.to_etree(element, name_='entities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        if reverse_mapping_ is not None:
-            reverse_mapping_[element] = self
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        self.gds_validate_builtin_ST_(self.gds_validate_string, self.name, 'name')
-        self.gds_check_cardinality_(self.name, 'name', required=False)
-        # validate simple type children
-        for item in self.suffixes:
-            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'suffixes')
-        self.gds_check_cardinality_(self.suffixes, 'suffixes', min_occurs=1, max_occurs=9999999)
-        for item in self.extensions:
-            self.gds_validate_builtin_ST_(self.gds_validate_string, item, 'extensions')
-        self.gds_check_cardinality_(self.extensions, 'extensions', min_occurs=1, max_occurs=9999999)
-        # validate complex type children
-        self.gds_check_cardinality_(self.entities, 'entities', min_occurs=1, max_occurs=9999999)
-        if recursive:
-            for item in self.entities:
-                item.validate_(gds_collector, recursive=True)
-        return message_count == len(self.gds_collector_.get_messages())
-    def generateRecursively_(self, level=0):
-        yield (self, level)
-        # generate complex type children
-        level += 1
-        if self.entities:
-            for o in self.entities:
-                yield from o.generateRecursively_(level)
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        value = find_attr_value_('name', node)
-        if value is not None and 'name' not in already_processed:
-            already_processed.add('name')
-            self.name = value
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'suffixes':
-            value_ = child_.text
-            value_ = self.gds_parse_string(value_, node, 'suffixes')
-            value_ = self.gds_validate_string(value_, node, 'suffixes')
-            self.suffixes.append(value_)
-            self.suffixes_nsprefix_ = child_.prefix
-        elif nodeName_ == 'extensions':
-            value_ = child_.text
-            value_ = self.gds_parse_string(value_, node, 'extensions')
-            value_ = self.gds_validate_string(value_, node, 'extensions')
-            self.extensions.append(value_)
-            self.extensions_nsprefix_ = child_.prefix
-        elif nodeName_ == 'entities':
-            obj_ = EntityDep.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.entities.append(obj_)
-            obj_.original_tagname_ = 'entities'
-# end class DatatypeContext
-
-
-class Metadata(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-        'datatypes': MemberSpec_('datatypes', 'Datatype', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'datatypes', 'type': 'Datatype'}, None),
-        'entities': MemberSpec_('entities', 'Entity', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'entities', 'type': 'Entity'}, None),
-        'modalities': MemberSpec_('modalities', 'Modality', 1, 1, {'maxOccurs': 'unbounded', 'minOccurs': '0', 'name': 'modalities', 'type': 'Modality'}, None),
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, datatypes=None, entities=None, modalities=None, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-        if datatypes is None:
-            self.datatypes = []
-        else:
-            self.datatypes = datatypes
-        self.datatypes_nsprefix_ = None
-        if entities is None:
-            self.entities = []
-        else:
-            self.entities = entities
-        self.entities_nsprefix_ = None
-        if modalities is None:
-            self.modalities = []
-        else:
-            self.modalities = modalities
-        self.modalities_nsprefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, Metadata)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if Metadata.subclass:
-            return Metadata.subclass(*args_, **kwargs_)
-        else:
-            return Metadata(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def get_datatypes(self):
-        return self.datatypes
-    def set_datatypes(self, datatypes):
-        self.datatypes = datatypes
-    def add_datatypes(self, value):
-        self.datatypes.append(value)
-    def insert_datatypes_at(self, index, value):
-        self.datatypes.insert(index, value)
-    def replace_datatypes_at(self, index, value):
-        self.datatypes[index] = value
-    def get_entities(self):
-        return self.entities
-    def set_entities(self, entities):
-        self.entities = entities
-    def add_entities(self, value):
-        self.entities.append(value)
-    def insert_entities_at(self, index, value):
-        self.entities.insert(index, value)
-    def replace_entities_at(self, index, value):
-        self.entities[index] = value
-    def get_modalities(self):
-        return self.modalities
-    def set_modalities(self, modalities):
-        self.modalities = modalities
-    def add_modalities(self, value):
-        self.modalities.append(value)
-    def insert_modalities_at(self, index, value):
-        self.modalities.insert(index, value)
-    def replace_modalities_at(self, index, value):
-        self.modalities[index] = value
-    def _hasContent(self):
-        if (
-            self.datatypes or
-            self.entities or
-            self.modalities
-        ):
-            return True
-        else:
-            return False
-    def to_etree(self, parent_element=None, name_='Metadata', mapping_=None, reverse_mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        for datatypes_ in self.datatypes:
-            datatypes_.to_etree(element, name_='datatypes', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        for entities_ in self.entities:
-            entities_.to_etree(element, name_='entities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        for modalities_ in self.modalities:
-            modalities_.to_etree(element, name_='modalities', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        if reverse_mapping_ is not None:
-            reverse_mapping_[element] = self
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        # validate simple type children
-        # validate complex type children
-        self.gds_check_cardinality_(self.datatypes, 'datatypes', min_occurs=0, max_occurs=9999999)
-        self.gds_check_cardinality_(self.entities, 'entities', min_occurs=0, max_occurs=9999999)
-        self.gds_check_cardinality_(self.modalities, 'modalities', min_occurs=0, max_occurs=9999999)
-        if recursive:
-            for item in self.datatypes:
-                item.validate_(gds_collector, recursive=True)
-            for item in self.entities:
-                item.validate_(gds_collector, recursive=True)
-            for item in self.modalities:
-                item.validate_(gds_collector, recursive=True)
-        return message_count == len(self.gds_collector_.get_messages())
-    def generateRecursively_(self, level=0):
-        yield (self, level)
-        # generate complex type children
-        level += 1
-        if self.datatypes:
-            for o in self.datatypes:
-                yield from o.generateRecursively_(level)
-        if self.entities:
-            for o in self.entities:
-                yield from o.generateRecursively_(level)
-        if self.modalities:
-            for o in self.modalities:
-                yield from o.generateRecursively_(level)
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        pass
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        if nodeName_ == 'datatypes':
-            obj_ = Datatype.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.datatypes.append(obj_)
-            obj_.original_tagname_ = 'datatypes'
-        elif nodeName_ == 'entities':
-            obj_ = Entity.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.entities.append(obj_)
-            obj_.original_tagname_ = 'entities'
-        elif nodeName_ == 'modalities':
-            obj_ = Modality.factory(parent_object_=self)
-            obj_.build(child_, gds_collector_=gds_collector_)
-            self.modalities.append(obj_)
-            obj_.original_tagname_ = 'modalities'
-# end class Metadata
-
-
 class JsonFile(File):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
+        'object': MemberSpec_('object', 'JsonObject', 0, 1, {'maxOccurs': '1', 'minOccurs': '0', 'name': 'object', 'type': 'JsonObject'}, None),
     }
     subclass = None
     superclass = File
-    def __init__(self, name=None, extension=None, uri=None, extensiontype_=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, extension=None, uri=None, object=None, extensiontype_=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
         super(globals().get("JsonFile"), self).__init__(name, extension, uri, extensiontype_,  **kwargs_)
+        self.object = object
+        self.object_nsprefix_ = None
         self.extensiontype_ = extensiontype_
     def factory(*args_, **kwargs_):
         if CurrentSubclassModule_ is not None:
@@ -2653,10 +2078,15 @@ class JsonFile(File):
         return self.ns_prefix_
     def set_ns_prefix_(self, ns_prefix):
         self.ns_prefix_ = ns_prefix
+    def get_object(self):
+        return self.object
+    def set_object(self, object):
+        self.object = object
     def get_extensiontype_(self): return self.extensiontype_
     def set_extensiontype_(self, extensiontype_): self.extensiontype_ = extensiontype_
     def _hasContent(self):
         if (
+            self.object is not None or
             super(JsonFile, self)._hasContent()
         ):
             return True
@@ -2666,6 +2096,9 @@ class JsonFile(File):
         element = super(JsonFile, self).to_etree(parent_element, name_, mapping_, reverse_mapping_, nsmap_)
         if self.extensiontype_ is not None:
             element.set('{http://www.w3.org/2001/XMLSchema-instance}type', self.extensiontype_)
+        if self.object is not None:
+            object_ = self.object
+            object_.to_etree(element, name_='object', mapping_=mapping_, reverse_mapping_=reverse_mapping_, nsmap_=nsmap_)
         if mapping_ is not None:
             mapping_[id(self)] = element
         if reverse_mapping_ is not None:
@@ -2677,11 +2110,17 @@ class JsonFile(File):
         # validate simple type attributes
         # validate simple type children
         # validate complex type children
+        self.gds_check_cardinality_(self.object, 'object', min_occurs=0, max_occurs=1)
         if recursive:
-            pass
+            if self.object is not None:
+                self.object.validate_(gds_collector, recursive=True)
         return message_count == len(self.gds_collector_.get_messages())
     def generateRecursively_(self, level=0):
         yield (self, level)
+        # generate complex type children
+        level += 1
+        if self.object:
+            yield from self.object.generateRecursively_(level)
     def build(self, node, gds_collector_=None):
         self.gds_collector_ = gds_collector_
         if SaveElementTreeNode:
@@ -2700,82 +2139,13 @@ class JsonFile(File):
             self.extensiontype_ = value
         super(JsonFile, self)._buildAttributes(node, attrs, already_processed)
     def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
+        if nodeName_ == 'object':
+            obj_ = JsonObject.factory(parent_object_=self)
+            obj_.build(child_, gds_collector_=gds_collector_)
+            self.object = obj_
+            obj_.original_tagname_ = 'object'
         super(JsonFile, self)._buildChildren(child_, node, nodeName_, True)
-        pass
 # end class JsonFile
-
-
-class FileMatcher(GeneratedsSuper):
-    __hash__ = GeneratedsSuper.__hash__
-    member_data_items_ = {
-    }
-    subclass = None
-    superclass = None
-    def __init__(self, gds_collector_=None, **kwargs_):
-        self.gds_collector_ = gds_collector_
-        self.gds_elementtree_node_ = None
-        self.original_tagname_ = None
-        self.parent_object_ = kwargs_.get('parent_object_')
-        self.ns_prefix_ = None
-    def factory(*args_, **kwargs_):
-        if CurrentSubclassModule_ is not None:
-            subclass = getSubclassFromModule_(
-                CurrentSubclassModule_, FileMatcher)
-            if subclass is not None:
-                return subclass(*args_, **kwargs_)
-        if FileMatcher.subclass:
-            return FileMatcher.subclass(*args_, **kwargs_)
-        else:
-            return FileMatcher(*args_, **kwargs_)
-    factory = staticmethod(factory)
-    def get_ns_prefix_(self):
-        return self.ns_prefix_
-    def set_ns_prefix_(self, ns_prefix):
-        self.ns_prefix_ = ns_prefix
-    def _hasContent(self):
-        if (
-
-        ):
-            return True
-        else:
-            return False
-    def to_etree(self, parent_element=None, name_='FileMatcher', mapping_=None, reverse_mapping_=None, nsmap_=None):
-        if parent_element is None:
-            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        else:
-            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
-        if mapping_ is not None:
-            mapping_[id(self)] = element
-        if reverse_mapping_ is not None:
-            reverse_mapping_[element] = self
-        return element
-    def validate_(self, gds_collector, recursive=False):
-        self.gds_collector_ = gds_collector
-        message_count = len(self.gds_collector_.get_messages())
-        # validate simple type attributes
-        # validate simple type children
-        # validate complex type children
-        if recursive:
-            pass
-        return message_count == len(self.gds_collector_.get_messages())
-    def generateRecursively_(self, level=0):
-        yield (self, level)
-    def build(self, node, gds_collector_=None):
-        self.gds_collector_ = gds_collector_
-        if SaveElementTreeNode:
-            self.gds_elementtree_node_ = node
-        already_processed = set()
-        self.ns_prefix_ = node.prefix
-        self._buildAttributes(node, node.attrib, already_processed)
-        for child in node:
-            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
-            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
-        return self
-    def _buildAttributes(self, node, attrs, already_processed):
-        pass
-    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
-        pass
-# end class FileMatcher
 
 
 class TsvSidecarFile(JsonFile):
@@ -2785,13 +2155,13 @@ class TsvSidecarFile(JsonFile):
     }
     subclass = None
     superclass = JsonFile
-    def __init__(self, name=None, extension=None, uri=None, columns=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, extension=None, uri=None, object=None, columns=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
-        super(globals().get("TsvSidecarFile"), self).__init__(name, extension, uri,  **kwargs_)
+        super(globals().get("TsvSidecarFile"), self).__init__(name, extension, uri, object,  **kwargs_)
         if columns is None:
             self.columns = []
         else:
@@ -3858,6 +3228,79 @@ class MetadataFile(Artifact):
 # end class MetadataFile
 
 
+class JsonObject(GeneratedsSuper):
+    __hash__ = GeneratedsSuper.__hash__
+    member_data_items_ = {
+    }
+    subclass = None
+    superclass = None
+    def __init__(self, gds_collector_=None, **kwargs_):
+        self.gds_collector_ = gds_collector_
+        self.gds_elementtree_node_ = None
+        self.original_tagname_ = None
+        self.parent_object_ = kwargs_.get('parent_object_')
+        self.ns_prefix_ = None
+    def factory(*args_, **kwargs_):
+        if CurrentSubclassModule_ is not None:
+            subclass = getSubclassFromModule_(
+                CurrentSubclassModule_, JsonObject)
+            if subclass is not None:
+                return subclass(*args_, **kwargs_)
+        if JsonObject.subclass:
+            return JsonObject.subclass(*args_, **kwargs_)
+        else:
+            return JsonObject(*args_, **kwargs_)
+    factory = staticmethod(factory)
+    def get_ns_prefix_(self):
+        return self.ns_prefix_
+    def set_ns_prefix_(self, ns_prefix):
+        self.ns_prefix_ = ns_prefix
+    def _hasContent(self):
+        if (
+
+        ):
+            return True
+        else:
+            return False
+    def to_etree(self, parent_element=None, name_='JsonObject', mapping_=None, reverse_mapping_=None, nsmap_=None):
+        if parent_element is None:
+            element = etree_.Element('{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
+        else:
+            element = etree_.SubElement(parent_element, '{https://bids.neuroimaging.io/1.6}' + name_, nsmap=nsmap_)
+        if mapping_ is not None:
+            mapping_[id(self)] = element
+        if reverse_mapping_ is not None:
+            reverse_mapping_[element] = self
+        return element
+    def validate_(self, gds_collector, recursive=False):
+        self.gds_collector_ = gds_collector
+        message_count = len(self.gds_collector_.get_messages())
+        # validate simple type attributes
+        # validate simple type children
+        # validate complex type children
+        if recursive:
+            pass
+        return message_count == len(self.gds_collector_.get_messages())
+    def generateRecursively_(self, level=0):
+        yield (self, level)
+    def build(self, node, gds_collector_=None):
+        self.gds_collector_ = gds_collector_
+        if SaveElementTreeNode:
+            self.gds_elementtree_node_ = node
+        already_processed = set()
+        self.ns_prefix_ = node.prefix
+        self._buildAttributes(node, node.attrib, already_processed)
+        for child in node:
+            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
+            self._buildChildren(child, node, nodeName_, gds_collector_=gds_collector_)
+        return self
+    def _buildAttributes(self, node, attrs, already_processed):
+        pass
+    def _buildChildren(self, child_, node, nodeName_, fromsubclass_=False, gds_collector_=None):
+        pass
+# end class JsonObject
+
+
 class ParticipantsTsvFile(TsvFile):
     __hash__ = GeneratedsSuper.__hash__
     member_data_items_ = {
@@ -3985,13 +3428,13 @@ class DatasetDescriptionFile(JsonFile):
     }
     subclass = None
     superclass = JsonFile
-    def __init__(self, name=None, extension=None, uri=None, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType='raw', License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=None, Funding=None, EthicsApprovals=None, ReferencesAndLinks=None, GeneratedBy=None, SourceDatasets=None, gds_collector_=None, **kwargs_):
+    def __init__(self, name=None, extension=None, uri=None, object=None, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType='raw', License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=None, Funding=None, EthicsApprovals=None, ReferencesAndLinks=None, GeneratedBy=None, SourceDatasets=None, gds_collector_=None, **kwargs_):
         self.gds_collector_ = gds_collector_
         self.gds_elementtree_node_ = None
         self.original_tagname_ = None
         self.parent_object_ = kwargs_.get('parent_object_')
         self.ns_prefix_ = None
-        super(globals().get("DatasetDescriptionFile"), self).__init__(name, extension, uri,  **kwargs_)
+        super(globals().get("DatasetDescriptionFile"), self).__init__(name, extension, uri, object,  **kwargs_)
         self.Name = _cast(None, Name)
         self.Name_nsprefix_ = None
         self.BIDSVersion = _cast(None, BIDSVersion)
@@ -5032,7 +4475,6 @@ class Dataset(Folder):
 
 GDSClassesMapping = {
     'dataset': Dataset,
-    'metadata': Metadata,
 }
 
 
@@ -5229,110 +4671,94 @@ RenameMappings_ = {
 # and the file in which each is defined.
 # simpleTypes are marked "ST" and complexTypes "CT".
 NamespaceToDefMappings_ = {'https://bids.neuroimaging.io/1.6': [('Dataset',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('Subject',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('Session',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('File',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('DatasetDescriptionFile',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('Folder',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('DatatypeFolder',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('Artifact',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('EntityRef',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('Entity',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('Suffix',
-                                       '../ancpbids/data/schema-files/bids.xsd',
-                                       'CT'),
-                                      ('Modality',
-                                       '../ancpbids/data/schema-files/bids.xsd',
-                                       'CT'),
-                                      ('Datatype',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('EntityDep',
-                                       '../ancpbids/data/schema-files/bids.xsd',
-                                       'CT'),
-                                      ('DatatypeContext',
-                                       '../ancpbids/data/schema-files/bids.xsd',
-                                       'CT'),
-                                      ('Metadata',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('JsonFile',
-                                       '../ancpbids/data/schema-files/bids.xsd',
-                                       'CT'),
-                                      ('FileMatcher',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('ParticipantsTsvFile',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('TsvSidecarFile',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('TsvFile',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('ParticipantsTsvFileEntry',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('SidecarColumnDescriptor',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('KeyValuePair',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('GeneratedBy',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('SourceDatasets',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('GeneratedByContainer',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT'),
                                       ('MetadataFile',
-                                       '../ancpbids/data/schema-files/bids.xsd',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
+                                       'CT'),
+                                      ('JsonObject',
+                                       '../ancpbids/data/schema-files/v1_6/bids.xsd',
                                        'CT')]}
 
 __all__ = [
     "Artifact",
     "Dataset",
     "DatasetDescriptionFile",
-    "Datatype",
-    "DatatypeContext",
     "DatatypeFolder",
     "Entity",
     "EntityDep",
     "EntityRef",
     "File",
-    "FileMatcher",
     "Folder",
     "GeneratedBy",
     "GeneratedByContainer",
     "JsonFile",
+    "JsonObject",
     "KeyValuePair",
-    "Metadata",
     "MetadataFile",
-    "Modality",
     "ParticipantsTsvFile",
     "ParticipantsTsvFileEntry",
     "Session",

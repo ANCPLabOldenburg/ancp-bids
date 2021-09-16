@@ -9,20 +9,20 @@
 		<complexContent>
 			<extension base="bids:Folder">
 				<sequence>
-					<element name="subjects" type="bids:Subject"
-						minOccurs="0" maxOccurs="unbounded">
+					<element name="subjects" type="bids:Subject" minOccurs="0"
+						maxOccurs="unbounded">
 					</element>
 					<element name="dataset_description"
 						type="bids:DatasetDescriptionFile" minOccurs="1" maxOccurs="1">
 					</element>
-					<element name="README" type="bids:File"
-						minOccurs="0" maxOccurs="1">
+					<element name="README" type="bids:File" minOccurs="0"
+						maxOccurs="1">
 					</element>
-					<element name="CHANGES" type="bids:File"
-						minOccurs="0" maxOccurs="1">
+					<element name="CHANGES" type="bids:File" minOccurs="0"
+						maxOccurs="1">
 					</element>
-					<element name="LICENSE" type="bids:File"
-						minOccurs="0" maxOccurs="1">
+					<element name="LICENSE" type="bids:File" minOccurs="0"
+						maxOccurs="1">
 					</element>
 					<element name="genetic_info" type="bids:JsonFile"
 						minOccurs="0" maxOccurs="1">
@@ -30,8 +30,8 @@
 							<documentation></documentation>
 						</annotation>
 					</element>
-					<element name="samples" type="bids:JsonFile"
-						minOccurs="0" maxOccurs="1">
+					<element name="samples" type="bids:JsonFile" minOccurs="0"
+						maxOccurs="1">
 					</element>
 					<element name="participants.tsv"
 						type="bids:ParticipantsTsvFile" maxOccurs="1" minOccurs="0">
@@ -42,19 +42,20 @@
 					<element name="participants.json"
 						type="bids:TsvSidecarFile" minOccurs="0" maxOccurs="1">
 					</element>
-					<element name="code" type="bids:Folder"
-						minOccurs="0" maxOccurs="1">
+					<element name="code" type="bids:Folder" minOccurs="0"
+						maxOccurs="1">
 					</element>
 					<element name="derivatives" type="bids:Folder"
 						minOccurs="0" maxOccurs="1">
 					</element>
-					<element name="sourcedata" type="bids:Folder"
-						minOccurs="0" maxOccurs="1">
+					<element name="sourcedata" type="bids:Folder" minOccurs="0"
+						maxOccurs="1">
 					</element>
-					<element name="stimuli" type="bids:Folder"
-						minOccurs="0" maxOccurs="1">
+					<element name="stimuli" type="bids:Folder" minOccurs="0"
+						maxOccurs="1">
 					</element>
-					<element name="metafiles" type="bids:MetadataFile" minOccurs="0" maxOccurs="unbounded"></element>
+					<element name="metafiles" type="bids:MetadataFile"
+						minOccurs="0" maxOccurs="unbounded"></element>
 				</sequence>
 
 			</extension>
@@ -65,13 +66,14 @@
 		<complexContent>
 			<extension base="bids:Folder">
 				<sequence>
-					<element name="sessions" type="bids:Session"
-						minOccurs="0" maxOccurs="unbounded">
+					<element name="sessions" type="bids:Session" minOccurs="0"
+						maxOccurs="unbounded">
 					</element>
 					<element name="datatypes" type="bids:DatatypeFolder"
 						maxOccurs="unbounded" minOccurs="1">
 					</element>
-					<element name="metafiles" type="bids:MetadataFile" minOccurs="0" maxOccurs="unbounded"></element>
+					<element name="metafiles" type="bids:MetadataFile"
+						minOccurs="0" maxOccurs="unbounded"></element>
 				</sequence>
 
 			</extension>
@@ -85,7 +87,8 @@
 					<element name="datatypes" type="bids:DatatypeFolder"
 						maxOccurs="unbounded" minOccurs="1">
 					</element>
-					<element name="metafiles" type="bids:MetadataFile" minOccurs="0" maxOccurs="unbounded"></element>
+					<element name="metafiles" type="bids:MetadataFile"
+						minOccurs="0" maxOccurs="unbounded"></element>
 				</sequence>
 			</extension>
 		</complexContent>
@@ -105,11 +108,11 @@
 					<element name="Authors" type="string" minOccurs="0"
 						maxOccurs="unbounded">
 					</element>
-					<element name="Funding" type="string"
-						maxOccurs="unbounded" minOccurs="0">
+					<element name="Funding" type="string" maxOccurs="unbounded"
+						minOccurs="0">
 					</element>
-					<element name="EthicsApprovals" type="string"
-						minOccurs="0" maxOccurs="unbounded">
+					<element name="EthicsApprovals" type="string" minOccurs="0"
+						maxOccurs="unbounded">
 					</element>
 					<element name="ReferencesAndLinks" type="string"
 						minOccurs="0" maxOccurs="unbounded">
@@ -117,15 +120,14 @@
 					<element name="GeneratedBy" type="bids:GeneratedBy"
 						minOccurs="0" maxOccurs="unbounded">
 					</element>
-					<element name="SourceDatasets" type="bids:SourceDatasets" minOccurs="0" maxOccurs="unbounded"></element>
+					<element name="SourceDatasets" type="bids:SourceDatasets"
+						minOccurs="0" maxOccurs="unbounded"></element>
 				</sequence>
 				<attribute name="Name" type="string" use="required"></attribute>
-				<attribute name="BIDSVersion" type="string"
-					use="required">
+				<attribute name="BIDSVersion" type="string" use="required">
 				</attribute>
 
-				<attribute name="HEDVersion" type="string"
-					use="optional">
+				<attribute name="HEDVersion" type="string" use="optional">
 					<annotation>
 						<documentation>@use: recommended</documentation>
 					</annotation>
@@ -142,8 +144,7 @@
 						</restriction>
 					</simpleType>
 				</attribute>
-				<attribute name="License" type="string"
-					use="optional">
+				<attribute name="License" type="string" use="optional">
 					<annotation>
 						<documentation>@use: recommended</documentation>
 					</annotation>
@@ -154,8 +155,7 @@
 				<attribute name="HowToAcknowledge" type="string"
 					use="optional">
 				</attribute>
-				<attribute name="DatasetDOI" type="string"
-					use="optional">
+				<attribute name="DatasetDOI" type="string" use="optional">
 				</attribute>
 			</extension>
 		</complexContent>
@@ -182,7 +182,8 @@
 					<element name="artifacts" type="bids:Artifact"
 						minOccurs="0" maxOccurs="unbounded">
 					</element>
-					<element name="metafiles" type="bids:MetadataFile" minOccurs="0" maxOccurs="unbounded"></element>
+					<element name="metafiles" type="bids:MetadataFile"
+						minOccurs="0" maxOccurs="unbounded"></element>
 				</sequence>
 			</extension>
 		</complexContent>
@@ -226,93 +227,31 @@
 		<attribute name="unit" type="string"></attribute>
 	</complexType>
 
-	<complexType name="Modality">
-		<sequence>
-			<element name="datatypes" type="string"
-				maxOccurs="unbounded" minOccurs="1">
-			</element>
-		</sequence>
-		<attribute name="key" type="string"></attribute>
-		<attribute name="name" type="string"></attribute>
-	</complexType>
 
-	<complexType name="Datatype">
-		<sequence>
-			<element name="contexts" type="bids:DatatypeContext"
-				maxOccurs="unbounded" minOccurs="1">
-			</element>
-		</sequence>
-
-		<attribute name="name" type="string"></attribute>
-	</complexType>
 
 	<complexType name="EntityDep">
 		<attribute name="key" type="string" use="required"></attribute>
 		<attribute name="required" type="boolean" use="required"></attribute>
 	</complexType>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-	<complexType name="DatatypeContext">
-		<sequence>
-			<element name="suffixes" type="string" minOccurs="1"
-				maxOccurs="unbounded">
-			</element>
-			<element name="extensions" type="string" minOccurs="1"
-				maxOccurs="unbounded">
-			</element>
-			<element name="entities" type="bids:EntityDep" minOccurs="1"
-				maxOccurs="unbounded">
-			</element>
-		</sequence>
-
-		<attribute name="name" type="string"></attribute>
-	</complexType>
-
-	<element name="metadata" type="bids:Metadata"></element>
-
-	<complexType name="Metadata">
-		<sequence>
-			<element name="datatypes" type="bids:Datatype"
-				minOccurs="0" maxOccurs="unbounded">
-			</element>
-			<element name="entities" type="bids:Entity"
-				maxOccurs="unbounded" minOccurs="0">
-			</element>
-			<element name="modalities" type="bids:Modality"
-				maxOccurs="unbounded" minOccurs="0">
-			</element>
-		</sequence>
-	</complexType>
-
-
-
 	<complexType name="JsonFile">
 		<complexContent>
 			<extension base="bids:File">
+				<sequence>
+					<element name="object" type="bids:JsonObject" minOccurs="0" maxOccurs="1"></element>
+				</sequence>
 			</extension>
 		</complexContent>
 	</complexType>
 
 
-	<complexType name="FileMatcher"></complexType>
-
 	<complexType name="ParticipantsTsvFile">
 		<complexContent>
 			<extension base="bids:TsvFile">
 				<sequence>
-					<element name="entries" type="bids:ParticipantsTsvFileEntry" minOccurs="1" maxOccurs="unbounded"></element>
+					<element name="entries"
+						type="bids:ParticipantsTsvFileEntry" minOccurs="1"
+						maxOccurs="unbounded"></element>
 				</sequence>
 			</extension>
 		</complexContent>
@@ -322,110 +261,114 @@
 		<complexContent>
 			<extension base="bids:JsonFile">
 				<sequence>
-					<element name="columns" type="bids:SidecarColumnDescriptor" minOccurs="1" maxOccurs="unbounded"></element>
+					<element name="columns" type="bids:SidecarColumnDescriptor"
+						minOccurs="1" maxOccurs="unbounded"></element>
 				</sequence>
 			</extension>
 		</complexContent>
 	</complexType>
 
 	<complexType name="TsvFile">
-    	<complexContent>
-    		<extension base="bids:File"></extension>
-    	</complexContent>
-    </complexType>
+		<complexContent>
+			<extension base="bids:File"></extension>
+		</complexContent>
+	</complexType>
 
-    <complexType name="ParticipantsTsvFileEntry">
-    	<attribute name="participant_id" type="string" use="required"></attribute>
-    	<attribute name="age" type="float"></attribute>
-    	<attribute name="sex">
-    		<simpleType>
-    			<restriction base="string">
-    				<enumeration value="male"></enumeration>
-    				<enumeration value="Male"></enumeration>
-    				<enumeration value="MALE"></enumeration>
-    				<enumeration value="m"></enumeration>
-    				<enumeration value="M"></enumeration>
-    				<enumeration value="female"></enumeration>
-    				<enumeration value="Female"></enumeration>
-    				<enumeration value="f"></enumeration>
-    				<enumeration value="F"></enumeration>
-    				<enumeration value="other"></enumeration>
-    				<enumeration value="Other"></enumeration>
-    				<enumeration value="OTHER"></enumeration>
-    				<enumeration value="o"></enumeration>
-    				<enumeration value="O"></enumeration>
-    			</restriction>
-    		</simpleType>
-    	</attribute>
-    	<attribute name="handedness">
-    		<simpleType>
-    			<restriction base="string">
-    				<enumeration value="left"></enumeration>
-    				<enumeration value="Left"></enumeration>
-    				<enumeration value="LEFT"></enumeration>
-    				<enumeration value="l"></enumeration>
-    				<enumeration value="L"></enumeration>
-    				<enumeration value="right"></enumeration>
-    				<enumeration value="Right"></enumeration>
-    				<enumeration value="RIGHT"></enumeration>
-    				<enumeration value="r"></enumeration>
-    				<enumeration value="R"></enumeration>
-    				<enumeration value="ambidextrous"></enumeration>
-    				<enumeration value="Ambidextrous"></enumeration>
-    				<enumeration value="AMBIDEXTROUS"></enumeration>
-    				<enumeration value="a"></enumeration>
-    				<enumeration value="A"></enumeration>
-    			</restriction>
-    		</simpleType>
-    	</attribute>
-    </complexType>
+	<complexType name="ParticipantsTsvFileEntry">
+		<attribute name="participant_id" type="string"
+			use="required"></attribute>
+		<attribute name="age" type="float"></attribute>
+		<attribute name="sex">
+			<simpleType>
+				<restriction base="string">
+					<enumeration value="male"></enumeration>
+					<enumeration value="Male"></enumeration>
+					<enumeration value="MALE"></enumeration>
+					<enumeration value="m"></enumeration>
+					<enumeration value="M"></enumeration>
+					<enumeration value="female"></enumeration>
+					<enumeration value="Female"></enumeration>
+					<enumeration value="f"></enumeration>
+					<enumeration value="F"></enumeration>
+					<enumeration value="other"></enumeration>
+					<enumeration value="Other"></enumeration>
+					<enumeration value="OTHER"></enumeration>
+					<enumeration value="o"></enumeration>
+					<enumeration value="O"></enumeration>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="handedness">
+			<simpleType>
+				<restriction base="string">
+					<enumeration value="left"></enumeration>
+					<enumeration value="Left"></enumeration>
+					<enumeration value="LEFT"></enumeration>
+					<enumeration value="l"></enumeration>
+					<enumeration value="L"></enumeration>
+					<enumeration value="right"></enumeration>
+					<enumeration value="Right"></enumeration>
+					<enumeration value="RIGHT"></enumeration>
+					<enumeration value="r"></enumeration>
+					<enumeration value="R"></enumeration>
+					<enumeration value="ambidextrous"></enumeration>
+					<enumeration value="Ambidextrous"></enumeration>
+					<enumeration value="AMBIDEXTROUS"></enumeration>
+					<enumeration value="a"></enumeration>
+					<enumeration value="A"></enumeration>
+				</restriction>
+			</simpleType>
+		</attribute>
+	</complexType>
 
-    <complexType name="SidecarColumnDescriptor">
-    	<sequence>
-    		<element name="Levels" type="bids:KeyValuePair"
-    			minOccurs="0" maxOccurs="unbounded">
-    		</element>
-    	</sequence>
-        <attribute name="Name" type="string" use="required"></attribute>
-        <attribute name="LongName" type="string"></attribute>
-    	<attribute name="Description" type="string"></attribute>
-    	<attribute name="Units" type="string"></attribute>
-    	<attribute name="TermURL" type="string"></attribute>
-    </complexType>
-    
-    <complexType name="KeyValuePair">
-    	<attribute name="key" type="string" use="required"></attribute>
-    	<attribute name="value" type="string" use="required"></attribute>
-    </complexType>
+	<complexType name="SidecarColumnDescriptor">
+		<sequence>
+			<element name="Levels" type="bids:KeyValuePair" minOccurs="0"
+				maxOccurs="unbounded">
+			</element>
+		</sequence>
+		<attribute name="Name" type="string" use="required"></attribute>
+		<attribute name="LongName" type="string"></attribute>
+		<attribute name="Description" type="string"></attribute>
+		<attribute name="Units" type="string"></attribute>
+		<attribute name="TermURL" type="string"></attribute>
+	</complexType>
 
-    <complexType name="GeneratedBy">
-    	<sequence>
-    		<element name="Container" type="bids:GeneratedByContainer" minOccurs="0" maxOccurs="1"></element>
-    	</sequence>
-    	<attribute name="Name" type="string" use="required"></attribute>
-    	<attribute name="Version" type="string"></attribute>
-    	<attribute name="Description" type="string"></attribute>
-    	<attribute name="CodeURL" type="string"></attribute>
-    </complexType>
+	<complexType name="KeyValuePair">
+		<attribute name="key" type="string" use="required"></attribute>
+		<attribute name="value" type="string" use="required"></attribute>
+	</complexType>
 
-    <complexType name="SourceDatasets">
-    	<attribute name="DOI" type="string"></attribute>
-    	<attribute name="URL" type="string"></attribute>
-    	<attribute name="Version" type="string"></attribute>
-    </complexType>
+	<complexType name="GeneratedBy">
+		<sequence>
+			<element name="Container" type="bids:GeneratedByContainer"
+				minOccurs="0" maxOccurs="1"></element>
+		</sequence>
+		<attribute name="Name" type="string" use="required"></attribute>
+		<attribute name="Version" type="string"></attribute>
+		<attribute name="Description" type="string"></attribute>
+		<attribute name="CodeURL" type="string"></attribute>
+	</complexType>
 
-    <complexType name="GeneratedByContainer">
-    	<attribute name="Type" type="string"></attribute>
-    	<attribute name="Tag" type="string"></attribute>
-    	<attribute name="URI" type="string"></attribute>
-    </complexType>
+	<complexType name="SourceDatasets">
+		<attribute name="DOI" type="string"></attribute>
+		<attribute name="URL" type="string"></attribute>
+		<attribute name="Version" type="string"></attribute>
+	</complexType>
 
-    <complexType name="MetadataFile">
-    	<complexContent>
-    		<extension base="bids:Artifact"></extension>
-    	</complexContent>
-    </complexType>
-    
+	<complexType name="GeneratedByContainer">
+		<attribute name="Type" type="string"></attribute>
+		<attribute name="Tag" type="string"></attribute>
+		<attribute name="URI" type="string"></attribute>
+	</complexType>
+
+	<complexType name="MetadataFile">
+		<complexContent>
+			<extension base="bids:Artifact">
+			</extension>
+		</complexContent>
+	</complexType>
 
 
+    <complexType name="JsonObject"></complexType>
 </schema>

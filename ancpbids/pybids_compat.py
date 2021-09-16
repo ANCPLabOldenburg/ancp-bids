@@ -18,7 +18,7 @@ class BIDSLayout:
     def __getattr__(self, key):
         k = key if not key.startswith("get_") else key[4:]
         k = self.sc.fuzzy_match_entity_key(k)
-        return partial(self.get, return_type='id', target=k, **{k: '*'})
+        return partial(self.get, return_type='id', target=k)
 
     def _gen_scalar_expr(self, k, v):
         if v is None:
@@ -42,6 +42,9 @@ class BIDSLayout:
             # TODO split into paths and set the last path as search context
             expr.append('//%s:%s' % (self.ns_prefix, scope))
         entity_filters = []
+        if target:
+            target = self.sc.fuzzy_match_entity_key(target)
+            entities = {**entities, target: '*'}
         for k, v in entities.items():
             k = self.sc.fuzzy_match_entity_key(k)
             v = self.sc.process_entity_value(k, v)
