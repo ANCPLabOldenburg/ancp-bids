@@ -25,7 +25,7 @@ def get_members(element_type, include_superclass=True):
         members = element_type.MEMBERS
         element_members = list(
             map(lambda item: {'name': item[0], 'name_raw': item[0], 'type': _to_type(item[1]['type']),
-                              'list': item[1]['list']},
+                              'list': item[1]['list'], 'kwargs': item[1]['kwargs']},
                 members.items()))
     except AttributeError as ae:
         pass

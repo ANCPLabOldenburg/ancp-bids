@@ -108,7 +108,11 @@ class DatasetLoader:
         if issubclass(typ, model.JsonFile):
             self._type_handler_JsonFile(parent, member, True)
         elif issubclass(typ, model.Folder):
-            self._handle_direct_folders(parent, member, pattern='.*', new_type=typ)
+            pattern = '.*'
+            kwargs = member['kwargs']
+            if 'name_pattern' in kwargs:
+                pattern = kwargs['name_pattern']
+            self._handle_direct_folders(parent, member, pattern=pattern, new_type=typ)
 
     def _type_handler_File(self, parent, member):
         if not isinstance(parent, model.Folder):
@@ -144,16 +148,6 @@ class DatasetLoader:
             setattr(parent, name, folder)
             parent.remove_folder(name)
 
-    def _type_handler_Subject(self, parent, member):
-        self._handle_direct_folders(parent, member, "sub-", model.Subject)
-
-    def _type_handler_Session(self, parent, member):
-        self._handle_direct_folders(parent, member, "ses-", model.Session)
-
-    def _type_handler_DatatypeFolder(self, parent, member):
-        pattern = '|'.join(self.schema.datatypes.keys())
-        self._handle_direct_folders(parent, member, pattern, model.DatatypeFolder)
-
     def _map_object(self, model_type, json_object):
         target = model_type()
         members = utils.get_members(model_type, False)
@@ -182,6 +176,7 @@ class DatasetLoader:
         json_file.contents = json_object
         setattr(parent, member['name'], json_file)
         parent.remove_file(name)
+        json_file.parent_object_ = parent
 
 
 _TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetLoader) if

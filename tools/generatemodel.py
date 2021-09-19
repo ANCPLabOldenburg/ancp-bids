@@ -79,7 +79,11 @@ class ClassGenerator:
             typ = type_info['type']
             if type_info['list']:
                 typ = f"List[{typ}]"
-            collected_members[key] = {'type': type_info['type'], 'list': type_info['list']}
+            collected_members[key] = {
+                'type': type_info['type'],
+                'list': type_info['list'],
+                'kwargs': val.kwargs
+            }
             md_doc = f'/{name}/{key}/doc'
             doc = None
             if md_doc in self.metadata:

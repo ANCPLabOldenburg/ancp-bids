@@ -1,12 +1,13 @@
 import os
-import collections.abc as abc
+from lxml import etree
 
-from . import model
 from . import files
+from . import model
+from . import utils
 from .dsloader import DatasetLoader
 from .dssaver import DatasetSaver
 from .schema import Schema
-from . import utils
+from .query import XPathQuery
 
 SCHEMA_FILES_PATH = os.path.dirname(__file__)
 SCHEMA_PATH_V16 = SCHEMA_FILES_PATH + '/data/schema-files/v1_6'
@@ -24,14 +25,7 @@ def save_dataset(ds: model.Dataset, target_dir: str):
     return saver.save(ds, target_dir)
 
 
-def to_etree(ds: model.Dataset):
-    ns_map = ds._schema.get_ns_map()
-    return ds.to_etree(nsmap_=ns_map)
-
 # start monkey-patching generated code
-from .query import XPathQuery
-
-
 def load_file_contents(folder: model.Folder, file_name):
     file_path = get_absolute_path(folder, file_name)
     contents = files.load_contents(file_path)
@@ -134,8 +128,22 @@ def get_folders_sorted(folder: model.Folder):
 
 setattr(model.Folder, 'get_folders_sorted', get_folders_sorted)
 
-from lxml import etree
+def to_generator(source: model.Model, depth_first=False):
+    if not depth_first:
+        yield source
 
+    for key, value in source.items():
+        if isinstance(value, model.Model):
+            yield from to_generator(value)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, model.Model):
+                    yield from to_generator(item)
+
+    if depth_first:
+        yield source
+
+setattr(model.Model, 'to_generator', to_generator)
 
 def to_etree(source: dict, parent=None, name=None, id2x=None, x2id=None, nsmap_=None):
     if not name:
@@ -151,6 +159,8 @@ def to_etree(source: dict, parent=None, name=None, id2x=None, x2id=None, nsmap_=
 
     if isinstance(source, dict):
         for key, value in source.items():
+            if value is None:
+                continue
             context = parent
             if isinstance(value, dict):
                 context = etree.SubElement(context, key)

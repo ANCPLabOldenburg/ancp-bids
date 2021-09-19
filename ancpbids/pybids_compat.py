@@ -5,7 +5,7 @@ from .query import XPathQuery
 
 
 class BIDSLayout:
-    def __init__(self, ds_dir: str):
+    def __init__(self, ds_dir: str, **kwargs):
         self.dataset = load_dataset(ds_dir)
         self.sc = self.dataset._schema
         self.ns_prefix = self.sc.ns_prefix
@@ -18,7 +18,7 @@ class BIDSLayout:
     def __getattr__(self, key):
         k = key if not key.startswith("get_") else key[4:]
         k = self.sc.fuzzy_match_entity_key(k)
-        return partial(self.get, return_type='id', target=k)
+        return partial(self.get, return_type='id', target=k, scope='raw')
 
     def _gen_scalar_expr(self, k, v):
         if v is None:
@@ -39,8 +39,12 @@ class BIDSLayout:
             **entities):
         expr = []
         if scope:
-            # TODO split into paths and set the last path as search context
-            expr.append('//%s' % scope)
+            if scope == 'raw':
+                # exclude the top level element named 'derivatives' which results
+                # in only considering everything else of top level elements
+                expr.append('*[name()!="derivatives"]')
+            else:
+                expr.append('//%s' % scope)
         entity_filters = []
         if target:
             target = self.sc.fuzzy_match_entity_key(target)

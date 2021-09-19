@@ -14,8 +14,8 @@ class DatasetSaver:
         if os.path.exists(target_dir) and len(os.listdir(target_dir)) > 0:
             raise ValueError("Directory not empty: " + target_dir)
         src_dir = ds.base_dir_
-        generator = ds.generateRecursively_()
-        for obj, _ in generator:
+        generator = ds.to_generator()
+        for obj in generator:
             typ = type(obj)
             mapper_name = '_type_handler_' + typ.__name__
             if mapper_name not in _TYPE_MAPPERS:
@@ -57,11 +57,11 @@ class DatasetSaver:
     def _type_handler_Artifact(self, src_dir, target_dir, artifact: model.Artifact):
         segments = []
         # TODO sort according order defined in schema
-        for e in artifact.get_entities():
-            seg = '-'.join([e.get_key(), e.get_value()])
+        for e in artifact.entities:
+            seg = '-'.join([e.key, e.value])
             segments.append(seg)
-        segments.append(artifact.get_suffix())
-        new_file_name = '_'.join(segments) + artifact.get_extension()
+        segments.append(artifact.suffix)
+        new_file_name = '_'.join(segments) + artifact.extension
         self._type_handler_File(src_dir, target_dir, artifact, new_file_name)
 
 

@@ -4,6 +4,126 @@ from typing import List, Union, Dict
 class Model(dict):
     pass
 
+class MetadataFieldDefinition(Model):
+    def __init__(self):
+        super(MetadataFieldDefinition, self).__init__()
+        self['name']: str = None
+        self['description']: str = None
+        self['type']: Dict = {}
+
+    @property
+    def name(self) -> 'str':
+        return self['name']
+    
+    @name.setter
+    def name(self, name: 'str'):
+        self['name'] = name
+            
+    @property
+    def description(self) -> 'str':
+        return self['description']
+    
+    @description.setter
+    def description(self, description: 'str'):
+        self['description'] = description
+            
+    @property
+    def type(self) -> 'Dict':
+        return self['type']
+    
+    @type.setter
+    def type(self, type: 'Dict'):
+        self['type'] = type
+            
+    MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'description': {'type': 'str', 'list': False, 'kwargs': {}}, 'type': {'type': 'Dict', 'list': False, 'kwargs': {}}}
+
+
+class SuffixDefinition(Model):
+    def __init__(self):
+        super(SuffixDefinition, self).__init__()
+        self['name']: str = None
+        self['description']: str = None
+        self['type']: Dict = {}
+
+    @property
+    def name(self) -> 'str':
+        return self['name']
+    
+    @name.setter
+    def name(self, name: 'str'):
+        self['name'] = name
+            
+    @property
+    def description(self) -> 'str':
+        return self['description']
+    
+    @description.setter
+    def description(self, description: 'str'):
+        self['description'] = description
+            
+    @property
+    def type(self) -> 'Dict':
+        return self['type']
+    
+    @type.setter
+    def type(self, type: 'Dict'):
+        self['type'] = type
+            
+    MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'description': {'type': 'str', 'list': False, 'kwargs': {}}, 'type': {'type': 'Dict', 'list': False, 'kwargs': {}}}
+
+
+class EntitiyDefinition(Model):
+    def __init__(self):
+        super(EntitiyDefinition, self).__init__()
+        self['key']: str = None
+        self['name']: str = None
+        self['entity']: str = None
+        self['description']: str = None
+        self['type']: Dict = {}
+
+    @property
+    def key(self) -> 'str':
+        return self['key']
+    
+    @key.setter
+    def key(self, key: 'str'):
+        self['key'] = key
+            
+    @property
+    def name(self) -> 'str':
+        return self['name']
+    
+    @name.setter
+    def name(self, name: 'str'):
+        self['name'] = name
+            
+    @property
+    def entity(self) -> 'str':
+        return self['entity']
+    
+    @entity.setter
+    def entity(self, entity: 'str'):
+        self['entity'] = entity
+            
+    @property
+    def description(self) -> 'str':
+        return self['description']
+    
+    @description.setter
+    def description(self, description: 'str'):
+        self['description'] = description
+            
+    @property
+    def type(self) -> 'Dict':
+        return self['type']
+    
+    @type.setter
+    def type(self, type: 'Dict'):
+        self['type'] = type
+            
+    MEMBERS = {'key': {'type': 'str', 'list': False, 'kwargs': {}}, 'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'entity': {'type': 'str', 'list': False, 'kwargs': {}}, 'description': {'type': 'str', 'list': False, 'kwargs': {}}, 'type': {'type': 'Dict', 'list': False, 'kwargs': {}}}
+
+
 class File(Model):
     def __init__(self):
         super(File, self).__init__()
@@ -35,7 +155,7 @@ class File(Model):
     def uri(self, uri: 'str'):
         self['uri'] = uri
             
-    MEMBERS = {'name': {'type': 'str', 'list': False}, 'extension': {'type': 'str', 'list': False}, 'uri': {'type': 'str', 'list': False}}
+    MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'extension': {'type': 'str', 'list': False, 'kwargs': {}}, 'uri': {'type': 'str', 'list': False, 'kwargs': {}}}
 
 
 class Folder(Model):
@@ -69,7 +189,7 @@ class Folder(Model):
     def folders(self, folders: 'List[Folder]'):
         self['folders'] = folders
             
-    MEMBERS = {'name': {'type': 'str', 'list': False}, 'files': {'type': 'File', 'list': True}, 'folders': {'type': 'Folder', 'list': True}}
+    MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'files': {'type': 'File', 'list': True, 'kwargs': {}}, 'folders': {'type': 'Folder', 'list': True, 'kwargs': {}}}
 
 
 class JsonFile(File):
@@ -85,7 +205,7 @@ class JsonFile(File):
     def contents(self, contents: 'Dict'):
         self['contents'] = contents
             
-    MEMBERS = {'contents': {'type': 'Dict', 'list': False}}
+    MEMBERS = {'contents': {'type': 'Dict', 'list': False, 'kwargs': {}}}
 
 
 class EntityRef(Model):
@@ -110,7 +230,7 @@ class EntityRef(Model):
     def value(self, value: 'str'):
         self['value'] = value
             
-    MEMBERS = {'key': {'type': 'str', 'list': False}, 'value': {'type': 'str', 'list': False}}
+    MEMBERS = {'key': {'type': 'str', 'list': False, 'kwargs': {}}, 'value': {'type': 'str', 'list': False, 'kwargs': {}}}
 
 
 class Artifact(File):
@@ -136,7 +256,7 @@ class Artifact(File):
     def entities(self, entities: 'List[EntityRef]'):
         self['entities'] = entities
             
-    MEMBERS = {'suffix': {'type': 'str', 'list': False}, 'entities': {'type': 'EntityRef', 'list': True}}
+    MEMBERS = {'suffix': {'type': 'str', 'list': False, 'kwargs': {}}, 'entities': {'type': 'EntityRef', 'list': True, 'kwargs': {}}}
 
 
 class DatasetDescriptionFile(JsonFile):
@@ -251,7 +371,7 @@ class DatasetDescriptionFile(JsonFile):
     def ReferencesAndLinks(self, ReferencesAndLinks: 'List[str]'):
         self['ReferencesAndLinks'] = ReferencesAndLinks
             
-    MEMBERS = {'Name': {'type': 'str', 'list': False}, 'BIDSVersion': {'type': 'str', 'list': False}, 'HEDVersion': {'type': 'str', 'list': False}, 'DatasetType': {'type': 'Enum', 'list': False}, 'License': {'type': 'str', 'list': False}, 'Acknowledgements': {'type': 'str', 'list': False}, 'HowToAcknowledge': {'type': 'str', 'list': False}, 'DatasetDOI': {'type': 'str', 'list': False}, 'Authors': {'type': 'str', 'list': True}, 'Funding': {'type': 'str', 'list': True}, 'EthicsApprovals': {'type': 'str', 'list': True}, 'ReferencesAndLinks': {'type': 'str', 'list': True}}
+    MEMBERS = {'Name': {'type': 'str', 'list': False, 'kwargs': {}}, 'BIDSVersion': {'type': 'str', 'list': False, 'kwargs': {}}, 'HEDVersion': {'type': 'str', 'list': False, 'kwargs': {'recommended': True}}, 'DatasetType': {'type': 'Enum', 'list': False, 'kwargs': {'recommended': True}}, 'License': {'type': 'str', 'list': False, 'kwargs': {'recommended': True}}, 'Acknowledgements': {'type': 'str', 'list': False, 'kwargs': {}}, 'HowToAcknowledge': {'type': 'str', 'list': False, 'kwargs': {}}, 'DatasetDOI': {'type': 'str', 'list': False, 'kwargs': {}}, 'Authors': {'type': 'str', 'list': True, 'kwargs': {}}, 'Funding': {'type': 'str', 'list': True, 'kwargs': {}}, 'EthicsApprovals': {'type': 'str', 'list': True, 'kwargs': {}}, 'ReferencesAndLinks': {'type': 'str', 'list': True, 'kwargs': {}}}
 
 
 class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
@@ -276,7 +396,7 @@ class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
     def SourceDatasets(self, SourceDatasets: 'List[SourceDatasets]'):
         self['SourceDatasets'] = SourceDatasets
             
-    MEMBERS = {'GeneratedBy': {'type': 'GeneratedBy', 'list': True}, 'SourceDatasets': {'type': 'SourceDatasets', 'list': True}}
+    MEMBERS = {'GeneratedBy': {'type': 'GeneratedBy', 'list': True, 'kwargs': {}}, 'SourceDatasets': {'type': 'SourceDatasets', 'list': True, 'kwargs': {'recommended': True}}}
 
 
 class DerivativeFolder(Folder):
@@ -301,7 +421,7 @@ class DerivativeFolder(Folder):
     def derivatives(self, derivatives: 'List[DerivativeFolder]'):
         self['derivatives'] = derivatives
             
-    MEMBERS = {'dataset_description': {'type': 'DerivativeDatasetDescriptionFile', 'list': False}, 'derivatives': {'type': 'DerivativeFolder', 'list': True}}
+    MEMBERS = {'dataset_description': {'type': 'DerivativeDatasetDescriptionFile', 'list': False, 'kwargs': {}}, 'derivatives': {'type': 'DerivativeFolder', 'list': True, 'kwargs': {}}}
 
 
 class Session(Folder):
@@ -317,7 +437,7 @@ class Session(Folder):
     def datatypes(self, datatypes: 'List[DatatypeFolder]'):
         self['datatypes'] = datatypes
             
-    MEMBERS = {'datatypes': {'type': 'DatatypeFolder', 'list': True}}
+    MEMBERS = {'datatypes': {'type': 'DatatypeFolder', 'list': True, 'kwargs': {}}}
 
 
 class DatatypeFolder(Folder):
@@ -333,7 +453,7 @@ class DatatypeFolder(Folder):
     def artifacts(self, artifacts: 'List[Artifact]'):
         self['artifacts'] = artifacts
             
-    MEMBERS = {'artifacts': {'type': 'Artifact', 'list': True}}
+    MEMBERS = {'artifacts': {'type': 'Artifact', 'list': True, 'kwargs': {}}}
 
 
 class Subject(Folder):
@@ -358,7 +478,7 @@ class Subject(Folder):
     def sessions(self, sessions: 'List[Session]'):
         self['sessions'] = sessions
             
-    MEMBERS = {'datatypes': {'type': 'DatatypeFolder', 'list': True}, 'sessions': {'type': 'Session', 'list': True}}
+    MEMBERS = {'datatypes': {'type': 'DatatypeFolder', 'list': True, 'kwargs': {}}, 'sessions': {'type': 'Session', 'list': True, 'kwargs': {'name_pattern': 'ses-.*'}}}
 
 
 class GeneratedBy(Model):
@@ -410,7 +530,7 @@ class GeneratedBy(Model):
     def Container(self, Container: 'List[GeneratedByContainer]'):
         self['Container'] = Container
             
-    MEMBERS = {'Name': {'type': 'str', 'list': False}, 'Version': {'type': 'str', 'list': False}, 'Description': {'type': 'str', 'list': False}, 'CodeURL': {'type': 'str', 'list': False}, 'Container': {'type': 'GeneratedByContainer', 'list': True}}
+    MEMBERS = {'Name': {'type': 'str', 'list': False, 'kwargs': {}}, 'Version': {'type': 'str', 'list': False, 'kwargs': {'recommended': True}}, 'Description': {'type': 'str', 'list': False, 'kwargs': {}}, 'CodeURL': {'type': 'str', 'list': False, 'kwargs': {}}, 'Container': {'type': 'GeneratedByContainer', 'list': True, 'kwargs': {}}}
 
 
 class SourceDatasets(Model):
@@ -444,7 +564,7 @@ class SourceDatasets(Model):
     def Version(self, Version: 'str'):
         self['Version'] = Version
             
-    MEMBERS = {'DOI': {'type': 'str', 'list': False}, 'URL': {'type': 'str', 'list': False}, 'Version': {'type': 'str', 'list': False}}
+    MEMBERS = {'DOI': {'type': 'str', 'list': False, 'kwargs': {}}, 'URL': {'type': 'str', 'list': False, 'kwargs': {}}, 'Version': {'type': 'str', 'list': False, 'kwargs': {}}}
 
 
 class GeneratedByContainer(Model):
@@ -478,7 +598,7 @@ class GeneratedByContainer(Model):
     def URI(self, URI: 'str'):
         self['URI'] = URI
             
-    MEMBERS = {'Type': {'type': 'str', 'list': False}, 'Tag': {'type': 'str', 'list': False}, 'URI': {'type': 'str', 'list': False}}
+    MEMBERS = {'Type': {'type': 'str', 'list': False, 'kwargs': {}}, 'Tag': {'type': 'str', 'list': False, 'kwargs': {}}, 'URI': {'type': 'str', 'list': False, 'kwargs': {}}}
 
 
 class ParticipantsTsvFile(Model):
@@ -494,7 +614,7 @@ class ParticipantsTsvFile(Model):
     def entries(self, entries: 'List[ParticipantsTsvFilEentry]'):
         self['entries'] = entries
             
-    MEMBERS = {'entries': {'type': 'ParticipantsTsvFilEentry', 'list': True}}
+    MEMBERS = {'entries': {'type': 'ParticipantsTsvFilEentry', 'list': True, 'kwargs': {}}}
 
 
 class ParticipantsTsvFilEentry(Model):
@@ -537,7 +657,7 @@ class ParticipantsTsvFilEentry(Model):
     def handedness(self, handedness: 'Enum'):
         self['handedness'] = handedness
             
-    MEMBERS = {'participant_id': {'type': 'str', 'list': False}, 'age': {'type': 'float', 'list': False}, 'sex': {'type': 'Enum', 'list': False}, 'handedness': {'type': 'Enum', 'list': False}}
+    MEMBERS = {'participant_id': {'type': 'str', 'list': False, 'kwargs': {}}, 'age': {'type': 'float', 'list': False, 'kwargs': {}}, 'sex': {'type': 'Enum', 'list': False, 'kwargs': {}}, 'handedness': {'type': 'Enum', 'list': False, 'kwargs': {}}}
 
 
 class TsvSidecarFile(Model):
@@ -553,7 +673,7 @@ class TsvSidecarFile(Model):
     def columns(self, columns: 'List[SidecarColumnDescriptor]'):
         self['columns'] = columns
             
-    MEMBERS = {'columns': {'type': 'SidecarColumnDescriptor', 'list': True}}
+    MEMBERS = {'columns': {'type': 'SidecarColumnDescriptor', 'list': True, 'kwargs': {}}}
 
 
 class SidecarColumnDescriptor(Model):
@@ -614,7 +734,7 @@ class SidecarColumnDescriptor(Model):
     def Levels(self, Levels: 'List[KeyValuePair]'):
         self['Levels'] = Levels
             
-    MEMBERS = {'Name': {'type': 'str', 'list': False}, 'LongName': {'type': 'str', 'list': False}, 'Description': {'type': 'str', 'list': False}, 'Units': {'type': 'str', 'list': False}, 'TermURL': {'type': 'str', 'list': False}, 'Levels': {'type': 'KeyValuePair', 'list': True}}
+    MEMBERS = {'Name': {'type': 'str', 'list': False, 'kwargs': {}}, 'LongName': {'type': 'str', 'list': False, 'kwargs': {}}, 'Description': {'type': 'str', 'list': False, 'kwargs': {}}, 'Units': {'type': 'str', 'list': False, 'kwargs': {}}, 'TermURL': {'type': 'str', 'list': False, 'kwargs': {}}, 'Levels': {'type': 'KeyValuePair', 'list': True, 'kwargs': {}}}
 
 
 class KeyValuePair(Model):
@@ -639,7 +759,7 @@ class KeyValuePair(Model):
     def value(self, value: 'str'):
         self['value'] = value
             
-    MEMBERS = {'key': {'type': 'str', 'list': False}, 'value': {'type': 'str', 'list': False}}
+    MEMBERS = {'key': {'type': 'str', 'list': False, 'kwargs': {}}, 'value': {'type': 'str', 'list': False, 'kwargs': {}}}
 
 
 class Dataset(Folder):
@@ -763,12 +883,12 @@ class Dataset(Folder):
     def stimuli(self, stimuli: 'Folder'):
         self['stimuli'] = stimuli
             
-    MEMBERS = {'subjects': {'type': 'Subject', 'list': True}, 'dataset_description': {'type': 'DatasetDescriptionFile', 'list': False}, 'README': {'type': 'File', 'list': False}, 'CHANGES': {'type': 'File', 'list': False}, 'LICENSE': {'type': 'File', 'list': False}, 'genetic_info': {'type': 'JsonFile', 'list': False}, 'samples': {'type': 'JsonFile', 'list': False}, 'participants_tsv': {'type': 'ParticipantsTsvFile', 'list': False}, 'participants_json': {'type': 'TsvSidecarFile', 'list': False}, 'code': {'type': 'Folder', 'list': False}, 'derivatives': {'type': 'DerivativeFolder', 'list': False}, 'sourcedata': {'type': 'Folder', 'list': False}, 'stimuli': {'type': 'Folder', 'list': False}}
+    MEMBERS = {'subjects': {'type': 'Subject', 'list': True, 'kwargs': {'name_pattern': 'sub-.*'}}, 'dataset_description': {'type': 'DatasetDescriptionFile', 'list': False, 'kwargs': {}}, 'README': {'type': 'File', 'list': False, 'kwargs': {}}, 'CHANGES': {'type': 'File', 'list': False, 'kwargs': {}}, 'LICENSE': {'type': 'File', 'list': False, 'kwargs': {}}, 'genetic_info': {'type': 'JsonFile', 'list': False, 'kwargs': {}}, 'samples': {'type': 'JsonFile', 'list': False, 'kwargs': {}}, 'participants_tsv': {'type': 'ParticipantsTsvFile', 'list': False, 'kwargs': {}}, 'participants_json': {'type': 'TsvSidecarFile', 'list': False, 'kwargs': {}}, 'code': {'type': 'Folder', 'list': False, 'kwargs': {}}, 'derivatives': {'type': 'DerivativeFolder', 'list': False, 'kwargs': {}}, 'sourcedata': {'type': 'Folder', 'list': False, 'kwargs': {}}, 'stimuli': {'type': 'Folder', 'list': False, 'kwargs': {}}}
 
 
 YAMALE_SCHEMA = """
 Dataset:
-  subjects: list(include('Subject'), required=False)
+  subjects: list(include('Subject'), required=False, name_pattern='sub-.*')
   dataset_description: include('DatasetDescriptionFile')
   README: include('File', required=False)
   CHANGES: include('File', required=False)
@@ -785,6 +905,20 @@ Dataset:
   files: list(include('File'), required=False)
   folders: list(include('Folder'), required=False)
 ---
+MetadataFieldDefinition:
+  name: str()
+  description: str()
+  type: map()
+SuffixDefinition:
+  name: str()
+  description: str()
+  type: map()
+EntitiyDefinition:
+  key: str()
+  name: str()
+  entity: str()
+  description: str()
+  type: map()
 File:
   name: str()
   extension: str(required=False)
@@ -861,7 +995,7 @@ DatatypeFolder:
   folders: list(include('Folder'), required=False)
 Subject:
   datatypes: list(include('DatatypeFolder', required=False))
-  sessions: list(include('Session'), required=False)
+  sessions: list(include('Session'), required=False, name_pattern='ses-.*')
   name: str()
   files: list(include('File'), required=False)
   folders: list(include('Folder'), required=False)

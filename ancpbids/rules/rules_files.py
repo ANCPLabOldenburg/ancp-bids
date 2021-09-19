@@ -40,14 +40,15 @@ class StaticStructureValidationRule(ValidationRule):
 
 
 class DatatypesValidationRule(ValidationRule):
-    def validate(self, dataset: Dataset, report: ValidationReport, **kwargs):
-        dangling_folders = []
+    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, **kwargs):
+        invalid = []
+        valid_datatypes = schema.datatypes.keys()
         for subject in dataset.subjects:
-            dangling_folders.extend(subject.folders)
+            invalid.extend([f for f in subject.datatypes if f.name not in valid_datatypes])
             for session in subject.sessions:
-                dangling_folders.extend(session.folders)
+                invalid.extend([f for f in session.datatypes if f.name not in valid_datatypes])
 
-        for folder in dangling_folders:
+        for folder in invalid:
             report.error("Unsupported datatype folder '%s'" % folder.get_relative_path())
 
 

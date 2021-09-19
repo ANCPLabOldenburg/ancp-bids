@@ -1,6 +1,6 @@
 Dataset:
   .extends: Folder
-  subjects: list(include('Subject'), required=False)
+  subjects: list(include('Subject'), required=False, name_pattern='sub-.*')
   dataset_description: include('DatasetDescriptionFile')
   README: include('File', required=False)
   CHANGES: include('File', required=False)
@@ -13,7 +13,25 @@ Dataset:
   derivatives: include('DerivativeFolder', required=False)
   sourcedata: include('Folder', required=False)
   stimuli: include('Folder', required=False)
+
 ---
+MetadataFieldDefinition:
+  name: str()
+  description: str()
+  type: map()
+
+SuffixDefinition:
+  name: str()
+  description: str()
+  type: map()
+
+EntitiyDefinition:
+  key: str()
+  name: str()
+  entity: str()
+  description: str()
+  type: map()
+
 File:
   name: str()
   extension: str(required=False)
@@ -75,7 +93,7 @@ DatatypeFolder:
 Subject:
   .extends: Folder
   datatypes: list(include('DatatypeFolder', required=False))
-  sessions: list(include('Session'), required=False)
+  sessions: list(include('Session'), required=False, name_pattern='ses-.*')
 
 GeneratedBy:
   Name: str()
