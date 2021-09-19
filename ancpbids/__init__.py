@@ -1,4 +1,5 @@
 import os
+import collections.abc as abc
 
 from . import model
 from . import files
@@ -26,7 +27,6 @@ def save_dataset(ds: model.Dataset, target_dir: str):
 def to_etree(ds: model.Dataset):
     ns_map = ds._schema.get_ns_map()
     return ds.to_etree(nsmap_=ns_map)
-
 
 # start monkey-patching generated code
 from .query import XPathQuery
@@ -87,7 +87,7 @@ def _get_path(folder: model.Folder, file_name, absolute=True):
             # assume we reached the highest level, maybe not good for nested datasets
             break
         else:
-            segments.insert(0, current_folder.get_name())
+            segments.insert(0, current_folder.name)
         current_folder = current_folder.parent_object_
     _path = os.path.join(*segments) if segments else ''
     return _path
@@ -122,17 +122,66 @@ setattr(model.Folder, 'get_folder', get_folder)
 
 
 def get_files_sorted(folder: model.Folder):
-    return sorted(folder.get_files(), key=lambda f: f.name)
+    return sorted(folder.files, key=lambda f: f.name)
 
 
 setattr(model.Folder, 'get_files_sorted', get_files_sorted)
 
 
 def get_folders_sorted(folder: model.Folder):
-    return sorted(folder.get_folders(), key=lambda f: f.name)
+    return sorted(folder.folders, key=lambda f: f.name)
 
 
 setattr(model.Folder, 'get_folders_sorted', get_folders_sorted)
+
+from lxml import etree
+
+
+def to_etree(source: dict, parent=None, name=None, id2x=None, x2id=None, nsmap_=None):
+    if not name:
+        name = type(source).__name__
+    if parent is None:
+        parent = etree.Element(name, nsmap=nsmap_)
+
+    if isinstance(source, model.Model):
+        if id2x is not None:
+            id2x[id(source)] = parent
+        if x2id is not None:
+            x2id[parent] = source
+
+    if isinstance(source, dict):
+        for key, value in source.items():
+            context = parent
+            if isinstance(value, dict):
+                context = etree.SubElement(context, key)
+            to_etree(value, parent=context, name=key, id2x=id2x, x2id=x2id, nsmap_=nsmap_)
+    elif isinstance(source, list):
+        for item in source:
+            sub = etree.SubElement(parent, name)
+            to_etree(item, parent=sub, name=name, id2x=id2x, x2id=x2id, nsmap_=nsmap_)
+    else:
+        sub = etree.SubElement(parent, name)
+        sub.text = str(source)
+
+    return parent
+
+
+setattr(model.Model, 'to_etree', to_etree)
+
+
+def to_dict(source: model.Model):
+    return source
+
+
+setattr(model.Model, 'to_dict', to_dict)
+
+
+def query(ds: model.Dataset, expr: str):
+    query = XPathQuery(ds, ds._schema)
+    return query.execute(expr), query
+
+
+setattr(model.Dataset, 'query', query)
 
 # end monkey-patching
 

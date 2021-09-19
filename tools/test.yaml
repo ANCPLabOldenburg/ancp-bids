@@ -1,0 +1,20 @@
+book:
+  .doc: |
+    a book is an item
+    with pages containing
+    text to read
+  .extends: item
+  title:
+    .rule: str()
+    .doc: >-
+      the title is
+      a short description
+      of the book
+  pages: int()
+
+---
+item:
+  isbn:
+    .rule: str()
+    .doc: the international standard book number
+  price: num()

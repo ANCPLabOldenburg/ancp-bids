@@ -16,10 +16,9 @@ class DatasetLoader:
 
     def load(self, base_dir):
         ds = model.Dataset()
-        ds.set_ns_prefix_(self.schema.ns_prefix)
+        ds.ns_prefix_ = self.schema.ns_prefix
         ds._schema = self.schema
-        ds.set_name(os.path.basename(base_dir))
-        ds.set_name(os.path.basename(base_dir))
+        ds.name = os.path.basename(base_dir)
         ds.base_dir_ = base_dir
         # 1. pass: load file system structure
         self._load_folder(ds, base_dir)
@@ -35,7 +34,7 @@ class DatasetLoader:
             if not artifact:
                 continue
             artifact.parent_object_ = parent
-            parent.replace_files_at(i, artifact)
+            parent.files[i] = artifact
         for folder in parent.folders:
             self._convert_files_to_artifacts(folder)
 
@@ -48,12 +47,12 @@ class DatasetLoader:
         for pair in zip(match.captures(2), match.captures(3)):
             entity = model.EntityRef()
             key = pair[0]
-            entity.set_key(key)
+            entity.key = key
             value = self.schema.process_entity_value(key, pair[1])
-            entity.set_value(value)
-            artifact.add_entities(entity)
-        artifact.set_suffix(match[4])
-        artifact.set_extension(match[5])
+            entity.value = value
+            artifact.entities.append(entity)
+        artifact.suffix = match[4]
+        artifact.extension = match[5]
         return artifact
 
     def _get_schema(self, context):
@@ -70,11 +69,14 @@ class DatasetLoader:
             obj.folders = folder.folders
             parent.remove_folder(folder.name)
             obj.parent_object_ = parent
-            getattr(parent, member['name']).append(obj)
+            if member['list']:
+                getattr(parent, member['name']).append(obj)
+            else:
+                setattr(parent, member['name'], obj)
             self._expand_members(obj)
 
     def _expand_member(self, parent, member):
-        typ = member['typ']
+        typ = member['type']
         mapper_name = '_type_handler_' + typ.__name__
         if mapper_name not in _TYPE_MAPPERS:
             mapper_name = '_type_handler_default'
@@ -89,20 +91,24 @@ class DatasetLoader:
     def _load_folder(self, parent: model.Folder, dir_path):
         for root, directories, files in os.walk(dir_path):
             for directory in sorted(directories):
-                folder = model.Folder(parent_object_=parent)
-                folder.set_name(directory)
-                parent.add_folders(folder)
+                folder = model.Folder()
+                folder.parent_object_ = parent
+                folder.name = directory
+                parent.folders.append(folder)
                 self._load_folder(folder, root + "/" + directory)
             for file in sorted(files):
-                model_file = model.File(parent_object_=parent)
-                model_file.set_name(file)
-                parent.add_files(model_file)
+                model_file = model.File()
+                model_file.parent_object_ = parent
+                model_file.name = file
+                parent.files.append(model_file)
             break
 
     def _type_handler_default(self, parent, member):
-        typ = member['typ']
+        typ = member['type']
         if issubclass(typ, model.JsonFile):
             self._type_handler_JsonFile(parent, member, True)
+        elif issubclass(typ, model.Folder):
+            self._handle_direct_folders(parent, member, pattern='.*', new_type=typ)
 
     def _type_handler_File(self, parent, member):
         if not isinstance(parent, model.Folder):
@@ -118,7 +124,7 @@ class DatasetLoader:
         attr = getattr(parent, member['name'])
         multi = isinstance(attr, list)
         name = member['name']
-        files = parent.get_files() if multi else list(filter(lambda f: f.name == name, parent.get_files()))
+        files = parent.files if multi else list(filter(lambda f: f.name == name, parent.files))
         for file in files:
             if not isinstance(file, model.Artifact):
                 continue
@@ -155,7 +161,7 @@ class DatasetLoader:
         direct_props = list(map(lambda m: (m['name'], m), members))
         for prop_name, prop in direct_props:
             if prop_name in actual_props:
-                value_type = prop['typ']
+                value_type = prop['type']
                 value = json_object[prop_name]
                 if isinstance(value, list) and len(value) > 0:
                     value = list(map(lambda o: self._map_object(value_type, o) if isinstance(o, dict) else o, value))
@@ -170,10 +176,11 @@ class DatasetLoader:
         json_object = parent.load_file_contents(file_name)
         if not json_object:
             return
-        model_type = member['typ']
-        dsd_file = self._map_object(model_type, json_object)
-        dsd_file.name = file_name
-        setattr(parent, member['name'], dsd_file)
+        model_type = member['type']
+        json_file = self._map_object(model_type, json_object)
+        json_file.name = file_name
+        json_file.contents = json_object
+        setattr(parent, member['name'], json_file)
         parent.remove_file(name)
 
 

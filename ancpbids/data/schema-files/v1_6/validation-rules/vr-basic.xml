@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://purl.oclc.org/dsdl/schematron">
-    <ns uri="https://bids.neuroimaging.io/1.6" prefix="bids"/>
     <pattern>
-        <rule context="bids:Dataset">
+        <rule context="Dataset">
             <assert role="error" test="dataset_description">A dataset must have a dataset_description file.</assert>
-            <assert role="warn" test="dataset_description/@HEDVersion">It is recommended to have the HEDVersion set
+            <assert role="warn" test="dataset_description/HEDVersion/text()">It is recommended to have the HEDVersion set
                 in your dataset_description file.
             </assert>
         </rule>

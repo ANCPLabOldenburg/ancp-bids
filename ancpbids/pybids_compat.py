@@ -22,10 +22,10 @@ class BIDSLayout:
 
     def _gen_scalar_expr(self, k, v):
         if v is None:
-            return 'not(@%s)' % k
+            return 'not(%s)' % k
         if v == '*':
-            return '@%s' % k
-        return '@%s="%s"' % (k, v)
+            return '%s' % k
+        return '%s="%s"' % (k, v)
 
     def _scalar_or_list(self, attr_name, v):
         if isinstance(v, list):
@@ -40,7 +40,7 @@ class BIDSLayout:
         expr = []
         if scope:
             # TODO split into paths and set the last path as search context
-            expr.append('//%s:%s' % (self.ns_prefix, scope))
+            expr.append('//%s' % scope)
         entity_filters = []
         if target:
             target = self.sc.fuzzy_match_entity_key(target)
@@ -48,13 +48,13 @@ class BIDSLayout:
         for k, v in entities.items():
             k = self.sc.fuzzy_match_entity_key(k)
             v = self.sc.process_entity_value(k, v)
-            v = self._scalar_or_list('value', v)
-            entity_filters.append('%s:entities[@key="%s" and %s]' % (self.ns_prefix, k, v))
+            v = self._scalar_or_list('value/text()', v)
+            entity_filters.append('entities[key/text()="%s" and %s]' % (k, v))
         if extension:
-            v = self._scalar_or_list('extension', extension)
+            v = self._scalar_or_list('extension/text()', extension)
             entity_filters.append(v)
         if suffix:
-            v = self._scalar_or_list('suffix', suffix)
+            v = self._scalar_or_list('suffix/text()', suffix)
             entity_filters.append(v)
         if entity_filters:
             entity_filters_str = ' and '.join(entity_filters)
@@ -65,6 +65,6 @@ class BIDSLayout:
             return list(map(lambda e: e.get_absolute_path(), artifacts))
         elif return_type == 'id' and target is not None:
             keys = sorted(set(
-                [entity.value for a in artifacts for entity in filter(lambda e: e.key == target, a.get_entities())]))
+                [entity.value for a in artifacts for entity in filter(lambda e: e.key == target, a.entities)]))
             return keys
         return artifacts

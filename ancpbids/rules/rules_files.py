@@ -1,12 +1,14 @@
 import lxml.etree
+from yamale import YamaleError
 
-from ancpbids import XPathQuery
-from ancpbids.model import Dataset, GdsCollector_, Session, Subject, Datatype
+from ancpbids import XPathQuery, model
+from ancpbids.model import Dataset
 from ancpbids.schema import Schema
 from ancpbids.validator import ValidationRule, ValidationReport
 
 from lxml.isoschematron import Schematron
 import os
+import yamale
 
 
 class SchematronValidationRule(ValidationRule):
@@ -26,22 +28,24 @@ class SchematronValidationRule(ValidationRule):
                         getattr(report, role)(message_xml[0].text)
 
 
-
 class StaticStructureValidationRule(ValidationRule):
     def validate(self, dataset: Dataset, report: ValidationReport, **kwargs):
-        collector = GdsCollector_()
-        dataset.validate_(collector, recursive=True)
-        for message in collector.messages:
-            report.error(message)
+        try:
+            schema = yamale.make_schema(content=model.YAMALE_SCHEMA)
+            yamale.validate(schema, [({'Dataset': dataset}, None)])
+        except YamaleError as e:
+            for result in e.results:
+                for error in result.errors:
+                    report.error(error)
 
 
 class DatatypesValidationRule(ValidationRule):
     def validate(self, dataset: Dataset, report: ValidationReport, **kwargs):
         dangling_folders = []
-        for subject in dataset.get_subjects():
-            dangling_folders.extend(subject.get_folders())
-            for session in subject.get_sessions():
-                dangling_folders.extend(session.get_folders())
+        for subject in dataset.subjects:
+            dangling_folders.extend(subject.folders)
+            for session in subject.sessions:
+                dangling_folders.extend(session.folders)
 
         for folder in dangling_folders:
             report.error("Unsupported datatype folder '%s'" % folder.get_relative_path())
@@ -49,12 +53,12 @@ class DatatypesValidationRule(ValidationRule):
 
 class EntitiesValidationRule(ValidationRule):
     def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, query: XPathQuery):
-        artifacts = query.execute('//bids:entities/..')
+        artifacts = query.execute('//entities/..')
         entities = list(map(lambda e: e['entity'], schema.entities.values()))
         expected_key_order = {k: i for i, k in enumerate(entities)}
         expected_order_key = {i: k for i, k in enumerate(entities)}
         for artifact in artifacts:
-            entity_refs = artifact.get_entities()
+            entity_refs = artifact.entities
             found_invalid_key = False
             for ref in entity_refs:
                 if ref.key not in entities:

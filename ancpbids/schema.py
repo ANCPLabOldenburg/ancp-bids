@@ -14,7 +14,7 @@ class Schema:
         self.ns = ns
         self.ns_prefix = ns_prefix
         self.ns_map = {
-            self.ns_prefix: self.ns
+            self.ns_prefix: self.ns,
         }
         self.modalities = files.load_contents(schema_path + "/modalities.yaml")
         # self.modalities = list(map(lambda item: {'key': item[0], **item[1]}, self.modalities.items()))

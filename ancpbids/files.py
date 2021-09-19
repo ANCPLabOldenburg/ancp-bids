@@ -15,8 +15,13 @@ def read_yaml(file_path: str):
 
 
 def read_json(file_path: str):
-    # json is a subset of yaml, so, use the yaml reader
-    return read_yaml(file_path)
+    # we cannot use yaml to load json if it contains any TABs for indentation
+    import json
+    with open(file_path, 'r') as stream:
+        try:
+            return json.load(stream)
+        except:
+            return None
 
 
 def read_plain_text(file_path: str):
