@@ -18,19 +18,19 @@ Dataset:
 MetadataFieldDefinition:
   name: str()
   description: str()
-  type: map()
-
-SuffixDefinition:
-  name: str()
-  description: str()
-  type: map()
+  type: map(required=False)
 
 EntitiyDefinition:
   key: str()
   name: str()
   entity: str()
   description: str()
-  type: map()
+  type: map(required=False)
+
+SuffixDefinition:
+  name: str()
+  description: str()
+  type: map(required=False)
 
 File:
   name: str()

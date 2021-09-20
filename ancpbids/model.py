@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Any
 
 class Model(dict):
     pass
@@ -7,40 +7,6 @@ class Model(dict):
 class MetadataFieldDefinition(Model):
     def __init__(self):
         super(MetadataFieldDefinition, self).__init__()
-        self['name']: str = None
-        self['description']: str = None
-        self['type']: Dict = {}
-
-    @property
-    def name(self) -> 'str':
-        return self['name']
-    
-    @name.setter
-    def name(self, name: 'str'):
-        self['name'] = name
-            
-    @property
-    def description(self) -> 'str':
-        return self['description']
-    
-    @description.setter
-    def description(self, description: 'str'):
-        self['description'] = description
-            
-    @property
-    def type(self) -> 'Dict':
-        return self['type']
-    
-    @type.setter
-    def type(self, type: 'Dict'):
-        self['type'] = type
-            
-    MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'description': {'type': 'str', 'list': False, 'kwargs': {}}, 'type': {'type': 'Dict', 'list': False, 'kwargs': {}}}
-
-
-class SuffixDefinition(Model):
-    def __init__(self):
-        super(SuffixDefinition, self).__init__()
         self['name']: str = None
         self['description']: str = None
         self['type']: Dict = {}
@@ -122,6 +88,40 @@ class EntitiyDefinition(Model):
         self['type'] = type
             
     MEMBERS = {'key': {'type': 'str', 'list': False, 'kwargs': {}}, 'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'entity': {'type': 'str', 'list': False, 'kwargs': {}}, 'description': {'type': 'str', 'list': False, 'kwargs': {}}, 'type': {'type': 'Dict', 'list': False, 'kwargs': {}}}
+
+
+class SuffixDefinition(Model):
+    def __init__(self):
+        super(SuffixDefinition, self).__init__()
+        self['name']: str = None
+        self['description']: str = None
+        self['type']: Dict = {}
+
+    @property
+    def name(self) -> 'str':
+        return self['name']
+    
+    @name.setter
+    def name(self, name: 'str'):
+        self['name'] = name
+            
+    @property
+    def description(self) -> 'str':
+        return self['description']
+    
+    @description.setter
+    def description(self, description: 'str'):
+        self['description'] = description
+            
+    @property
+    def type(self) -> 'Dict':
+        return self['type']
+    
+    @type.setter
+    def type(self, type: 'Dict'):
+        self['type'] = type
+            
+    MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'description': {'type': 'str', 'list': False, 'kwargs': {}}, 'type': {'type': 'Dict', 'list': False, 'kwargs': {}}}
 
 
 class File(Model):
@@ -908,17 +908,17 @@ Dataset:
 MetadataFieldDefinition:
   name: str()
   description: str()
-  type: map()
-SuffixDefinition:
-  name: str()
-  description: str()
-  type: map()
+  type: map(required=False)
 EntitiyDefinition:
   key: str()
   name: str()
   entity: str()
   description: str()
-  type: map()
+  type: map(required=False)
+SuffixDefinition:
+  name: str()
+  description: str()
+  type: map(required=False)
 File:
   name: str()
   extension: str(required=False)

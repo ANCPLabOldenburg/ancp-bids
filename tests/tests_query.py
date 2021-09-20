@@ -64,6 +64,15 @@ class QueryTestCase(BaseTestCase):
         for file in expected_paths:
             self.assertTrue(list(filter(lambda f: f.endswith(file), mask_niftis)))
 
+    def test_bidslayout_get_entities(self):
+        layout = ancpbids.BIDSLayout(DS005_DIR)
+        sorted_entities = layout.get_entities(scope='raw', sort=True)
+        self.assertListEqual(['run', 'sub', 'task'], list(sorted_entities.keys()))
+        self.assertListEqual(['1', '2', '3'], sorted_entities['run'])
+        self.assertEqual(['%02d' % i for i in range(1, 17)], sorted_entities['sub'])
+        self.assertListEqual(['mixedgamblestask'], sorted_entities['task'])
+
+
 
 if __name__ == '__main__':
     unittest.main()

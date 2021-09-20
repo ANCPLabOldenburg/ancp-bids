@@ -13,7 +13,7 @@ class ClassGenerator:
 
         self.output = StringIO()
         self.append("from enum import Enum")
-        self.append("from typing import List, Union, Dict")
+        self.append("from typing import List, Union, Dict, Any")
         self.append()
         self.append("class Model(dict):")
         self.append("    pass")
@@ -43,6 +43,8 @@ class ClassGenerator:
                     sub_type = self.to_type_name(sub_type_descr.args[0])
             # return ': List[%s] = []' % sub_type
             return {'type': sub_type, 'list': True, 'init': '[]'}
+        if tag == 'any':
+            return {'type': 'Any', 'list': False, 'init': 'None'}
         if tag == 'enum':
             # return ' = None'
             return {'type': 'Enum', 'list': False, 'init': 'None', 'options': []}

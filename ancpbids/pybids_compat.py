@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from functools import partial
 
 from . import load_dataset
@@ -42,6 +43,7 @@ class BIDSLayout:
             if scope == 'raw':
                 # exclude the top level element named 'derivatives' which results
                 # in only considering everything else of top level elements
+                # TODO this has bad performance, manually filter artifacts after query execution
                 expr.append('*[name()!="derivatives"]')
             else:
                 expr.append('//%s' % scope)
@@ -72,3 +74,17 @@ class BIDSLayout:
                 [entity.value for a in artifacts for entity in filter(lambda e: e.key == target, a.entities)]))
             return keys
         return artifacts
+
+    def get_entities(self, scope=None, sort=False):
+        expr = '//entities'
+        if scope == 'raw':
+            expr = '*[name() != "derivatives"]' + expr
+        entities = self._query(expr)
+        result = OrderedDict()
+        for e in entities:
+            if e.key not in result:
+                result[e.key] = set()
+            result[e.key].add(e.value)
+        if sort:
+            result = {k: sorted(v) for k, v in sorted(result.items())}
+        return result
