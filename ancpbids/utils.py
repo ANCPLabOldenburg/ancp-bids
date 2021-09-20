@@ -6,7 +6,7 @@ _MODEL_CLASSES = {name: obj for name, obj in inspect.getmembers(model) if inspec
 
 
 def get_members(element_type, include_superclass=True):
-    if element_type == model.File or element_type == model.Folder:
+    if element_type == model.Model: # element_type == model.File or element_type == model.Folder:
         return []
     super_members = []
 
@@ -35,4 +35,6 @@ def get_members(element_type, include_superclass=True):
 def _to_type(model_type_name: str):
     if model_type_name in _MODEL_CLASSES:
         return _MODEL_CLASSES[model_type_name]
+    if model_type_name in __builtins__:
+        return __builtins__[model_type_name]
     return model_type_name

@@ -77,6 +77,8 @@ class DatasetLoader:
 
     def _expand_member(self, parent, member):
         typ = member['type']
+        if not issubclass(typ, model.Model):
+            return
         mapper_name = '_type_handler_' + typ.__name__
         if mapper_name not in _TYPE_MAPPERS:
             mapper_name = '_type_handler_default'
@@ -121,6 +123,28 @@ class DatasetLoader:
         if file:
             setattr(parent, member['name'], file)
             parent.remove_file(file.name)
+
+    def _type_handler_MetadataFile(self, parent, member):
+        if not isinstance(parent, model.Folder):
+            return
+        if member['list']:
+            files = parent.get_files(member['kwargs']['name_pattern'])
+            for file in files:
+                mdfile = model.MetadataFile()
+                mdfile.parent_object_ = parent
+                mdfile.update(file)
+                mdfile.contents = mdfile.load_contents()
+                getattr(parent, member['name']).append(mdfile)
+                parent.remove_file(file.name, from_meta=False)
+        else:
+            file = parent.get_file(member['name'])
+            if file:
+                mdfile = model.MetadataFile()
+                mdfile.parent_object_ = parent
+                mdfile.update(file)
+                mdfile.contents = mdfile.load_contents()
+                setattr(parent, member['name'], mdfile)
+                parent.remove_file(file.name, from_meta=False)
 
     def _type_handler_Artifact(self, parent, member):
         if not isinstance(parent, model.Folder):
@@ -167,7 +191,10 @@ class DatasetLoader:
     def _type_handler_JsonFile(self, parent, member, is_subclass=False):
         name = member['name']
         file_name = name + '.json'
-        json_object = parent.load_file_contents(file_name)
+        file = parent.get_file(file_name)
+        if not file:
+            return
+        json_object = file.contents if 'contents' in file else file.load_contents()
         if not json_object:
             return
         model_type = member['type']
@@ -175,7 +202,7 @@ class DatasetLoader:
         json_file.name = file_name
         json_file.contents = json_object
         setattr(parent, member['name'], json_file)
-        parent.remove_file(name)
+        parent.remove_file(file_name)
         json_file.parent_object_ = parent
 
 

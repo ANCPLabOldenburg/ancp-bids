@@ -37,18 +37,9 @@ File:
   extension: str(required=False)
   uri: str(required=False)
 
-Folder:
-  name: str()
-  files: list(include('File'), required=False)
-  folders: list(include('Folder'), required=False)
-
 JsonFile:
   .extends: File
   contents: map(required=False)
-
-EntityRef:
-  key: str()
-  value: str()
 
 Artifact:
   .doc: >-
@@ -56,6 +47,20 @@ Artifact:
   .extends: File
   suffix: str()
   entities: list(include('EntityRef'))
+
+MetadataFile:
+  .extends: Artifact
+  contents: map(required=False)
+
+Folder:
+  name: str()
+  files: list(include('File'), required=False)
+  folders: list(include('Folder'), required=False)
+  metadatafiles: list(include('MetadataFile'), required=False, name_pattern='*.json')
+
+EntityRef:
+  key: str()
+  value: str()
 
 DatasetDescriptionFile:
   .extends: JsonFile

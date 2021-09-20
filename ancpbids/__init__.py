@@ -1,3 +1,4 @@
+import fnmatch
 import os
 from lxml import etree
 
@@ -87,18 +88,31 @@ def _get_path(folder: model.Folder, file_name, absolute=True):
     return _path
 
 
-def remove_file(folder: model.Folder, file_name):
+def remove_file(folder: model.Folder, file_name, from_meta=True):
     folder.files = list(filter(lambda file: file.name != file_name, folder.files))
+    if from_meta:
+        folder.metadatafiles = list(filter(lambda file: file.name != file_name, folder.metadatafiles))
 
 
 setattr(model.Folder, 'remove_file', remove_file)
 
 
-def get_file(folder: model.Folder, file_name):
-    return next(filter(lambda file: file.name == file_name, folder.files), None)
+def get_file(folder: model.Folder, file_name, from_meta=True):
+    file = next(filter(lambda file: file.name == file_name, folder.files), None)
+    if not file and from_meta:
+        # search in metadatafiles
+        file = next(filter(lambda file: file.name == file_name, folder.metadatafiles), None)
+    return file
 
 
 setattr(model.Folder, 'get_file', get_file)
+
+
+def get_files(folder: model.Folder, name_pattern):
+    return list(filter(lambda file: fnmatch.fnmatch(file.name, name_pattern), folder.files))
+
+
+setattr(model.Folder, 'get_files', get_files)
 
 
 def remove_folder(folder: model.Folder, folder_name):
@@ -128,6 +142,7 @@ def get_folders_sorted(folder: model.Folder):
 
 setattr(model.Folder, 'get_folders_sorted', get_folders_sorted)
 
+
 def to_generator(source: model.Model, depth_first=False):
     if not depth_first:
         yield source
@@ -143,7 +158,9 @@ def to_generator(source: model.Model, depth_first=False):
     if depth_first:
         yield source
 
+
 setattr(model.Model, 'to_generator', to_generator)
+
 
 def to_etree(source: dict, parent=None, name=None, id2x=None, x2id=None, nsmap_=None):
     if not name:

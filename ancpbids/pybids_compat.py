@@ -16,10 +16,10 @@ class BIDSLayout:
         qry_result = self.query.execute(expr, search_node)
         return qry_result
 
-    def __getattr__(self, key):
+    def __getattr__(self, key, **kwargs):
         k = key if not key.startswith("get_") else key[4:]
         k = self.sc.fuzzy_match_entity_key(k)
-        return partial(self.get, return_type='id', target=k, scope='raw')
+        return partial(self.get, return_type='id', target=k, **kwargs)
 
     def _gen_scalar_expr(self, k, v):
         if v is None:
@@ -35,8 +35,11 @@ class BIDSLayout:
         else:
             return self._gen_scalar_expr(attr_name, v)
 
+    def get_metadata(self, *args, **kwargs):
+        return self.get(element_source='metadatafiles', **kwargs)
+
     def get(self, return_type='object', target=None, scope: str = None, extension=None, suffix=None,
-            regex_search=False, absolute_paths=None, invalid_filters='error',
+            regex_search=False, absolute_paths=None, invalid_filters='error', element_source='*',
             **entities):
         expr = []
         if scope:
@@ -64,7 +67,7 @@ class BIDSLayout:
             entity_filters.append(v)
         if entity_filters:
             entity_filters_str = ' and '.join(entity_filters)
-            expr.append('//*[%s]' % entity_filters_str)
+            expr.append('//%s[%s]' % (element_source, entity_filters_str))
         expr_final = ''.join(expr)
         artifacts = self._query(expr_final)
         if return_type and return_type.startswith("file"):

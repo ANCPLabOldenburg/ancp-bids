@@ -72,6 +72,15 @@ class QueryTestCase(BaseTestCase):
         self.assertEqual(['%02d' % i for i in range(1, 17)], sorted_entities['sub'])
         self.assertListEqual(['mixedgamblestask'], sorted_entities['task'])
 
+    def test_bidslayout_get_metadata(self):
+        layout = ancpbids.BIDSLayout(DS005_DIR)
+        mdfiles = layout.get_metadata(task='mixedgamblestask', suffix='bold')
+        self.assertEqual(1, len(mdfiles))
+        task_bold_md = mdfiles[0].contents
+        self.assertEqual(2.0, task_bold_md['RepetitionTime'])
+        self.assertEqual('mixed-gambles task', task_bold_md['TaskName'])
+        self.assertListEqual([0.0, 0.0571, 0.1143, 0.1714, 0.2286, 0.2857], task_bold_md['SliceTiming'])
+
 
 
 if __name__ == '__main__':

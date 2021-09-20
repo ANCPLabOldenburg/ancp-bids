@@ -23,7 +23,8 @@ class WritingTestCase(BaseTestCase):
         self.assertEqual("anat", datatypes[0].name)
         self.assertEqual("func", datatypes[1].name)
         self.assertEqual(1, len(datatypes[0].artifacts))
-        self.assertEqual(2, len(datatypes[1].artifacts))
+        self.assertEqual(1, len(datatypes[1].artifacts))
+        self.assertEqual(1, len(datatypes[1].metadatafiles))
 
         ds_descr = ds005_copy.dataset_description
         self.assertTrue(isinstance(ds_descr, model.DatasetDescriptionFile))

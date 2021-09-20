@@ -158,40 +158,6 @@ class File(Model):
     MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'extension': {'type': 'str', 'list': False, 'kwargs': {}}, 'uri': {'type': 'str', 'list': False, 'kwargs': {}}}
 
 
-class Folder(Model):
-    def __init__(self):
-        super(Folder, self).__init__()
-        self['name']: str = None
-        self['files']: List[File] = []
-        self['folders']: List[Folder] = []
-
-    @property
-    def name(self) -> 'str':
-        return self['name']
-    
-    @name.setter
-    def name(self, name: 'str'):
-        self['name'] = name
-            
-    @property
-    def files(self) -> 'List[File]':
-        return self['files']
-    
-    @files.setter
-    def files(self, files: 'List[File]'):
-        self['files'] = files
-            
-    @property
-    def folders(self) -> 'List[Folder]':
-        return self['folders']
-    
-    @folders.setter
-    def folders(self, folders: 'List[Folder]'):
-        self['folders'] = folders
-            
-    MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'files': {'type': 'File', 'list': True, 'kwargs': {}}, 'folders': {'type': 'Folder', 'list': True, 'kwargs': {}}}
-
-
 class JsonFile(File):
     def __init__(self):
         super(JsonFile, self).__init__()
@@ -206,31 +172,6 @@ class JsonFile(File):
         self['contents'] = contents
             
     MEMBERS = {'contents': {'type': 'Dict', 'list': False, 'kwargs': {}}}
-
-
-class EntityRef(Model):
-    def __init__(self):
-        super(EntityRef, self).__init__()
-        self['key']: str = None
-        self['value']: str = None
-
-    @property
-    def key(self) -> 'str':
-        return self['key']
-    
-    @key.setter
-    def key(self, key: 'str'):
-        self['key'] = key
-            
-    @property
-    def value(self) -> 'str':
-        return self['value']
-    
-    @value.setter
-    def value(self, value: 'str'):
-        self['value'] = value
-            
-    MEMBERS = {'key': {'type': 'str', 'list': False, 'kwargs': {}}, 'value': {'type': 'str', 'list': False, 'kwargs': {}}}
 
 
 class Artifact(File):
@@ -257,6 +198,90 @@ class Artifact(File):
         self['entities'] = entities
             
     MEMBERS = {'suffix': {'type': 'str', 'list': False, 'kwargs': {}}, 'entities': {'type': 'EntityRef', 'list': True, 'kwargs': {}}}
+
+
+class MetadataFile(Artifact):
+    def __init__(self):
+        super(MetadataFile, self).__init__()
+        self['contents']: Dict = {}
+
+    @property
+    def contents(self) -> 'Dict':
+        return self['contents']
+    
+    @contents.setter
+    def contents(self, contents: 'Dict'):
+        self['contents'] = contents
+            
+    MEMBERS = {'contents': {'type': 'Dict', 'list': False, 'kwargs': {}}}
+
+
+class Folder(Model):
+    def __init__(self):
+        super(Folder, self).__init__()
+        self['name']: str = None
+        self['files']: List[File] = []
+        self['folders']: List[Folder] = []
+        self['metadatafiles']: List[MetadataFile] = []
+
+    @property
+    def name(self) -> 'str':
+        return self['name']
+    
+    @name.setter
+    def name(self, name: 'str'):
+        self['name'] = name
+            
+    @property
+    def files(self) -> 'List[File]':
+        return self['files']
+    
+    @files.setter
+    def files(self, files: 'List[File]'):
+        self['files'] = files
+            
+    @property
+    def folders(self) -> 'List[Folder]':
+        return self['folders']
+    
+    @folders.setter
+    def folders(self, folders: 'List[Folder]'):
+        self['folders'] = folders
+            
+    @property
+    def metadatafiles(self) -> 'List[MetadataFile]':
+        return self['metadatafiles']
+    
+    @metadatafiles.setter
+    def metadatafiles(self, metadatafiles: 'List[MetadataFile]'):
+        self['metadatafiles'] = metadatafiles
+            
+    MEMBERS = {'name': {'type': 'str', 'list': False, 'kwargs': {}}, 'files': {'type': 'File', 'list': True, 'kwargs': {}}, 'folders': {'type': 'Folder', 'list': True, 'kwargs': {}}, 'metadatafiles': {'type': 'MetadataFile', 'list': True, 'kwargs': {'name_pattern': '*.json'}}}
+
+
+class EntityRef(Model):
+    def __init__(self):
+        super(EntityRef, self).__init__()
+        self['key']: str = None
+        self['value']: str = None
+
+    @property
+    def key(self) -> 'str':
+        return self['key']
+    
+    @key.setter
+    def key(self, key: 'str'):
+        self['key'] = key
+            
+    @property
+    def value(self) -> 'str':
+        return self['value']
+    
+    @value.setter
+    def value(self, value: 'str'):
+        self['value'] = value
+            
+    MEMBERS = {'key': {'type': 'str', 'list': False, 'kwargs': {}}, 'value': {'type': 'str', 'list': False, 'kwargs': {}}}
 
 
 class DatasetDescriptionFile(JsonFile):
@@ -904,6 +929,7 @@ Dataset:
   name: str()
   files: list(include('File'), required=False)
   folders: list(include('Folder'), required=False)
+  metadatafiles: list(include('MetadataFile'), required=False, name_pattern='*.json')
 ---
 MetadataFieldDefinition:
   name: str()
@@ -923,24 +949,32 @@ File:
   name: str()
   extension: str(required=False)
   uri: str(required=False)
-Folder:
-  name: str()
-  files: list(include('File'), required=False)
-  folders: list(include('Folder'), required=False)
 JsonFile:
   contents: map(required=False)
   name: str()
   extension: str(required=False)
   uri: str(required=False)
-EntityRef:
-  key: str()
-  value: str()
 Artifact:
   suffix: str()
   entities: list(include('EntityRef'))
   name: str()
   extension: str(required=False)
   uri: str(required=False)
+MetadataFile:
+  contents: map(required=False)
+  suffix: str()
+  entities: list(include('EntityRef'))
+  name: str()
+  extension: str(required=False)
+  uri: str(required=False)
+Folder:
+  name: str()
+  files: list(include('File'), required=False)
+  folders: list(include('Folder'), required=False)
+  metadatafiles: list(include('MetadataFile'), required=False, name_pattern='*.json')
+EntityRef:
+  key: str()
+  value: str()
 DatasetDescriptionFile:
   Name: str()
   BIDSVersion: str()
@@ -983,22 +1017,26 @@ DerivativeFolder:
   name: str()
   files: list(include('File'), required=False)
   folders: list(include('Folder'), required=False)
+  metadatafiles: list(include('MetadataFile'), required=False, name_pattern='*.json')
 Session:
   datatypes: list(include('DatatypeFolder'), required=False)
   name: str()
   files: list(include('File'), required=False)
   folders: list(include('Folder'), required=False)
+  metadatafiles: list(include('MetadataFile'), required=False, name_pattern='*.json')
 DatatypeFolder:
   artifacts: list(include('Artifact'), required=False)
   name: str()
   files: list(include('File'), required=False)
   folders: list(include('Folder'), required=False)
+  metadatafiles: list(include('MetadataFile'), required=False, name_pattern='*.json')
 Subject:
   datatypes: list(include('DatatypeFolder', required=False))
   sessions: list(include('Session'), required=False, name_pattern='ses-.*')
   name: str()
   files: list(include('File'), required=False)
   folders: list(include('Folder'), required=False)
+  metadatafiles: list(include('MetadataFile'), required=False, name_pattern='*.json')
 GeneratedBy:
   Name: str()
   Version: str(required=False, recommended=True)

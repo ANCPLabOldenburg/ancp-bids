@@ -43,9 +43,13 @@ class BasicTestCase(BaseTestCase):
         self.assertEqual("func", func_datatype.name)
 
         artifacts = func_datatype.artifacts
-        self.assertEqual(7, len(artifacts))
+        self.assertEqual(6, len(artifacts))
         self.assertEqual("sub-01_task-mixedgamblestask_run-01_bold.nii.gz", artifacts[0].name)
         self.assertEqual("sub-01_task-mixedgamblestask_run-03_events.tsv", artifacts[-1].name)
+
+        metadatafiles = func_datatype.metadatafiles
+        self.assertEqual(1, len(metadatafiles))
+        self.assertEqual("sub-01_task-mixedgamblestask_run-01_events.json", metadatafiles[0].name)
 
     def test_json_file_contents(self):
         ds005 = load_dataset(DS005_DIR)

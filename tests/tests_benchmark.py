@@ -16,7 +16,7 @@ if not os.path.isdir(OPENNEURO_DS001734):
 class BenchmarkTestCase(BaseTestCase):
     def _assert_on(self, layout_type):
         layout = layout_type(OPENNEURO_DS001734, derivatives=True)
-        subjects = layout.get_subjects()
+        subjects = layout.get_subjects(scope="raw")
         self.assertEqual(108, len(subjects))
         self.assertEqual(0, len(layout.get_sessions()))
 
