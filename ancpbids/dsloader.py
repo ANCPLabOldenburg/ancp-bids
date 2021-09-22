@@ -129,6 +129,7 @@ class DatasetLoader:
             return
         if member['list']:
             files = parent.get_files(member['kwargs']['name_pattern'])
+            files = list(filter(lambda f: isinstance(f, model.Artifact), files))
             for file in files:
                 mdfile = model.MetadataFile()
                 mdfile.parent_object_ = parent
@@ -138,7 +139,7 @@ class DatasetLoader:
                 parent.remove_file(file.name, from_meta=False)
         else:
             file = parent.get_file(member['name'])
-            if file:
+            if isinstance(file, model.Artifact):
                 mdfile = model.MetadataFile()
                 mdfile.parent_object_ = parent
                 mdfile.update(file)

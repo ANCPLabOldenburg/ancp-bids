@@ -81,6 +81,18 @@ class QueryTestCase(BaseTestCase):
         self.assertEqual('mixed-gambles task', task_bold_md['TaskName'])
         self.assertListEqual([0.0, 0.0571, 0.1143, 0.1714, 0.2286, 0.2857], task_bold_md['SliceTiming'])
 
+    def test_bidslayout_get_metadata(self):
+        layout = ancpbids.BIDSLayout(DS005_DIR + "-small")
+        task_bold = layout.dataset.get_file('task-mixedgamblestask_bold.json').load_contents()
+        # at the top level, RepetionTime is set to 2.0
+        self.assertEqual(2.0, task_bold['RepetitionTime'])
+
+        # now load all metadata matching the filter
+        metadata = layout.get_metadata(task='mixedgamblestask', suffix='bold')
+        self.assertTrue(isinstance(metadata, dict))
+
+        # now, since at subject/run level the RepetionTime is overridden, it should be 2.5
+        self.assertEqual(2.5, metadata['RepetitionTime'])
 
 
 if __name__ == '__main__':

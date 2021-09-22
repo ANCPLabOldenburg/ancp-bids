@@ -1,8 +1,11 @@
 from collections import OrderedDict
 from functools import partial
 
+import lxml.etree
+
 from . import load_dataset
 from .query import XPathQuery
+from .utils import deepupdate
 
 
 class BIDSLayout:
@@ -12,9 +15,8 @@ class BIDSLayout:
         self.ns_prefix = self.sc.ns_prefix
         self.query = XPathQuery(self.dataset, self.sc)
 
-    def _query(self, expr: str, search_node=None):
-        qry_result = self.query.execute(expr, search_node)
-        return qry_result
+    def _query(self, expr: str, search_node=None, return_model_objects=True):
+        return self.query.execute(expr, search_node, return_model_objects)
 
     def __getattr__(self, key, **kwargs):
         k = key if not key.startswith("get_") else key[4:]
@@ -36,7 +38,32 @@ class BIDSLayout:
             return self._gen_scalar_expr(attr_name, v)
 
     def get_metadata(self, *args, **kwargs):
-        return self.get(element_source='metadatafiles', **kwargs)
+        qry_result = self.get(return_type='etree', element_source='metadatafiles', *args, **kwargs)
+        # build lists of ancestors + the leaf (metadata file)
+        ancestors = list(map(lambda e: (list(reversed(list(e.iterancestors()))), e), qry_result))
+        # sort by number of ancestors
+        # TODO must sort by the items within the list not just by length of list
+        # example: [xyz,abc] would be treated the same when it should be [abc, xyz]
+        ancestors.sort(key=lambda e: len(e[0]))
+
+        metadata = {}
+        if ancestors:
+            # start with first metadata file
+            deepupdate(metadata, self.query.x2id[ancestors[0][1]].contents)
+            if len(ancestors) > 1:
+                for i in range(1, len(ancestors)):
+                    a0 = ancestors[i - 1][0]
+                    a1 = ancestors[i][0]
+                    # remove the ancestors from a0 and make sure it is empty
+                    remaining_ancestors = set(a0).difference(a1)
+                    if remaining_ancestors:
+                        # if remaining ancestors list is not empty,
+                        # this is interpreted as having the leaves from different branches
+                        # for example, metadata from func/sub-01/...json must not be mixed with func/sub-02/...json
+                        raise ValueError("Query returned metadata files from incompatible sources.")
+                    deepupdate(metadata, self.query.x2id[ancestors[i][1]].contents)
+
+        return metadata
 
     def get(self, return_type='object', target=None, scope: str = None, extension=None, suffix=None,
             regex_search=False, absolute_paths=None, invalid_filters='error', element_source='*',
@@ -69,7 +96,7 @@ class BIDSLayout:
             entity_filters_str = ' and '.join(entity_filters)
             expr.append('//%s[%s]' % (element_source, entity_filters_str))
         expr_final = ''.join(expr)
-        artifacts = self._query(expr_final)
+        artifacts = self._query(expr_final, return_model_objects=return_type == 'object')
         if return_type and return_type.startswith("file"):
             return list(map(lambda e: e.get_absolute_path(), artifacts))
         elif return_type == 'id' and target is not None:

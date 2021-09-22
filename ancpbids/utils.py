@@ -6,7 +6,7 @@ _MODEL_CLASSES = {name: obj for name, obj in inspect.getmembers(model) if inspec
 
 
 def get_members(element_type, include_superclass=True):
-    if element_type == model.Model: # element_type == model.File or element_type == model.Folder:
+    if element_type == model.Model:
         return []
     super_members = []
 
@@ -38,3 +38,39 @@ def _to_type(model_type_name: str):
     if model_type_name in __builtins__:
         return __builtins__[model_type_name]
     return model_type_name
+
+
+def deepupdate(target, src):
+    """Deep update target dict with src
+    For each k,v in src: if k doesn't exist in target, it is deep copied from
+    src to target. Otherwise, if v is a list, target[k] is extended with
+    src[k]. If v is a set, target[k] is updated with v, If v is a dict,
+    recursively deep-update it.
+
+    Examples:
+    >>> t = {'name': 'Ferry', 'hobbies': ['programming', 'sci-fi']}
+    >>> deepupdate(t, {'hobbies': ['gaming']})
+    >>> print t
+    {'name': 'Ferry', 'hobbies': ['programming', 'sci-fi', 'gaming']}
+
+    Copyright Ferry Boender, released under the MIT license.
+    """
+    import copy
+    for k, v in src.items():
+        if type(v) == list:
+            if k not in target:
+                target[k] = copy.deepcopy(v)
+            else:
+                target[k].extend(v)
+        elif type(v) == dict:
+            if k not in target:
+                target[k] = copy.deepcopy(v)
+            else:
+                deepupdate(target[k], v)
+        elif type(v) == set:
+            if k not in target:
+                target[k] = v.copy()
+            else:
+                target[k].update(v.copy())
+        else:
+            target[k] = copy.copy(v)
