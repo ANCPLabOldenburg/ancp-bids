@@ -21,11 +21,12 @@ class XPathQuery(Query):
     def __init__(self, dataset: model.Dataset, scm: schema.Schema):
         super(XPathQuery, self).__init__(dataset, scm)
 
-    def execute(self, expr, search_node=None, return_model_objects=True):
+    def execute(self, expr, search_node=None, return_lxml_objects=False):
         context = self.root
         if search_node:
             context = search_node
         result = context.xpath(expr, namespaces=self.scm.ns_map)
-        if return_model_objects:
-            result = list(map(lambda e: self.x2id[e] if e in self.x2id else e, result))
+        if return_lxml_objects:
+            return result
+        result = list(map(lambda e: self.x2id[e] if e in self.x2id else e, result))
         return result

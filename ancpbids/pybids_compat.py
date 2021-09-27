@@ -15,12 +15,11 @@ class BIDSLayout:
         self.ns_prefix = self.sc.ns_prefix
         self.query = XPathQuery(self.dataset, self.sc)
 
-    def _query(self, expr: str, search_node=None, return_model_objects=True):
-        return self.query.execute(expr, search_node, return_model_objects)
+    def _query(self, expr: str, search_node=None, return_lxml_objects=False):
+        return self.query.execute(expr, search_node, return_lxml_objects)
 
     def __getattr__(self, key, **kwargs):
         k = key if not key.startswith("get_") else key[4:]
-        k = self.sc.fuzzy_match_entity_key(k)
         return partial(self.get, return_type='id', target=k, **kwargs)
 
     def _gen_scalar_expr(self, k, v):
@@ -38,7 +37,7 @@ class BIDSLayout:
             return self._gen_scalar_expr(attr_name, v)
 
     def get_metadata(self, *args, **kwargs):
-        qry_result = self.get(return_type='etree', element_source='metadatafiles', *args, **kwargs)
+        qry_result = self.get(return_type='lxml', element_source='metadatafiles', *args, **kwargs)
         # build lists of ancestors + the leaf (metadata file)
         ancestors = list(map(lambda e: (list(reversed(list(e.iterancestors()))), e), qry_result))
         # sort by number of ancestors
@@ -65,7 +64,8 @@ class BIDSLayout:
 
         return metadata
 
-    def get(self, return_type='object', target=None, scope: str = None, extension=None, suffix=None,
+    def get(self, return_type='object', target=None, scope: str = None,
+            extension=None, suffix=None,
             regex_search=False, absolute_paths=None, invalid_filters='error', element_source='*',
             **entities):
         expr = []
@@ -78,9 +78,19 @@ class BIDSLayout:
             else:
                 expr.append('//%s' % scope)
         entity_filters = []
+        result_extractor = None
         if target:
-            target = self.sc.fuzzy_match_entity_key(target)
-            entities = {**entities, target: '*'}
+            if target in 'suffixes':
+                suffix = '*'
+                result_extractor = lambda artifacts: [a.suffix for a in artifacts]
+            elif target in 'extensions':
+                extension = '*'
+                result_extractor = lambda artifacts: [a.extension for a in artifacts]
+            else:
+                target = self.sc.fuzzy_match_entity_key(target)
+                entities = {**entities, target: '*'}
+                result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
+                                                      filter(lambda e: e.key == target, a.entities)]
         for k, v in entities.items():
             k = self.sc.fuzzy_match_entity_key(k)
             v = self.sc.process_entity_value(k, v)
@@ -96,13 +106,11 @@ class BIDSLayout:
             entity_filters_str = ' and '.join(entity_filters)
             expr.append('//%s[%s]' % (element_source, entity_filters_str))
         expr_final = ''.join(expr)
-        artifacts = self._query(expr_final, return_model_objects=return_type == 'object')
+        artifacts = self._query(expr_final, return_lxml_objects=return_type == 'lxml')
         if return_type and return_type.startswith("file"):
             return list(map(lambda e: e.get_absolute_path(), artifacts))
-        elif return_type == 'id' and target is not None:
-            keys = sorted(set(
-                [entity.value for a in artifacts for entity in filter(lambda e: e.key == target, a.entities)]))
-            return keys
+        elif result_extractor:
+            return sorted(set(result_extractor(artifacts)))
         return artifacts
 
     def get_entities(self, scope=None, sort=False):

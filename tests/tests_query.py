@@ -72,6 +72,16 @@ class QueryTestCase(BaseTestCase):
         self.assertEqual(['%02d' % i for i in range(1, 17)], sorted_entities['sub'])
         self.assertListEqual(['mixedgamblestask'], sorted_entities['task'])
 
+    def test_bidslayout_get_suffixes(self):
+        layout = ancpbids.BIDSLayout(DS005_DIR)
+        suffixes = layout.get_suffixes()
+        self.assertListEqual(['T1w', 'bold', 'dwi', 'events', 'model'], suffixes)
+
+    def test_bidslayout_get_extensions(self):
+        layout = ancpbids.BIDSLayout(DS005_DIR)
+        extensions = layout.get_extensions()
+        self.assertListEqual(['.json', '.nii.gz', '.tsv'], extensions)
+
     def test_bidslayout_get_metadata(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
         mdfiles = layout.get_metadata(task='mixedgamblestask', suffix='bold')
