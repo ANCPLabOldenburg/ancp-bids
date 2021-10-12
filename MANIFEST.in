@@ -1,0 +1,4 @@
+recursive-include ancpbids/data *
+include versioneer.py
+include ancpbids/_version.py
+include requirements.txt

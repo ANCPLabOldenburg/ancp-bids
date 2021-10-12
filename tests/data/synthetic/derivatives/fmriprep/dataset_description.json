@@ -1,9 +1,22 @@
 {
-	"PipelineDescription": {
-		"Name": "fmriprep"
-	},
-	"Name": "synthetic",
-	"BIDSVersion": "1.0.2",
-	"License": "PD",
-	"Authors": ["Markiewicz, C. J."]
+  "PipelineDescription": {
+    "Name": "fmriprep"
+  },
+  "Name": "synthetic",
+  "BIDSVersion": "1.0.2",
+  "License": "PD",
+  "Authors": [
+    "Markiewicz, C. J."
+  ],
+  "GeneratedBy": [
+    {
+      "Name": "fmriprep",
+      "Version": "1.1.0",
+      "Container": {
+        "Type": "abc",
+        "Tag": "xyz",
+        "URI": "test:abc/xyz"
+      }
+    }
+  ]
 }
