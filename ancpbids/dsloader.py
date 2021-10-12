@@ -16,7 +16,6 @@ class DatasetLoader:
 
     def load(self, base_dir):
         ds = model.Dataset()
-        ds.ns_prefix_ = self.schema.ns_prefix
         ds._schema = self.schema
         ds.name = os.path.basename(base_dir)
         ds.base_dir_ = base_dir
@@ -69,7 +68,7 @@ class DatasetLoader:
             obj.folders = folder.folders
             parent.remove_folder(folder.name)
             obj.parent_object_ = parent
-            if member['list']:
+            if member['max'] > 1:
                 getattr(parent, member['name']).append(obj)
             else:
                 setattr(parent, member['name'], obj)
@@ -111,9 +110,9 @@ class DatasetLoader:
             self._type_handler_JsonFile(parent, member, True)
         elif issubclass(typ, model.Folder):
             pattern = '.*'
-            kwargs = member['kwargs']
-            if 'name_pattern' in kwargs:
-                pattern = kwargs['name_pattern']
+            meta = member['meta']
+            if 'name_pattern' in meta:
+                pattern = meta['name_pattern']
             self._handle_direct_folders(parent, member, pattern=pattern, new_type=typ)
 
     def _type_handler_File(self, parent, member):
@@ -127,8 +126,8 @@ class DatasetLoader:
     def _type_handler_MetadataFile(self, parent, member):
         if not isinstance(parent, model.Folder):
             return
-        if member['list']:
-            files = parent.get_files(member['kwargs']['name_pattern'])
+        if member['max'] > 1:
+            files = parent.get_files(member['meta']['name_pattern'])
             files = list(filter(lambda f: isinstance(f, model.Artifact), files))
             for file in files:
                 mdfile = model.MetadataFile()

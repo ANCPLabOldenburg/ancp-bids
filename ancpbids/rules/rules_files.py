@@ -1,48 +1,18 @@
-import lxml.etree
-from yamale import YamaleError
-
 from ancpbids import XPathQuery, model
 from ancpbids.model import Dataset
 from ancpbids.schema import Schema
 from ancpbids.validator import ValidationRule, ValidationReport
 
-from lxml.isoschematron import Schematron
-import os
-import yamale
-
-
-class SchematronValidationRule(ValidationRule):
-    def validate(self, dataset: Dataset, report: ValidationReport, **kwargs):
-        schema = dataset._schema
-        schematron_rules_dir = schema.schema_path + "/validation-rules"
-        xml_tree = dataset.to_etree(nsmap_=schema.ns_map)
-        for root_dir, dirs, files in os.walk(schematron_rules_dir):
-            for file in files:
-                if file.endswith(".xml"):
-                    file_abs_path = os.path.join(root_dir, file)
-                    schematron = Schematron(file=file_abs_path, error_finder=Schematron.ASSERTS_AND_REPORTS)
-                    schematron.validate(xml_tree)
-                    for error in schematron.error_log:
-                        message_xml = lxml.etree.XML(error.message)
-                        role = message_xml.attrib['role'] if 'role' in message_xml.attrib else 'error'
-                        getattr(report, role)(message_xml[0].text)
-
 
 class StaticStructureValidationRule(ValidationRule):
     def validate(self, dataset: Dataset, report: ValidationReport, **kwargs):
-        try:
-            schema = yamale.make_schema(content=model.YAMALE_SCHEMA)
-            yamale.validate(schema, [({'Dataset': dataset}, None)])
-        except YamaleError as e:
-            for result in e.results:
-                for error in result.errors:
-                    report.error(error)
+        dataset.validate(report)
 
 
 class DatatypesValidationRule(ValidationRule):
     def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, **kwargs):
         invalid = []
-        valid_datatypes = schema.datatypes.keys()
+        valid_datatypes = schema.model.DatatypeEnum.__members__
         for subject in dataset.subjects:
             invalid.extend([f for f in subject.datatypes if f.name not in valid_datatypes])
             for session in subject.sessions:
@@ -55,7 +25,7 @@ class DatatypesValidationRule(ValidationRule):
 class EntitiesValidationRule(ValidationRule):
     def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, query: XPathQuery):
         artifacts = query.execute('//entities/..')
-        entities = list(map(lambda e: e['entity'], schema.entities.values()))
+        entities = list(map(lambda e: e.entity_, list(schema.model.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(entities)}
         expected_order_key = {i: k for i, k in enumerate(entities)}
         for artifact in artifacts:

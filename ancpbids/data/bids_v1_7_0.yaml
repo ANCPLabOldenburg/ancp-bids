@@ -1,0 +1,236 @@
+Dataset:
+  .extends: Folder
+  subjects:
+    type: Subject
+    max: -1
+    meta:
+      name_pattern: sub-.*
+  dataset_description:
+    type: DatasetDescriptionFile
+    use: required
+  README:
+    type: File
+  CHANGES:
+    type: File
+  LICENSE:
+    type: File
+  genetic_info:
+    type: JsonFile
+  samples:
+    type: JsonFile
+  participants_tsv:
+    type: File
+  participants_json:
+    type: JsonFile
+  code:
+    type: Folder
+  derivatives:
+    type: DerivativeFolder
+  sourcedata:
+    type: Folder
+  stimuli:
+    type: Folder
+
+---
+MetadataFieldDefinition:
+  name:
+    type: str
+  description:
+    type: str
+  type:
+    type: dict
+
+EntitiyDefinition:
+  key:
+    type: str
+  name:
+    type: str
+  entity:
+    type: str
+  description:
+    type: str
+  type:
+    type: dict
+
+SuffixDefinition:
+  name:
+    type: str
+    use: required
+  description:
+    type: str
+    use: required
+  type:
+    type: dict
+
+File:
+  name:
+    type: str
+    use: required
+  extension:
+    type: str
+  uri:
+    type: str
+
+JsonFile:
+  .extends: File
+  contents:
+    type: dict
+
+Artifact:
+  .doc: >-
+    An artifact is a file whose name conforms to the BIDS file naming convention.
+  .extends: File
+  suffix:
+    type: str
+    use: required
+  entities:
+    type: EntityRef
+    min: 1
+    max: -1
+
+MetadataFile:
+  .extends: Artifact
+  contents:
+    type: dict
+
+Folder:
+  name:
+    type: str
+    use: required
+  files:
+    type: File
+    max: -1
+  folders:
+    type: Folder
+    max: -1
+  metadatafiles:
+    type: MetadataFile
+    max: -1
+    meta:
+      name_pattern: '*.json'
+
+EntityRef:
+  key:
+    type: str
+    use: required
+  value:
+    type: str
+    use: required
+
+DatasetDescriptionFile:
+  .extends: JsonFile
+  Name:
+    type: str
+    use: required
+  BIDSVersion:
+    type: str
+    use: required
+  HEDVersion:
+    type: str
+    use: recommended
+  DatasetType:
+    .doc: >-
+      The interpretation of the dataset. MUST be one of "raw" or "derivative". For backwards compatibility, the default value is "raw".
+    type: enum
+    default: raw
+    literals:
+      - raw
+      - derivative
+    use: recommended
+  License:
+    type: str
+    use: recommended
+  Acknowledgements:
+    type: str
+  HowToAcknowledge:
+    type: str
+  DatasetDOI:
+    type: str
+  Authors:
+    type: str
+    max: -1
+  Funding:
+    type: str
+    max: -1
+  EthicsApprovals:
+    type: str
+    max: -1
+  ReferencesAndLinks:
+    type: str
+    max: -1
+
+DerivativeDatasetDescriptionFile:
+  .extends: DatasetDescriptionFile
+  GeneratedBy:
+    type: GeneratedBy
+    max: -1
+  SourceDatasets:
+    type: SourceDatasets
+    max: -1
+    use: recommended
+
+DerivativeFolder:
+  .extends: Folder
+  dataset_description:
+    type: DerivativeDatasetDescriptionFile
+  derivatives:
+    type: DerivativeFolder
+    max: -1
+
+Session:
+  .extends: Folder
+  datatypes:
+    type: DatatypeFolder
+    max: -1
+
+DatatypeFolder:
+  .extends: Folder
+  artifacts:
+    type: Artifact
+    max: -1
+
+Subject:
+  .extends: Folder
+  datatypes:
+    type: DatatypeFolder
+    max: -1
+  sessions:
+    type: Session
+    max: -1
+    meta:
+      name_pattern: 'ses-.*'
+
+
+GeneratedBy:
+  Name:
+    type: str
+    use: required
+  Version:
+    type: str
+    use: recommended
+  Description:
+    type: str
+  CodeURL:
+    type: str
+  Container:
+    type: GeneratedByContainer
+    max: -1
+
+SourceDatasets:
+  DOI:
+    type: str
+    use: required
+  URL:
+    type: str
+    use: required
+  Version:
+    type: str
+    use: required
+
+GeneratedByContainer:
+  Type:
+    type: str
+  Tag:
+    type: str
+  URI:
+    type: str

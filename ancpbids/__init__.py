@@ -9,13 +9,12 @@ from .dsloader import DatasetLoader
 from .dssaver import DatasetSaver
 from .schema import Schema
 from .query import XPathQuery
+from .validator import ValidationReport
 
-SCHEMA_FILES_PATH = os.path.dirname(__file__)
-SCHEMA_PATH_V16 = SCHEMA_FILES_PATH + '/data/schema-files/v1_6'
-SCHEMA_V16 = Schema(schema_path=SCHEMA_PATH_V16, ns_prefix='bids', ns='https://bids.neuroimaging.io/1.6')
+SCHEMA_LATEST = Schema(model)
 
 
-def load_dataset(base_dir: str, bids_schema=SCHEMA_V16):
+def load_dataset(base_dir: str, bids_schema=SCHEMA_LATEST):
     loader = DatasetLoader(bids_schema)
     ds = loader.load(base_dir)
     return ds
@@ -209,6 +208,25 @@ def query(ds: model.Dataset, expr: str):
 
 
 setattr(model.Dataset, 'query', query)
+
+def validate(target: model.Model, report: ValidationReport):
+    gen = to_generator(target)
+    for obj in gen:
+        members = utils.get_members(type(obj))
+        for member in members:
+            typ = member['type']
+            name = member['name']
+            lb = member['min']
+            ub = member['max']
+            val = getattr(obj, name)
+            use = member['use']
+            if (lb > 0 or use == 'required') and not val:
+                report.error(f"Missing required field {name}.")
+            if use == 'recommended' and not val:
+                report.warn(f"Missing recommended field {name}.")
+
+
+setattr(model.Model, 'validate', validate)
 
 # end monkey-patching
 

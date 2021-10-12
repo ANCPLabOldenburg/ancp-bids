@@ -4,22 +4,14 @@ from collections import OrderedDict
 from difflib import SequenceMatcher
 
 from . import files
+from . import model
 
 logger = logging.getLogger(__file__)
 
 
 class Schema:
-    def __init__(self, schema_path, ns, ns_prefix):
-        self.schema_path = schema_path
-        self.ns = ns
-        self.ns_prefix = ns_prefix
-        self.ns_map = {
-            self.ns_prefix: self.ns,
-        }
-        self.modalities = files.load_contents(schema_path + "/modalities.yaml")
-        # self.modalities = list(map(lambda item: {'key': item[0], **item[1]}, self.modalities.items()))
-        self.entities = files.load_contents(schema_path + "/entities.yaml")
-        self.datatypes = self.merge_to_dict(schema_path + "/datatypes")
+    def __init__(self, models: model):
+        self.model: model = model
 
     def get_ns_map(self):
         return self.ns_map
@@ -39,10 +31,10 @@ class Schema:
             return value
 
     def process_entity_value(self, key, value):
-        if not value or key not in self.entities:
+        if not value or key not in self.model.EntityEnum.__members__:
             return value
-        sc_entity = self.entities[key]
-        if value and sc_entity and 'format' in sc_entity and sc_entity['format'] == 'index':
+        sc_entity = self.model.EntityEnum[key]
+        if value and sc_entity.format_ == 'index':
             if isinstance(value, list):
                 return list(map(lambda v: self._trim_int(v), value))
             else:
@@ -52,7 +44,8 @@ class Schema:
     def fuzzy_match_entity_key(self, user_key):
         ratios = list(
             map(lambda item: (
-                item[1], 1.0 if item[0].startswith(user_key) else SequenceMatcher(None, user_key, item[0]).quick_ratio()),
-                self.entities.items()))
+                item,
+                1.0 if item.name.startswith(user_key) else SequenceMatcher(None, user_key, item.name).quick_ratio()),
+                list(self.model.EntityEnum)))
         ratios = sorted(ratios, key=lambda t: t[1])
-        return ratios[-1][0]['entity']
+        return ratios[-1][0].entity_

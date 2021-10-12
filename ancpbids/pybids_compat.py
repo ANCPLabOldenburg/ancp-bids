@@ -12,7 +12,6 @@ class BIDSLayout:
     def __init__(self, ds_dir: str, **kwargs):
         self.dataset = load_dataset(ds_dir)
         self.sc = self.dataset._schema
-        self.ns_prefix = self.sc.ns_prefix
         self.query = XPathQuery(self.dataset, self.sc)
 
     def _query(self, expr: str, search_node=None, return_lxml_objects=False):

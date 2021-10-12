@@ -20,12 +20,9 @@ def get_members(element_type, include_superclass=True):
 
     element_members = []
     try:
-        # name is the class member name compatible with Python naming conventions
-        # name_raw contains the name as modeled in schema and may contain invalid characters such as dots
         members = element_type.MEMBERS
         element_members = list(
-            map(lambda item: {'name': item[0], 'name_raw': item[0], 'type': _to_type(item[1]['type']),
-                              'list': item[1]['list'], 'kwargs': item[1]['kwargs']},
+            map(lambda item: {'name': item[0], **item[1], 'type': _to_type(item[1]['type'])},
                 members.items()))
     except AttributeError as ae:
         pass
