@@ -3,8 +3,8 @@ from functools import partial
 
 import lxml.etree
 
-from . import load_dataset
-from .query import XPathQuery
+from . import load_dataset, model
+from .query import XPathQuery, CustomOpExpr
 from .utils import deepupdate
 
 
@@ -113,10 +113,10 @@ class BIDSLayout:
         return artifacts
 
     def get_entities(self, scope=None, sort=False):
-        expr = '//entities'
+        select = self.dataset.select(model.EntityRef)
         if scope == 'raw':
-            expr = '*[name() != "derivatives"]' + expr
-        entities = self._query(expr)
+            select.subtree(CustomOpExpr(lambda m: not isinstance(m, model.DerivativeFolder)))
+        entities = select.objects()
         result = OrderedDict()
         for e in entities:
             if e.key not in result:

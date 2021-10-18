@@ -1,4 +1,5 @@
 import ancpbids
+from ancpbids import model, select, re, any_of, all_of, eq, op, entity
 from base_test_case import *
 
 
@@ -84,14 +85,13 @@ class QueryTestCase(BaseTestCase):
 
     def test_bidslayout_get_metadata(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
-        mdfiles = layout.get_metadata(task='mixedgamblestask', suffix='bold')
-        self.assertEqual(1, len(mdfiles))
-        task_bold_md = mdfiles[0].contents
-        self.assertEqual(2.0, task_bold_md['RepetitionTime'])
-        self.assertEqual('mixed-gambles task', task_bold_md['TaskName'])
-        self.assertListEqual([0.0, 0.0571, 0.1143, 0.1714, 0.2286, 0.2857], task_bold_md['SliceTiming'])
+        metadata = layout.get_metadata(task='mixedgamblestask', suffix='bold')
+        self.assertTrue(isinstance(metadata, dict))
+        self.assertEqual(2.0, metadata['RepetitionTime'])
+        self.assertEqual('mixed-gambles task', metadata['TaskName'])
+        self.assertListEqual([0.0, 0.0571, 0.1143, 0.1714, 0.2286, 0.2857], metadata['SliceTiming'])
 
-    def test_bidslayout_get_metadata(self):
+    def test_bidslayout_get_metadata_inheritance(self):
         layout = ancpbids.BIDSLayout(DS005_DIR + "-small")
         task_bold = layout.dataset.get_file('task-mixedgamblestask_bold.json').load_contents()
         # at the top level, RepetionTime is set to 2.0
@@ -103,6 +103,15 @@ class QueryTestCase(BaseTestCase):
 
         # now, since at subject/run level the RepetionTime is overridden, it should be 2.5
         self.assertEqual(2.5, metadata['RepetitionTime'])
+
+    def test_query_language(self):
+        ds = ancpbids.load_dataset(DS005_DIR)
+        file_paths = ds.select(model.Artifact) \
+            .where(all_of(eq(model.Artifact.suffix, model.SuffixEnum.bold.name),
+                          entity(model.EntityEnum.subject, '02'))) \
+            .file_paths()
+        file_paths = list(file_paths)
+        self.assertEqual(3, len(file_paths))
 
 
 if __name__ == '__main__':

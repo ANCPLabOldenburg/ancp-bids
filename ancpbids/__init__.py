@@ -8,7 +8,7 @@ from . import utils
 from .dsloader import DatasetLoader
 from .dssaver import DatasetSaver
 from .schema import Schema
-from .query import XPathQuery
+from .query import XPathQuery, BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, EntityExpr
 from .validator import ValidationReport
 
 SCHEMA_LATEST = Schema(model)
@@ -142,19 +142,23 @@ def get_folders_sorted(folder: model.Folder):
 setattr(model.Folder, 'get_folders_sorted', get_folders_sorted)
 
 
-def to_generator(source: model.Model, depth_first=False):
+def to_generator(source: model.Model, depth_first=False, filter_=None):
     if not depth_first:
+        if filter_ and not filter_(source):
+            return
         yield source
 
     for key, value in source.items():
         if isinstance(value, model.Model):
-            yield from to_generator(value)
+            yield from to_generator(value, depth_first, filter_)
         elif isinstance(value, list):
             for item in value:
                 if isinstance(item, model.Model):
-                    yield from to_generator(item)
+                    yield from to_generator(item, depth_first, filter_)
 
     if depth_first:
+        if filter_ and not filter_(source):
+            return
         yield source
 
 
@@ -209,6 +213,14 @@ def query(ds: model.Dataset, expr: str):
 
 setattr(model.Dataset, 'query', query)
 
+
+def select(context: model.Model, target_type):
+    return Select(context, target_type)
+
+
+setattr(model.Dataset, 'select', select)
+
+
 def validate(target: model.Model, report: ValidationReport):
     gen = to_generator(target)
     for obj in gen:
@@ -232,6 +244,14 @@ setattr(model.Model, 'validate', validate)
 
 
 from .pybids_compat import BIDSLayout
+
+select = Select
+any_of = AnyExpr
+all_of = AllExpr
+eq = EqExpr
+re = ReExpr
+op = CustomOpExpr
+entity = EntityExpr
 
 from . import _version
 
