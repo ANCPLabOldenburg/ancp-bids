@@ -3,7 +3,7 @@ from functools import partial
 
 import lxml.etree
 
-from . import load_dataset, model
+from . import load_dataset, model, LOGGER
 from .query import XPathQuery, CustomOpExpr
 from .utils import deepupdate
 
@@ -58,7 +58,7 @@ class BIDSLayout:
                         # if remaining ancestors list is not empty,
                         # this is interpreted as having the leaves from different branches
                         # for example, metadata from func/sub-01/...json must not be mixed with func/sub-02/...json
-                        raise ValueError("Query returned metadata files from incompatible sources.")
+                        LOGGER.warn("Query returned metadata files from incompatible sources.")
                     deepupdate(metadata, self.query.x2id[ancestors[i][1]].contents)
 
         return metadata
@@ -96,6 +96,8 @@ class BIDSLayout:
             v = self._scalar_or_list('value/text()', v)
             entity_filters.append('entities[key/text()="%s" and %s]' % (k, v))
         if extension:
+            if not extension.startswith("."):
+                extension = "." + extension
             v = self._scalar_or_list('extension/text()', extension)
             entity_filters.append(v)
         if suffix:

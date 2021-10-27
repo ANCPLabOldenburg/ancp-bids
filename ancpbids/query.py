@@ -76,6 +76,16 @@ class EntityExpr(CompExpr):
         return any([self.op.eval(e) for e in context.entities])
 
 
+class DatatypeExpr(CompExpr):
+    def __init__(self, key: model.DatatypeEnum, value, op=EqExpr):
+        self.op = AllExpr(EqExpr(model.EntityRef.key, key.entity_), op(model.EntityRef.value, value))
+
+    def eval(self, context) -> bool:
+        if not isinstance(context, model.Artifact):
+            raise ValueError('Datatype expression can only operate on model.Artifact')
+        return any([self.op.eval(e) for e in context.entities])
+
+
 class Select:
     def __init__(self, context: model.Model, filter_type):
         self.context = context
@@ -95,7 +105,7 @@ class Select:
             if isinstance(m, self.filter_type) and self._where.eval(m):
                 yield callback(m)
 
-    def file_paths(self):
+    def get_file_paths(self):
         return self._exec(model.File.get_relative_path)
 
     def objects(self):

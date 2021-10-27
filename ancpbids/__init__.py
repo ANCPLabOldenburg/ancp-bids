@@ -1,6 +1,7 @@
 import fnmatch
 import os
 from lxml import etree
+import logging
 
 from . import files
 from . import model
@@ -8,9 +9,11 @@ from . import utils
 from .dsloader import DatasetLoader
 from .dssaver import DatasetSaver
 from .schema import Schema
-from .query import XPathQuery, BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, EntityExpr
+from .query import XPathQuery, BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, EntityExpr, \
+    DatatypeExpr
 from .validator import ValidationReport
 
+LOGGER = logging.getLogger("ancpbids")
 SCHEMA_LATEST = Schema(model)
 
 
@@ -26,6 +29,24 @@ def save_dataset(ds: model.Dataset, target_dir: str):
 
 
 # start monkey-patching generated code
+def has_entity(artifact: model.Artifact, entity_):
+    for e in artifact.entities:
+        if e.key == entity_:
+            return True
+    return False
+
+
+setattr(model.Artifact, 'has_entity', has_entity)
+
+def get_entity(artifact: model.Artifact, entity_):
+    for e in artifact.entities:
+        if e.key == entity_:
+            return e.value
+    return None
+
+
+setattr(model.Artifact, 'get_entity', get_entity)
+
 def load_file_contents(folder: model.Folder, file_name):
     file_path = get_absolute_path(folder, file_name)
     contents = files.load_contents(file_path)
@@ -252,6 +273,7 @@ eq = EqExpr
 re = ReExpr
 op = CustomOpExpr
 entity = EntityExpr
+datatype = DatatypeExpr
 
 from . import _version
 

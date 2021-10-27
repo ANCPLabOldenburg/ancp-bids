@@ -196,7 +196,7 @@ class JsonFile(File):
 
 
 class Artifact(File):
-    r"""An artifact is a file whose name conforms to the BIDS file naming convention."""
+    r"""An artifact is a file whose name conforms to the BIDS file naming convention. https://asd asd"""
     def __init__(self):
         super(Artifact, self).__init__()
         self['suffix']: str = None
@@ -546,17 +546,9 @@ class DatatypeFolder(Folder):
 class Subject(Folder):
     def __init__(self):
         super(Subject, self).__init__()
-        self['datatypes']: List[DatatypeFolder] = []
         self['sessions']: List[Session] = []
+        self['datatypes']: List[DatatypeFolder] = []
 
-    @property
-    def datatypes(self) -> 'List[DatatypeFolder]':
-        return self['datatypes']
-    
-    @datatypes.setter
-    def datatypes(self, datatypes: 'List[DatatypeFolder]'):
-        self['datatypes'] = datatypes
-            
     @property
     def sessions(self) -> 'List[Session]':
         return self['sessions']
@@ -565,9 +557,17 @@ class Subject(Folder):
     def sessions(self, sessions: 'List[Session]'):
         self['sessions'] = sessions
             
+    @property
+    def datatypes(self) -> 'List[DatatypeFolder]':
+        return self['datatypes']
+    
+    @datatypes.setter
+    def datatypes(self, datatypes: 'List[DatatypeFolder]'):
+        self['datatypes'] = datatypes
+            
     MEMBERS = {
-        'datatypes': {'type': 'DatatypeFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
         'sessions': {'type': 'Session', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': 'ses-.*'}},
+        'datatypes': {'type': 'DatatypeFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
     }
 
 

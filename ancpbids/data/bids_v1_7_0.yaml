@@ -78,12 +78,13 @@ JsonFile:
 
 Artifact:
   .doc: >-
-    An artifact is a file whose name conforms to the BIDS file naming convention.
+    An artifact is a file whose name conforms to the BIDS file naming convention. https://asd asd
   .extends: File
   suffix:
     type: str
     use: required
   entities:
+    # TODO make this a map type, so no need to model EntityRef with key/value
     type: EntityRef
     min: 1
     max: -1
@@ -191,14 +192,16 @@ DatatypeFolder:
 
 Subject:
   .extends: Folder
-  datatypes:
-    type: DatatypeFolder
-    max: -1
+  # implementation detail: sessions must be positioned before datatypes,
+  # else datatypes will match all session folders
   sessions:
     type: Session
     max: -1
     meta:
       name_pattern: 'ses-.*'
+  datatypes:
+    type: DatatypeFolder
+    max: -1
 
 
 GeneratedBy:

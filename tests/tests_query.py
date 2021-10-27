@@ -106,10 +106,13 @@ class QueryTestCase(BaseTestCase):
 
     def test_query_language(self):
         ds = ancpbids.load_dataset(DS005_DIR)
+
+        # XPath: //artifact[entities[key/text() = 'sub' and value/text() = '02']]
+
         file_paths = ds.select(model.Artifact) \
             .where(all_of(eq(model.Artifact.suffix, model.SuffixEnum.bold.name),
                           entity(model.EntityEnum.subject, '02'))) \
-            .file_paths()
+            .get_file_paths()
         file_paths = list(file_paths)
         self.assertEqual(3, len(file_paths))
 
