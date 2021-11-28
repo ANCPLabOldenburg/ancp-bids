@@ -96,8 +96,6 @@ class BIDSLayout:
             v = self._scalar_or_list('value/text()', v)
             entity_filters.append('entities[key/text()="%s" and %s]' % (k, v))
         if extension:
-            if not extension.startswith("."):
-                extension = "." + extension
             v = self._scalar_or_list('extension/text()', extension)
             entity_filters.append(v)
         if suffix:
