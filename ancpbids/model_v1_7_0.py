@@ -6,11 +6,11 @@ class Model(dict):
     pass
 
 class MetadataFieldDefinition(Model):
-    def __init__(self):
+    def __init__(self, name=None, description=None, type=None):
         super(MetadataFieldDefinition, self).__init__()
-        self['name']: str = None
-        self['description']: str = None
-        self['type']: Dict = None
+        self['name']: str = name
+        self['description']: str = description
+        self['type']: Dict = type
 
     @property
     def name(self) -> 'str':
@@ -44,13 +44,13 @@ class MetadataFieldDefinition(Model):
 
 
 class EntitiyDefinition(Model):
-    def __init__(self):
+    def __init__(self, key=None, name=None, entity=None, description=None, type=None):
         super(EntitiyDefinition, self).__init__()
-        self['key']: str = None
-        self['name']: str = None
-        self['entity']: str = None
-        self['description']: str = None
-        self['type']: Dict = None
+        self['key']: str = key
+        self['name']: str = name
+        self['entity']: str = entity
+        self['description']: str = description
+        self['type']: Dict = type
 
     @property
     def key(self) -> 'str':
@@ -102,11 +102,11 @@ class EntitiyDefinition(Model):
 
 
 class SuffixDefinition(Model):
-    def __init__(self):
+    def __init__(self, name=None, description=None, type=None):
         super(SuffixDefinition, self).__init__()
-        self['name']: str = None
-        self['description']: str = None
-        self['type']: Dict = None
+        self['name']: str = name
+        self['description']: str = description
+        self['type']: Dict = type
 
     @property
     def name(self) -> 'str':
@@ -140,11 +140,11 @@ class SuffixDefinition(Model):
 
 
 class File(Model):
-    def __init__(self):
+    def __init__(self, name=None, extension=None, uri=None):
         super(File, self).__init__()
-        self['name']: str = None
-        self['extension']: str = None
-        self['uri']: str = None
+        self['name']: str = name
+        self['extension']: str = extension
+        self['uri']: str = uri
 
     @property
     def name(self) -> 'str':
@@ -178,9 +178,9 @@ class File(Model):
 
 
 class JsonFile(File):
-    def __init__(self):
+    def __init__(self, contents=None):
         super(JsonFile, self).__init__()
-        self['contents']: Dict = None
+        self['contents']: Dict = contents
 
     @property
     def contents(self) -> 'Dict':
@@ -197,10 +197,10 @@ class JsonFile(File):
 
 class Artifact(File):
     r"""An artifact is a file whose name conforms to the BIDS file naming convention. https://asd asd"""
-    def __init__(self):
+    def __init__(self, suffix=None, entities=[]):
         super(Artifact, self).__init__()
-        self['suffix']: str = None
-        self['entities']: List[EntityRef] = []
+        self['suffix']: str = suffix
+        self['entities']: List[EntityRef] = entities
 
     @property
     def suffix(self) -> 'str':
@@ -225,9 +225,9 @@ class Artifact(File):
 
 
 class MetadataFile(Artifact):
-    def __init__(self):
+    def __init__(self, contents=None):
         super(MetadataFile, self).__init__()
-        self['contents']: Dict = None
+        self['contents']: Dict = contents
 
     @property
     def contents(self) -> 'Dict':
@@ -243,12 +243,12 @@ class MetadataFile(Artifact):
 
 
 class Folder(Model):
-    def __init__(self):
+    def __init__(self, name=None, files=[], folders=[], metadatafiles=[]):
         super(Folder, self).__init__()
-        self['name']: str = None
-        self['files']: List[File] = []
-        self['folders']: List[Folder] = []
-        self['metadatafiles']: List[MetadataFile] = []
+        self['name']: str = name
+        self['files']: List[File] = files
+        self['folders']: List[Folder] = folders
+        self['metadatafiles']: List[MetadataFile] = metadatafiles
 
     @property
     def name(self) -> 'str':
@@ -291,10 +291,10 @@ class Folder(Model):
 
 
 class EntityRef(Model):
-    def __init__(self):
+    def __init__(self, key=None, value=None):
         super(EntityRef, self).__init__()
-        self['key']: str = None
-        self['value']: str = None
+        self['key']: str = key
+        self['value']: str = value
 
     @property
     def key(self) -> 'str':
@@ -323,20 +323,20 @@ class DatasetDescriptionFile(JsonFile):
         raw = auto()
         derivative = auto()
 
-    def __init__(self):
+    def __init__(self, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType=None, License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=[], Funding=[], EthicsApprovals=[], ReferencesAndLinks=[]):
         super(DatasetDescriptionFile, self).__init__()
-        self['Name']: str = None
-        self['BIDSVersion']: str = None
-        self['HEDVersion']: str = None
-        self['DatasetType']: DatasetDescriptionFile.DatasetTypeEnum = None
-        self['License']: str = None
-        self['Acknowledgements']: str = None
-        self['HowToAcknowledge']: str = None
-        self['DatasetDOI']: str = None
-        self['Authors']: List[str] = []
-        self['Funding']: List[str] = []
-        self['EthicsApprovals']: List[str] = []
-        self['ReferencesAndLinks']: List[str] = []
+        self['Name']: str = Name
+        self['BIDSVersion']: str = BIDSVersion
+        self['HEDVersion']: str = HEDVersion
+        self['DatasetType']: DatasetDescriptionFile.DatasetTypeEnum = DatasetType
+        self['License']: str = License
+        self['Acknowledgements']: str = Acknowledgements
+        self['HowToAcknowledge']: str = HowToAcknowledge
+        self['DatasetDOI']: str = DatasetDOI
+        self['Authors']: List[str] = Authors
+        self['Funding']: List[str] = Funding
+        self['EthicsApprovals']: List[str] = EthicsApprovals
+        self['ReferencesAndLinks']: List[str] = ReferencesAndLinks
 
     @property
     def Name(self) -> 'str':
@@ -452,10 +452,10 @@ class DatasetDescriptionFile(JsonFile):
 
 
 class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
-    def __init__(self):
+    def __init__(self, GeneratedBy=[], SourceDatasets=[]):
         super(DerivativeDatasetDescriptionFile, self).__init__()
-        self['GeneratedBy']: List[GeneratedBy] = []
-        self['SourceDatasets']: List[SourceDatasets] = []
+        self['GeneratedBy']: List[GeneratedBy] = GeneratedBy
+        self['SourceDatasets']: List[SourceDatasets] = SourceDatasets
 
     @property
     def GeneratedBy(self) -> 'List[GeneratedBy]':
@@ -480,10 +480,10 @@ class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
 
 
 class DerivativeFolder(Folder):
-    def __init__(self):
+    def __init__(self, dataset_description=None, derivatives=[]):
         super(DerivativeFolder, self).__init__()
-        self['dataset_description']: DerivativeDatasetDescriptionFile = None
-        self['derivatives']: List[DerivativeFolder] = []
+        self['dataset_description']: DerivativeDatasetDescriptionFile = dataset_description
+        self['derivatives']: List[DerivativeFolder] = derivatives
 
     @property
     def dataset_description(self) -> 'DerivativeDatasetDescriptionFile':
@@ -508,9 +508,9 @@ class DerivativeFolder(Folder):
 
 
 class Session(Folder):
-    def __init__(self):
+    def __init__(self, datatypes=[]):
         super(Session, self).__init__()
-        self['datatypes']: List[DatatypeFolder] = []
+        self['datatypes']: List[DatatypeFolder] = datatypes
 
     @property
     def datatypes(self) -> 'List[DatatypeFolder]':
@@ -526,9 +526,9 @@ class Session(Folder):
 
 
 class DatatypeFolder(Folder):
-    def __init__(self):
+    def __init__(self, artifacts=[]):
         super(DatatypeFolder, self).__init__()
-        self['artifacts']: List[Artifact] = []
+        self['artifacts']: List[Artifact] = artifacts
 
     @property
     def artifacts(self) -> 'List[Artifact]':
@@ -544,10 +544,10 @@ class DatatypeFolder(Folder):
 
 
 class Subject(Folder):
-    def __init__(self):
+    def __init__(self, sessions=[], datatypes=[]):
         super(Subject, self).__init__()
-        self['sessions']: List[Session] = []
-        self['datatypes']: List[DatatypeFolder] = []
+        self['sessions']: List[Session] = sessions
+        self['datatypes']: List[DatatypeFolder] = datatypes
 
     @property
     def sessions(self) -> 'List[Session]':
@@ -572,13 +572,13 @@ class Subject(Folder):
 
 
 class GeneratedBy(Model):
-    def __init__(self):
+    def __init__(self, Name=None, Version=None, Description=None, CodeURL=None, Container=[]):
         super(GeneratedBy, self).__init__()
-        self['Name']: str = None
-        self['Version']: str = None
-        self['Description']: str = None
-        self['CodeURL']: str = None
-        self['Container']: List[GeneratedByContainer] = []
+        self['Name']: str = Name
+        self['Version']: str = Version
+        self['Description']: str = Description
+        self['CodeURL']: str = CodeURL
+        self['Container']: List[GeneratedByContainer] = Container
 
     @property
     def Name(self) -> 'str':
@@ -630,11 +630,11 @@ class GeneratedBy(Model):
 
 
 class SourceDatasets(Model):
-    def __init__(self):
+    def __init__(self, DOI=None, URL=None, Version=None):
         super(SourceDatasets, self).__init__()
-        self['DOI']: str = None
-        self['URL']: str = None
-        self['Version']: str = None
+        self['DOI']: str = DOI
+        self['URL']: str = URL
+        self['Version']: str = Version
 
     @property
     def DOI(self) -> 'str':
@@ -668,11 +668,11 @@ class SourceDatasets(Model):
 
 
 class GeneratedByContainer(Model):
-    def __init__(self):
+    def __init__(self, Type=None, Tag=None, URI=None):
         super(GeneratedByContainer, self).__init__()
-        self['Type']: str = None
-        self['Tag']: str = None
-        self['URI']: str = None
+        self['Type']: str = Type
+        self['Tag']: str = Tag
+        self['URI']: str = URI
 
     @property
     def Type(self) -> 'str':
@@ -706,21 +706,21 @@ class GeneratedByContainer(Model):
 
 
 class Dataset(Folder):
-    def __init__(self):
+    def __init__(self, subjects=[], dataset_description=None, README=None, CHANGES=None, LICENSE=None, genetic_info=None, samples=None, participants_tsv=None, participants_json=None, code=None, derivatives=None, sourcedata=None, stimuli=None):
         super(Dataset, self).__init__()
-        self['subjects']: List[Subject] = []
-        self['dataset_description']: DatasetDescriptionFile = None
-        self['README']: File = None
-        self['CHANGES']: File = None
-        self['LICENSE']: File = None
-        self['genetic_info']: JsonFile = None
-        self['samples']: JsonFile = None
-        self['participants_tsv']: File = None
-        self['participants_json']: JsonFile = None
-        self['code']: Folder = None
-        self['derivatives']: DerivativeFolder = None
-        self['sourcedata']: Folder = None
-        self['stimuli']: Folder = None
+        self['subjects']: List[Subject] = subjects
+        self['dataset_description']: DatasetDescriptionFile = dataset_description
+        self['README']: File = README
+        self['CHANGES']: File = CHANGES
+        self['LICENSE']: File = LICENSE
+        self['genetic_info']: JsonFile = genetic_info
+        self['samples']: JsonFile = samples
+        self['participants_tsv']: File = participants_tsv
+        self['participants_json']: JsonFile = participants_json
+        self['code']: Folder = code
+        self['derivatives']: DerivativeFolder = derivatives
+        self['sourcedata']: Folder = sourcedata
+        self['stimuli']: Folder = stimuli
 
     @property
     def subjects(self) -> 'List[Subject]':
@@ -863,6 +863,7 @@ class DatatypeEnum(Enum):
     perf = r"Perfusion imaging"
     r"""Blood perfusion imaging data, including arterial spin labeling (ASL)"""
     pet = r"Positron Emission Tomography"
+    r"""Positron emission tomography data"""
 
 class ModalityEnum(Enum):
     mri = r"Magnetic Resonance Imaging"
@@ -1119,7 +1120,7 @@ generate them.
 Note that although this image is T1-weighted, regions without MR signal will
 contain white salt-and-pepper noise that most segmentation algorithms will
 fail on.
-Therefore, it is important to dissociate it from from `T1w`.
+Therefore, it is important to dissociate it from `T1w`.
 Please see [`MP2RAGE` specific notes](/99-appendices/11-qmri.html#unit1-images)
 in the qMRI appendix for further information."""
     VFA = r"Variable flip angle", r""
@@ -1163,7 +1164,7 @@ head localization coils, and anatomical landmarks."""
     r"""A binary mask that was used to remove facial features from an anatomical MRI
 image."""
     dwi = r"Diffusion-weighted image", r""
-    r"""Diffusion-weighted imaging contrast (specialized T2\* weighting)."""
+    r"""Diffusion-weighted imaging contrast (specialized T2 weighting)."""
     eeg = r"Electroencephalography", r""
     r"""Electroencephalography recording data."""
     electrodes = r"Electrodes", r""
@@ -1282,7 +1283,7 @@ Those labels MUST be consistent across subjects and sessions."""
 user MAY use to distinguish a different set of parameters used for
 acquiring the same modality.
 For example this should be used when a study includes two T1w images - one
-full brain low resolution and and one restricted field of view but high
+full brain low resolution and one restricted field of view but high
 resolution.
 In such case two files could have the following names:
 `sub-01_acq-highres_T1w.nii.gz` and `sub-01_acq-lowres_T1w.nii.gz`, however
@@ -1386,6 +1387,10 @@ This is useful for files produced in particular by Elekta's MaxFilter
 which some installations impose to be run on raw data because of active
 shielding software corrections before the MEG data can actually be
 exploited."""
+    hemisphere = r"Hemisphere", r"hemi", r"string", r"label"
+    r"""The `hemi-<label>` entity indicates which hemibrain is described by the file.
+Allowed label values for this entity are `L` and `R`, for the left and right
+hemibrains, respectively."""
     space = r"Space", r"space", r"string", r"label"
     r"""The space entity can be used to indicate
 the way in which electrode positions are interpreted

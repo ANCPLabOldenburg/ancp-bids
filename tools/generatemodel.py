@@ -98,10 +98,13 @@ class ClassGenerator:
                     self.append(f"        {literal} = auto()")
                 self.append()
 
-        self.append(f"    def __init__(self):")
+        init_params = ', '.join(["%s=%s" % (key, type_info['init']) for key, type_info, doc in fields])
+        if init_params:
+            init_params = ", " + init_params
+        self.append(f"    def __init__(self%s):" % init_params)
         self.append(f"        super({name}, self).__init__()")
         for key, type_info, doc in fields:
-            var_init = f"self['{key}']: {type_info['typehint']} = {type_info['init']}"
+            var_init = f"self['{key}']: {type_info['typehint']} = {key}"
             self.append(f"        {var_init}")
 
         self.append()
