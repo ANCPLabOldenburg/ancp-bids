@@ -3,19 +3,20 @@ from typing import List, Union, Dict, Any
 from math import inf
 
 class Model(dict):
-    pass
+    def __init__(self, *args, **kwargs):
+        pass
 
 class MetadataFieldDefinition(Model):
-    def __init__(self, name=None, description=None, type=None):
+    def __init__(self, name: 'str' = None, description: 'str' = None, type: 'Dict' = None):
         super(MetadataFieldDefinition, self).__init__()
-        self['name']: str = name
-        self['description']: str = description
-        self['type']: Dict = type
+        self['name'] = name or None
+        self['description'] = description or None
+        self['type'] = type or None
 
     @property
     def name(self) -> 'str':
         return self['name']
-    
+
     @name.setter
     def name(self, name: 'str'):
         self['name'] = name
@@ -23,7 +24,7 @@ class MetadataFieldDefinition(Model):
     @property
     def description(self) -> 'str':
         return self['description']
-    
+
     @description.setter
     def description(self, description: 'str'):
         self['description'] = description
@@ -31,7 +32,7 @@ class MetadataFieldDefinition(Model):
     @property
     def type(self) -> 'Dict':
         return self['type']
-    
+
     @type.setter
     def type(self, type: 'Dict'):
         self['type'] = type
@@ -44,18 +45,18 @@ class MetadataFieldDefinition(Model):
 
 
 class EntitiyDefinition(Model):
-    def __init__(self, key=None, name=None, entity=None, description=None, type=None):
+    def __init__(self, key: 'str' = None, name: 'str' = None, entity: 'str' = None, description: 'str' = None, type: 'Dict' = None):
         super(EntitiyDefinition, self).__init__()
-        self['key']: str = key
-        self['name']: str = name
-        self['entity']: str = entity
-        self['description']: str = description
-        self['type']: Dict = type
+        self['key'] = key or None
+        self['name'] = name or None
+        self['entity'] = entity or None
+        self['description'] = description or None
+        self['type'] = type or None
 
     @property
     def key(self) -> 'str':
         return self['key']
-    
+
     @key.setter
     def key(self, key: 'str'):
         self['key'] = key
@@ -63,7 +64,7 @@ class EntitiyDefinition(Model):
     @property
     def name(self) -> 'str':
         return self['name']
-    
+
     @name.setter
     def name(self, name: 'str'):
         self['name'] = name
@@ -71,7 +72,7 @@ class EntitiyDefinition(Model):
     @property
     def entity(self) -> 'str':
         return self['entity']
-    
+
     @entity.setter
     def entity(self, entity: 'str'):
         self['entity'] = entity
@@ -79,7 +80,7 @@ class EntitiyDefinition(Model):
     @property
     def description(self) -> 'str':
         return self['description']
-    
+
     @description.setter
     def description(self, description: 'str'):
         self['description'] = description
@@ -87,7 +88,7 @@ class EntitiyDefinition(Model):
     @property
     def type(self) -> 'Dict':
         return self['type']
-    
+
     @type.setter
     def type(self, type: 'Dict'):
         self['type'] = type
@@ -102,16 +103,16 @@ class EntitiyDefinition(Model):
 
 
 class SuffixDefinition(Model):
-    def __init__(self, name=None, description=None, type=None):
+    def __init__(self, name: 'str' = None, description: 'str' = None, type: 'Dict' = None):
         super(SuffixDefinition, self).__init__()
-        self['name']: str = name
-        self['description']: str = description
-        self['type']: Dict = type
+        self['name'] = name or None
+        self['description'] = description or None
+        self['type'] = type or None
 
     @property
     def name(self) -> 'str':
         return self['name']
-    
+
     @name.setter
     def name(self, name: 'str'):
         self['name'] = name
@@ -119,7 +120,7 @@ class SuffixDefinition(Model):
     @property
     def description(self) -> 'str':
         return self['description']
-    
+
     @description.setter
     def description(self, description: 'str'):
         self['description'] = description
@@ -127,7 +128,7 @@ class SuffixDefinition(Model):
     @property
     def type(self) -> 'Dict':
         return self['type']
-    
+
     @type.setter
     def type(self, type: 'Dict'):
         self['type'] = type
@@ -140,16 +141,16 @@ class SuffixDefinition(Model):
 
 
 class File(Model):
-    def __init__(self, name=None, extension=None, uri=None):
+    def __init__(self, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
         super(File, self).__init__()
-        self['name']: str = name
-        self['extension']: str = extension
-        self['uri']: str = uri
+        self['name'] = name or None
+        self['extension'] = extension or None
+        self['uri'] = uri or None
 
     @property
     def name(self) -> 'str':
         return self['name']
-    
+
     @name.setter
     def name(self, name: 'str'):
         self['name'] = name
@@ -157,7 +158,7 @@ class File(Model):
     @property
     def extension(self) -> 'str':
         return self['extension']
-    
+
     @extension.setter
     def extension(self, extension: 'str'):
         self['extension'] = extension
@@ -165,7 +166,7 @@ class File(Model):
     @property
     def uri(self) -> 'str':
         return self['uri']
-    
+
     @uri.setter
     def uri(self, uri: 'str'):
         self['uri'] = uri
@@ -178,14 +179,14 @@ class File(Model):
 
 
 class JsonFile(File):
-    def __init__(self, contents=None):
-        super(JsonFile, self).__init__()
-        self['contents']: Dict = contents
+    def __init__(self, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(JsonFile, self).__init__(name or None, extension or None, uri or None)
+        self['contents'] = contents or None
 
     @property
     def contents(self) -> 'Dict':
         return self['contents']
-    
+
     @contents.setter
     def contents(self, contents: 'Dict'):
         self['contents'] = contents
@@ -196,16 +197,16 @@ class JsonFile(File):
 
 
 class Artifact(File):
-    r"""An artifact is a file whose name conforms to the BIDS file naming convention. https://asd asd"""
-    def __init__(self, suffix=None, entities=[]):
-        super(Artifact, self).__init__()
-        self['suffix']: str = suffix
-        self['entities']: List[EntityRef] = entities
+    r"""An artifact is a file whose name conforms to the BIDS file naming convention."""
+    def __init__(self, suffix: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(Artifact, self).__init__(name or None, extension or None, uri or None)
+        self['suffix'] = suffix or None
+        self['entities'] = entities or []
 
     @property
     def suffix(self) -> 'str':
         return self['suffix']
-    
+
     @suffix.setter
     def suffix(self, suffix: 'str'):
         self['suffix'] = suffix
@@ -213,7 +214,7 @@ class Artifact(File):
     @property
     def entities(self) -> 'List[EntityRef]':
         return self['entities']
-    
+
     @entities.setter
     def entities(self, entities: 'List[EntityRef]'):
         self['entities'] = entities
@@ -225,14 +226,14 @@ class Artifact(File):
 
 
 class MetadataFile(Artifact):
-    def __init__(self, contents=None):
-        super(MetadataFile, self).__init__()
-        self['contents']: Dict = contents
+    def __init__(self, contents: 'Dict' = None, suffix: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(MetadataFile, self).__init__(suffix or None, entities or [], name or None, extension or None, uri or None)
+        self['contents'] = contents or None
 
     @property
     def contents(self) -> 'Dict':
         return self['contents']
-    
+
     @contents.setter
     def contents(self, contents: 'Dict'):
         self['contents'] = contents
@@ -243,17 +244,17 @@ class MetadataFile(Artifact):
 
 
 class Folder(Model):
-    def __init__(self, name=None, files=[], folders=[], metadatafiles=[]):
+    def __init__(self, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
         super(Folder, self).__init__()
-        self['name']: str = name
-        self['files']: List[File] = files
-        self['folders']: List[Folder] = folders
-        self['metadatafiles']: List[MetadataFile] = metadatafiles
+        self['name'] = name or None
+        self['files'] = files or []
+        self['folders'] = folders or []
+        self['metadatafiles'] = metadatafiles or []
 
     @property
     def name(self) -> 'str':
         return self['name']
-    
+
     @name.setter
     def name(self, name: 'str'):
         self['name'] = name
@@ -261,7 +262,7 @@ class Folder(Model):
     @property
     def files(self) -> 'List[File]':
         return self['files']
-    
+
     @files.setter
     def files(self, files: 'List[File]'):
         self['files'] = files
@@ -269,7 +270,7 @@ class Folder(Model):
     @property
     def folders(self) -> 'List[Folder]':
         return self['folders']
-    
+
     @folders.setter
     def folders(self, folders: 'List[Folder]'):
         self['folders'] = folders
@@ -277,7 +278,7 @@ class Folder(Model):
     @property
     def metadatafiles(self) -> 'List[MetadataFile]':
         return self['metadatafiles']
-    
+
     @metadatafiles.setter
     def metadatafiles(self, metadatafiles: 'List[MetadataFile]'):
         self['metadatafiles'] = metadatafiles
@@ -291,15 +292,15 @@ class Folder(Model):
 
 
 class EntityRef(Model):
-    def __init__(self, key=None, value=None):
+    def __init__(self, key: 'str' = None, value: 'str' = None):
         super(EntityRef, self).__init__()
-        self['key']: str = key
-        self['value']: str = value
+        self['key'] = key or None
+        self['value'] = value or None
 
     @property
     def key(self) -> 'str':
         return self['key']
-    
+
     @key.setter
     def key(self, key: 'str'):
         self['key'] = key
@@ -307,7 +308,7 @@ class EntityRef(Model):
     @property
     def value(self) -> 'str':
         return self['value']
-    
+
     @value.setter
     def value(self, value: 'str'):
         self['value'] = value
@@ -323,25 +324,25 @@ class DatasetDescriptionFile(JsonFile):
         raw = auto()
         derivative = auto()
 
-    def __init__(self, Name=None, BIDSVersion=None, HEDVersion=None, DatasetType=None, License=None, Acknowledgements=None, HowToAcknowledge=None, DatasetDOI=None, Authors=[], Funding=[], EthicsApprovals=[], ReferencesAndLinks=[]):
-        super(DatasetDescriptionFile, self).__init__()
-        self['Name']: str = Name
-        self['BIDSVersion']: str = BIDSVersion
-        self['HEDVersion']: str = HEDVersion
-        self['DatasetType']: DatasetDescriptionFile.DatasetTypeEnum = DatasetType
-        self['License']: str = License
-        self['Acknowledgements']: str = Acknowledgements
-        self['HowToAcknowledge']: str = HowToAcknowledge
-        self['DatasetDOI']: str = DatasetDOI
-        self['Authors']: List[str] = Authors
-        self['Funding']: List[str] = Funding
-        self['EthicsApprovals']: List[str] = EthicsApprovals
-        self['ReferencesAndLinks']: List[str] = ReferencesAndLinks
+    def __init__(self, Name: 'str' = None, BIDSVersion: 'str' = None, HEDVersion: 'str' = None, DatasetType: 'DatasetDescriptionFile.DatasetTypeEnum' = None, License: 'str' = None, Acknowledgements: 'str' = None, HowToAcknowledge: 'str' = None, DatasetDOI: 'str' = None, Authors: 'List[str]' = None, Funding: 'List[str]' = None, EthicsApprovals: 'List[str]' = None, ReferencesAndLinks: 'List[str]' = None, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(DatasetDescriptionFile, self).__init__(contents or None, name or None, extension or None, uri or None)
+        self['Name'] = Name or None
+        self['BIDSVersion'] = BIDSVersion or None
+        self['HEDVersion'] = HEDVersion or None
+        self['DatasetType'] = DatasetType or None
+        self['License'] = License or None
+        self['Acknowledgements'] = Acknowledgements or None
+        self['HowToAcknowledge'] = HowToAcknowledge or None
+        self['DatasetDOI'] = DatasetDOI or None
+        self['Authors'] = Authors or []
+        self['Funding'] = Funding or []
+        self['EthicsApprovals'] = EthicsApprovals or []
+        self['ReferencesAndLinks'] = ReferencesAndLinks or []
 
     @property
     def Name(self) -> 'str':
         return self['Name']
-    
+
     @Name.setter
     def Name(self, Name: 'str'):
         self['Name'] = Name
@@ -349,7 +350,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def BIDSVersion(self) -> 'str':
         return self['BIDSVersion']
-    
+
     @BIDSVersion.setter
     def BIDSVersion(self, BIDSVersion: 'str'):
         self['BIDSVersion'] = BIDSVersion
@@ -357,7 +358,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def HEDVersion(self) -> 'str':
         return self['HEDVersion']
-    
+
     @HEDVersion.setter
     def HEDVersion(self, HEDVersion: 'str'):
         self['HEDVersion'] = HEDVersion
@@ -366,7 +367,7 @@ class DatasetDescriptionFile(JsonFile):
     def DatasetType(self) -> 'DatasetDescriptionFile.DatasetTypeEnum':
         r"""The interpretation of the dataset. MUST be one of "raw" or "derivative". For backwards compatibility, the default value is "raw"."""
         return self['DatasetType']
-    
+
     @DatasetType.setter
     def DatasetType(self, DatasetType: 'DatasetDescriptionFile.DatasetTypeEnum'):
         self['DatasetType'] = DatasetType
@@ -374,7 +375,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def License(self) -> 'str':
         return self['License']
-    
+
     @License.setter
     def License(self, License: 'str'):
         self['License'] = License
@@ -382,7 +383,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def Acknowledgements(self) -> 'str':
         return self['Acknowledgements']
-    
+
     @Acknowledgements.setter
     def Acknowledgements(self, Acknowledgements: 'str'):
         self['Acknowledgements'] = Acknowledgements
@@ -390,7 +391,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def HowToAcknowledge(self) -> 'str':
         return self['HowToAcknowledge']
-    
+
     @HowToAcknowledge.setter
     def HowToAcknowledge(self, HowToAcknowledge: 'str'):
         self['HowToAcknowledge'] = HowToAcknowledge
@@ -398,7 +399,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def DatasetDOI(self) -> 'str':
         return self['DatasetDOI']
-    
+
     @DatasetDOI.setter
     def DatasetDOI(self, DatasetDOI: 'str'):
         self['DatasetDOI'] = DatasetDOI
@@ -406,7 +407,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def Authors(self) -> 'List[str]':
         return self['Authors']
-    
+
     @Authors.setter
     def Authors(self, Authors: 'List[str]'):
         self['Authors'] = Authors
@@ -414,7 +415,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def Funding(self) -> 'List[str]':
         return self['Funding']
-    
+
     @Funding.setter
     def Funding(self, Funding: 'List[str]'):
         self['Funding'] = Funding
@@ -422,7 +423,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def EthicsApprovals(self) -> 'List[str]':
         return self['EthicsApprovals']
-    
+
     @EthicsApprovals.setter
     def EthicsApprovals(self, EthicsApprovals: 'List[str]'):
         self['EthicsApprovals'] = EthicsApprovals
@@ -430,7 +431,7 @@ class DatasetDescriptionFile(JsonFile):
     @property
     def ReferencesAndLinks(self) -> 'List[str]':
         return self['ReferencesAndLinks']
-    
+
     @ReferencesAndLinks.setter
     def ReferencesAndLinks(self, ReferencesAndLinks: 'List[str]'):
         self['ReferencesAndLinks'] = ReferencesAndLinks
@@ -452,15 +453,15 @@ class DatasetDescriptionFile(JsonFile):
 
 
 class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
-    def __init__(self, GeneratedBy=[], SourceDatasets=[]):
-        super(DerivativeDatasetDescriptionFile, self).__init__()
-        self['GeneratedBy']: List[GeneratedBy] = GeneratedBy
-        self['SourceDatasets']: List[SourceDatasets] = SourceDatasets
+    def __init__(self, GeneratedBy: 'List[GeneratedBy]' = None, SourceDatasets: 'List[SourceDatasets]' = None, Name: 'str' = None, BIDSVersion: 'str' = None, HEDVersion: 'str' = None, DatasetType: 'DatasetDescriptionFile.DatasetTypeEnum' = None, License: 'str' = None, Acknowledgements: 'str' = None, HowToAcknowledge: 'str' = None, DatasetDOI: 'str' = None, Authors: 'List[str]' = None, Funding: 'List[str]' = None, EthicsApprovals: 'List[str]' = None, ReferencesAndLinks: 'List[str]' = None, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(DerivativeDatasetDescriptionFile, self).__init__(Name or None, BIDSVersion or None, HEDVersion or None, DatasetType or None, License or None, Acknowledgements or None, HowToAcknowledge or None, DatasetDOI or None, Authors or [], Funding or [], EthicsApprovals or [], ReferencesAndLinks or [], contents or None, name or None, extension or None, uri or None)
+        self['GeneratedBy'] = GeneratedBy or []
+        self['SourceDatasets'] = SourceDatasets or []
 
     @property
     def GeneratedBy(self) -> 'List[GeneratedBy]':
         return self['GeneratedBy']
-    
+
     @GeneratedBy.setter
     def GeneratedBy(self, GeneratedBy: 'List[GeneratedBy]'):
         self['GeneratedBy'] = GeneratedBy
@@ -468,7 +469,7 @@ class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
     @property
     def SourceDatasets(self) -> 'List[SourceDatasets]':
         return self['SourceDatasets']
-    
+
     @SourceDatasets.setter
     def SourceDatasets(self, SourceDatasets: 'List[SourceDatasets]'):
         self['SourceDatasets'] = SourceDatasets
@@ -480,15 +481,15 @@ class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
 
 
 class DerivativeFolder(Folder):
-    def __init__(self, dataset_description=None, derivatives=[]):
-        super(DerivativeFolder, self).__init__()
-        self['dataset_description']: DerivativeDatasetDescriptionFile = dataset_description
-        self['derivatives']: List[DerivativeFolder] = derivatives
+    def __init__(self, dataset_description: 'DerivativeDatasetDescriptionFile' = None, derivatives: 'List[DerivativeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
+        super(DerivativeFolder, self).__init__(name or None, files or [], folders or [], metadatafiles or [])
+        self['dataset_description'] = dataset_description or None
+        self['derivatives'] = derivatives or []
 
     @property
     def dataset_description(self) -> 'DerivativeDatasetDescriptionFile':
         return self['dataset_description']
-    
+
     @dataset_description.setter
     def dataset_description(self, dataset_description: 'DerivativeDatasetDescriptionFile'):
         self['dataset_description'] = dataset_description
@@ -496,7 +497,7 @@ class DerivativeFolder(Folder):
     @property
     def derivatives(self) -> 'List[DerivativeFolder]':
         return self['derivatives']
-    
+
     @derivatives.setter
     def derivatives(self, derivatives: 'List[DerivativeFolder]'):
         self['derivatives'] = derivatives
@@ -508,14 +509,14 @@ class DerivativeFolder(Folder):
 
 
 class Session(Folder):
-    def __init__(self, datatypes=[]):
-        super(Session, self).__init__()
-        self['datatypes']: List[DatatypeFolder] = datatypes
+    def __init__(self, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
+        super(Session, self).__init__(name or None, files or [], folders or [], metadatafiles or [])
+        self['datatypes'] = datatypes or []
 
     @property
     def datatypes(self) -> 'List[DatatypeFolder]':
         return self['datatypes']
-    
+
     @datatypes.setter
     def datatypes(self, datatypes: 'List[DatatypeFolder]'):
         self['datatypes'] = datatypes
@@ -526,14 +527,14 @@ class Session(Folder):
 
 
 class DatatypeFolder(Folder):
-    def __init__(self, artifacts=[]):
-        super(DatatypeFolder, self).__init__()
-        self['artifacts']: List[Artifact] = artifacts
+    def __init__(self, artifacts: 'List[Artifact]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
+        super(DatatypeFolder, self).__init__(name or None, files or [], folders or [], metadatafiles or [])
+        self['artifacts'] = artifacts or []
 
     @property
     def artifacts(self) -> 'List[Artifact]':
         return self['artifacts']
-    
+
     @artifacts.setter
     def artifacts(self, artifacts: 'List[Artifact]'):
         self['artifacts'] = artifacts
@@ -544,15 +545,15 @@ class DatatypeFolder(Folder):
 
 
 class Subject(Folder):
-    def __init__(self, sessions=[], datatypes=[]):
-        super(Subject, self).__init__()
-        self['sessions']: List[Session] = sessions
-        self['datatypes']: List[DatatypeFolder] = datatypes
+    def __init__(self, sessions: 'List[Session]' = None, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
+        super(Subject, self).__init__(name or None, files or [], folders or [], metadatafiles or [])
+        self['sessions'] = sessions or []
+        self['datatypes'] = datatypes or []
 
     @property
     def sessions(self) -> 'List[Session]':
         return self['sessions']
-    
+
     @sessions.setter
     def sessions(self, sessions: 'List[Session]'):
         self['sessions'] = sessions
@@ -560,7 +561,7 @@ class Subject(Folder):
     @property
     def datatypes(self) -> 'List[DatatypeFolder]':
         return self['datatypes']
-    
+
     @datatypes.setter
     def datatypes(self, datatypes: 'List[DatatypeFolder]'):
         self['datatypes'] = datatypes
@@ -572,18 +573,18 @@ class Subject(Folder):
 
 
 class GeneratedBy(Model):
-    def __init__(self, Name=None, Version=None, Description=None, CodeURL=None, Container=[]):
+    def __init__(self, Name: 'str' = None, Version: 'str' = None, Description: 'str' = None, CodeURL: 'str' = None, Container: 'List[GeneratedByContainer]' = None):
         super(GeneratedBy, self).__init__()
-        self['Name']: str = Name
-        self['Version']: str = Version
-        self['Description']: str = Description
-        self['CodeURL']: str = CodeURL
-        self['Container']: List[GeneratedByContainer] = Container
+        self['Name'] = Name or None
+        self['Version'] = Version or None
+        self['Description'] = Description or None
+        self['CodeURL'] = CodeURL or None
+        self['Container'] = Container or []
 
     @property
     def Name(self) -> 'str':
         return self['Name']
-    
+
     @Name.setter
     def Name(self, Name: 'str'):
         self['Name'] = Name
@@ -591,7 +592,7 @@ class GeneratedBy(Model):
     @property
     def Version(self) -> 'str':
         return self['Version']
-    
+
     @Version.setter
     def Version(self, Version: 'str'):
         self['Version'] = Version
@@ -599,7 +600,7 @@ class GeneratedBy(Model):
     @property
     def Description(self) -> 'str':
         return self['Description']
-    
+
     @Description.setter
     def Description(self, Description: 'str'):
         self['Description'] = Description
@@ -607,7 +608,7 @@ class GeneratedBy(Model):
     @property
     def CodeURL(self) -> 'str':
         return self['CodeURL']
-    
+
     @CodeURL.setter
     def CodeURL(self, CodeURL: 'str'):
         self['CodeURL'] = CodeURL
@@ -615,7 +616,7 @@ class GeneratedBy(Model):
     @property
     def Container(self) -> 'List[GeneratedByContainer]':
         return self['Container']
-    
+
     @Container.setter
     def Container(self, Container: 'List[GeneratedByContainer]'):
         self['Container'] = Container
@@ -630,16 +631,16 @@ class GeneratedBy(Model):
 
 
 class SourceDatasets(Model):
-    def __init__(self, DOI=None, URL=None, Version=None):
+    def __init__(self, DOI: 'str' = None, URL: 'str' = None, Version: 'str' = None):
         super(SourceDatasets, self).__init__()
-        self['DOI']: str = DOI
-        self['URL']: str = URL
-        self['Version']: str = Version
+        self['DOI'] = DOI or None
+        self['URL'] = URL or None
+        self['Version'] = Version or None
 
     @property
     def DOI(self) -> 'str':
         return self['DOI']
-    
+
     @DOI.setter
     def DOI(self, DOI: 'str'):
         self['DOI'] = DOI
@@ -647,7 +648,7 @@ class SourceDatasets(Model):
     @property
     def URL(self) -> 'str':
         return self['URL']
-    
+
     @URL.setter
     def URL(self, URL: 'str'):
         self['URL'] = URL
@@ -655,7 +656,7 @@ class SourceDatasets(Model):
     @property
     def Version(self) -> 'str':
         return self['Version']
-    
+
     @Version.setter
     def Version(self, Version: 'str'):
         self['Version'] = Version
@@ -668,16 +669,16 @@ class SourceDatasets(Model):
 
 
 class GeneratedByContainer(Model):
-    def __init__(self, Type=None, Tag=None, URI=None):
+    def __init__(self, Type: 'str' = None, Tag: 'str' = None, URI: 'str' = None):
         super(GeneratedByContainer, self).__init__()
-        self['Type']: str = Type
-        self['Tag']: str = Tag
-        self['URI']: str = URI
+        self['Type'] = Type or None
+        self['Tag'] = Tag or None
+        self['URI'] = URI or None
 
     @property
     def Type(self) -> 'str':
         return self['Type']
-    
+
     @Type.setter
     def Type(self, Type: 'str'):
         self['Type'] = Type
@@ -685,7 +686,7 @@ class GeneratedByContainer(Model):
     @property
     def Tag(self) -> 'str':
         return self['Tag']
-    
+
     @Tag.setter
     def Tag(self, Tag: 'str'):
         self['Tag'] = Tag
@@ -693,7 +694,7 @@ class GeneratedByContainer(Model):
     @property
     def URI(self) -> 'str':
         return self['URI']
-    
+
     @URI.setter
     def URI(self, URI: 'str'):
         self['URI'] = URI
@@ -706,26 +707,26 @@ class GeneratedByContainer(Model):
 
 
 class Dataset(Folder):
-    def __init__(self, subjects=[], dataset_description=None, README=None, CHANGES=None, LICENSE=None, genetic_info=None, samples=None, participants_tsv=None, participants_json=None, code=None, derivatives=None, sourcedata=None, stimuli=None):
-        super(Dataset, self).__init__()
-        self['subjects']: List[Subject] = subjects
-        self['dataset_description']: DatasetDescriptionFile = dataset_description
-        self['README']: File = README
-        self['CHANGES']: File = CHANGES
-        self['LICENSE']: File = LICENSE
-        self['genetic_info']: JsonFile = genetic_info
-        self['samples']: JsonFile = samples
-        self['participants_tsv']: File = participants_tsv
-        self['participants_json']: JsonFile = participants_json
-        self['code']: Folder = code
-        self['derivatives']: DerivativeFolder = derivatives
-        self['sourcedata']: Folder = sourcedata
-        self['stimuli']: Folder = stimuli
+    def __init__(self, subjects: 'List[Subject]' = None, dataset_description: 'DatasetDescriptionFile' = None, README: 'File' = None, CHANGES: 'File' = None, LICENSE: 'File' = None, genetic_info: 'JsonFile' = None, samples: 'JsonFile' = None, participants_tsv: 'File' = None, participants_json: 'JsonFile' = None, code: 'Folder' = None, derivatives: 'DerivativeFolder' = None, sourcedata: 'Folder' = None, stimuli: 'Folder' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
+        super(Dataset, self).__init__(name or None, files or [], folders or [], metadatafiles or [])
+        self['subjects'] = subjects or []
+        self['dataset_description'] = dataset_description or None
+        self['README'] = README or None
+        self['CHANGES'] = CHANGES or None
+        self['LICENSE'] = LICENSE or None
+        self['genetic_info'] = genetic_info or None
+        self['samples'] = samples or None
+        self['participants_tsv'] = participants_tsv or None
+        self['participants_json'] = participants_json or None
+        self['code'] = code or None
+        self['derivatives'] = derivatives or None
+        self['sourcedata'] = sourcedata or None
+        self['stimuli'] = stimuli or None
 
     @property
     def subjects(self) -> 'List[Subject]':
         return self['subjects']
-    
+
     @subjects.setter
     def subjects(self, subjects: 'List[Subject]'):
         self['subjects'] = subjects
@@ -733,7 +734,7 @@ class Dataset(Folder):
     @property
     def dataset_description(self) -> 'DatasetDescriptionFile':
         return self['dataset_description']
-    
+
     @dataset_description.setter
     def dataset_description(self, dataset_description: 'DatasetDescriptionFile'):
         self['dataset_description'] = dataset_description
@@ -741,7 +742,7 @@ class Dataset(Folder):
     @property
     def README(self) -> 'File':
         return self['README']
-    
+
     @README.setter
     def README(self, README: 'File'):
         self['README'] = README
@@ -749,7 +750,7 @@ class Dataset(Folder):
     @property
     def CHANGES(self) -> 'File':
         return self['CHANGES']
-    
+
     @CHANGES.setter
     def CHANGES(self, CHANGES: 'File'):
         self['CHANGES'] = CHANGES
@@ -757,7 +758,7 @@ class Dataset(Folder):
     @property
     def LICENSE(self) -> 'File':
         return self['LICENSE']
-    
+
     @LICENSE.setter
     def LICENSE(self, LICENSE: 'File'):
         self['LICENSE'] = LICENSE
@@ -765,7 +766,7 @@ class Dataset(Folder):
     @property
     def genetic_info(self) -> 'JsonFile':
         return self['genetic_info']
-    
+
     @genetic_info.setter
     def genetic_info(self, genetic_info: 'JsonFile'):
         self['genetic_info'] = genetic_info
@@ -773,7 +774,7 @@ class Dataset(Folder):
     @property
     def samples(self) -> 'JsonFile':
         return self['samples']
-    
+
     @samples.setter
     def samples(self, samples: 'JsonFile'):
         self['samples'] = samples
@@ -781,7 +782,7 @@ class Dataset(Folder):
     @property
     def participants_tsv(self) -> 'File':
         return self['participants_tsv']
-    
+
     @participants_tsv.setter
     def participants_tsv(self, participants_tsv: 'File'):
         self['participants_tsv'] = participants_tsv
@@ -789,7 +790,7 @@ class Dataset(Folder):
     @property
     def participants_json(self) -> 'JsonFile':
         return self['participants_json']
-    
+
     @participants_json.setter
     def participants_json(self, participants_json: 'JsonFile'):
         self['participants_json'] = participants_json
@@ -797,7 +798,7 @@ class Dataset(Folder):
     @property
     def code(self) -> 'Folder':
         return self['code']
-    
+
     @code.setter
     def code(self, code: 'Folder'):
         self['code'] = code
@@ -805,7 +806,7 @@ class Dataset(Folder):
     @property
     def derivatives(self) -> 'DerivativeFolder':
         return self['derivatives']
-    
+
     @derivatives.setter
     def derivatives(self, derivatives: 'DerivativeFolder'):
         self['derivatives'] = derivatives
@@ -813,7 +814,7 @@ class Dataset(Folder):
     @property
     def sourcedata(self) -> 'Folder':
         return self['sourcedata']
-    
+
     @sourcedata.setter
     def sourcedata(self, sourcedata: 'Folder'):
         self['sourcedata'] = sourcedata
@@ -821,7 +822,7 @@ class Dataset(Folder):
     @property
     def stimuli(self) -> 'Folder':
         return self['stimuli']
-    
+
     @stimuli.setter
     def stimuli(self, stimuli: 'Folder'):
         self['stimuli'] = stimuli

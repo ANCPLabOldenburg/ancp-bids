@@ -1,5 +1,3 @@
-import os.path
-
 import math
 from io import StringIO
 
@@ -20,6 +18,12 @@ class ClassGenerator:
         self.types = {name: schema for doc in remaining_docs for name, schema in doc.items()}
         self.visited_types = {}
         self.output = StringIO()
+        self.known_classes = {
+            'Model': {
+                'fields': [],
+                'parent': None
+            }
+        }
 
     def generate(self):
         self.append("from enum import Enum, auto")
@@ -27,7 +31,8 @@ class ClassGenerator:
         self.append("from math import inf")
         self.append()
         self.append("class Model(dict):")
-        self.append("    pass")
+        self.append("    def __init__(self, *args, **kwargs):")
+        self.append("        pass")
         self.append()
 
         # generate types first as they are referenced by the elements and need to be declared before usage
@@ -73,6 +78,24 @@ class ClassGenerator:
 
         return ret
 
+    def init_params(self, class_name):
+        if not class_name:
+            return []
+        current_class_name = class_name
+        init_params = []
+        parent_init_params = []
+        collect_parent_params = False
+        while current_class_name is not None:
+            known_class = self.known_classes[current_class_name]
+            fields = known_class['fields']
+            init_params = init_params + fields
+            current_class_name = known_class['parent']
+            if collect_parent_params:
+                parent_init_params = parent_init_params + fields
+            # start collecting when processing of first parent starts
+            collect_parent_params = True
+        return init_params, parent_init_params
+
     def visit_schema(self, name, schema_dict):
         _extends = 'Model'
         if ".extends" in schema_dict:
@@ -97,14 +120,18 @@ class ClassGenerator:
                 for literal in nested_enum['literals']:
                     self.append(f"        {literal} = auto()")
                 self.append()
+        self.known_classes[name] = {
+            'fields': fields,
+            'parent': _extends
+        }
 
-        init_params = ', '.join(["%s=%s" % (key, type_info['init']) for key, type_info, doc in fields])
-        if init_params:
-            init_params = ", " + init_params
-        self.append(f"    def __init__(self%s):" % init_params)
-        self.append(f"        super({name}, self).__init__()")
+        init_params, parent_init_params = self.init_params(name)
+        init_params_str = ', '.join(["%s: '%s' = None" % (key, ti['typehint']) for key, ti, _ in init_params])
+        parent_init_params_str = ', '.join(["%s or %s" % (key, ti['init']) for key, ti, _ in parent_init_params])
+        self.append(f"    def __init__(self, %s):" % init_params_str)
+        self.append(f"        super({name}, self).__init__(%s)" % parent_init_params_str)
         for key, type_info, doc in fields:
-            var_init = f"self['{key}']: {type_info['typehint']} = {key}"
+            var_init = f"self['{key}'] = {key} or {type_info['init']}"
             self.append(f"        {var_init}")
 
         self.append()
@@ -117,7 +144,7 @@ class ClassGenerator:
             self.append(f"""    @property
     def {key}(self) -> '{typehint}':{doc}
         return self['{key}']
-    
+
     @{key}.setter
     def {key}(self, {key}: '{typehint}'):
         self['{key}'] = {key}

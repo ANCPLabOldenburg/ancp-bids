@@ -78,7 +78,7 @@ JsonFile:
 
 Artifact:
   .doc: >-
-    An artifact is a file whose name conforms to the BIDS file naming convention. https://asd asd
+    An artifact is a file whose name conforms to the BIDS file naming convention.
   .extends: File
   suffix:
     type: str
