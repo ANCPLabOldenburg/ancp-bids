@@ -8,13 +8,18 @@ from ancpbids.schema import Schema
 
 class DatasetSaver:
     def __init__(self, schema: Schema):
-        pass
+        self.schema = schema
 
-    def save(self, ds: model.Dataset, target_dir: str):
-        if os.path.exists(target_dir) and len(os.listdir(target_dir)) > 0:
+    def save(self, ds: model.Dataset, target_dir: str, context_folder: model.Folder = None, src_dir: str = None):
+        if context_folder is None and os.path.exists(target_dir) and len(os.listdir(target_dir)) > 0:
             raise ValueError("Directory not empty: " + target_dir)
-        src_dir = ds.base_dir_
-        generator = ds.to_generator()
+
+        if context_folder is None:
+            context_folder = ds
+        if src_dir is None:
+            src_dir = ds.get_absolute_path()
+
+        generator = context_folder.to_generator()
         for obj in generator:
             typ = type(obj)
             mapper_name = '_type_handler_' + typ.__name__
@@ -23,7 +28,7 @@ class DatasetSaver:
             mapper = _TYPE_MAPPERS[mapper_name]
             mapper(self, src_dir, target_dir, obj)
         # copy internal children (files/folders)
-        self._type_handler_Folder(src_dir, target_dir, ds, traverse_children=True)
+        self._type_handler_Folder(src_dir, target_dir, context_folder, traverse_children=True)
         return target_dir
 
     def _type_handler_default(self, src_dir, target_dir, obj):
@@ -40,7 +45,12 @@ class DatasetSaver:
             new_file_path = os.path.join(target_dir, file.parent_object_.get_relative_path(), new_file_path)
         else:
             new_file_path = os.path.join(target_dir, old_file_name)
-        shutil.copy(old_file_path, new_file_path)
+
+        if hasattr(file, 'content') and callable(file.content):
+            file.content(file.get_absolute_path())
+        else:
+            # TODO process fields
+            pass
 
     def _type_handler_Folder(self, src_dir, target_dir, folder: model.Folder, traverse_children=False):
         new_dir = os.path.join(target_dir, folder.get_relative_path())
@@ -62,6 +72,7 @@ class DatasetSaver:
             segments.append(seg)
         segments.append(artifact.suffix)
         new_file_name = '_'.join(segments) + artifact.extension
+        artifact.name = new_file_name
         self._type_handler_File(src_dir, target_dir, artifact, new_file_name)
 
 

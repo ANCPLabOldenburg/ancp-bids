@@ -23,9 +23,16 @@ def load_dataset(base_dir: str, bids_schema=SCHEMA_LATEST):
     return ds
 
 
-def save_dataset(ds: model.Dataset, target_dir: str):
+def save_dataset(ds: model.Dataset, target_dir: str, context_folder: model.Folder = None):
     saver = DatasetSaver(ds._schema)
-    return saver.save(ds, target_dir)
+    return saver.save(ds, target_dir, context_folder=context_folder)
+
+
+def write_derivative(ds: model.Dataset, derivative: model.DerivativeFolder):
+    save_dataset(ds, target_dir=ds.get_absolute_path(), context_folder=derivative)
+
+
+setattr(model.Dataset, 'write_derivative', write_derivative)
 
 
 # start monkey-patching generated code
@@ -38,6 +45,7 @@ def has_entity(artifact: model.Artifact, entity_):
 
 setattr(model.Artifact, 'has_entity', has_entity)
 
+
 def get_entity(artifact: model.Artifact, entity_):
     for e in artifact.entities:
         if e.key == entity_:
@@ -46,6 +54,17 @@ def get_entity(artifact: model.Artifact, entity_):
 
 
 setattr(model.Artifact, 'get_entity', get_entity)
+
+
+def add_entity(artifact: model.Artifact, key, value):
+    if isinstance(key, model.EntityEnum):
+        key = key.entity_
+    eref = model.EntityRef(key, value)
+    artifact.entities.append(eref)
+
+
+setattr(model.Artifact, 'add_entity', add_entity)
+
 
 def load_file_contents(folder: model.Folder, file_name):
     file_path = get_absolute_path(folder, file_name)
@@ -72,7 +91,7 @@ def get_absolute_path_by_file(file: model.File):
 setattr(model.File, 'get_absolute_path', get_absolute_path_by_file)
 
 
-def get_absolute_path(folder: model.Folder, file_name):
+def get_absolute_path(folder: model.Folder, file_name=None):
     return _get_path(folder, file_name, True)
 
 
@@ -81,6 +100,7 @@ def _folder_get_relative_path(folder: model.Folder):
 
 
 setattr(model.Folder, 'get_relative_path', _folder_get_relative_path)
+setattr(model.Folder, 'get_absolute_path', get_absolute_path)
 
 
 def _file_get_relative_path(file: model.File):
@@ -90,7 +110,7 @@ def _file_get_relative_path(file: model.File):
 setattr(model.File, 'get_relative_path', _file_get_relative_path)
 
 
-def _get_path(folder: model.Folder, file_name, absolute=True):
+def _get_path(folder: model.Folder, file_name=None, absolute=True):
     segments = []
     if file_name:
         segments.append(file_name)
@@ -115,6 +135,50 @@ def remove_file(folder: model.Folder, file_name, from_meta=True):
 
 
 setattr(model.Folder, 'remove_file', remove_file)
+
+
+def create_artifact(folder: model.Folder):
+    artifact = model.Artifact()
+    artifact.parent_object_ = folder
+    folder.files.append(artifact)
+    return artifact
+
+
+setattr(model.Folder, 'create_artifact', create_artifact)
+
+
+def create_folder(folder: model.Folder, type_=model.Folder, **kwargs):
+    sub_folder = type_(**kwargs)
+    sub_folder.parent_object_ = folder
+    folder.folders.append(sub_folder)
+    return sub_folder
+
+
+setattr(model.Folder, 'create_folder', create_folder)
+
+
+def create_derivative(ds: model.Dataset, **kwargs):
+    derivatives_folder = ds.derivatives
+    if not ds.derivatives:
+        derivatives_folder = model.DerivativeFolder()
+        derivatives_folder.parent_object_ = ds
+        derivatives_folder.name = "derivatives"
+        ds.derivatives = derivatives_folder
+    derivative = model.DerivativeFolder(**kwargs)
+    derivative.parent_object_ = derivatives_folder
+    derivatives_folder.derivatives.append(derivative)
+
+    derivative.dataset_description = model.DerivativeDatasetDescriptionFile()
+    derivative.dataset_description.parent_object_ = derivative
+    derivative.dataset_description.GeneratedBy = model.GeneratedBy()
+
+    if ds.dataset_description:
+        derivative.dataset_description.update(ds.dataset_description)
+
+    return derivative
+
+
+setattr(model.Dataset, 'create_derivative', create_derivative)
 
 
 def get_file(folder: model.Folder, file_name, from_meta=True):
