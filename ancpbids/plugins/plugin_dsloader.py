@@ -1,3 +1,5 @@
+from ..plugin import DatasetPlugin
+
 import inspect
 import os
 
@@ -5,27 +7,21 @@ import regex
 
 from ancpbids import model
 from ancpbids.schema import Schema
-from . import utils
+from .. import utils
 
 ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
 
 
-class DatasetLoader:
-    def __init__(self, schema: Schema):
-        self.schema = schema
-
-    def load(self, base_dir):
-        ds = model.Dataset()
-        ds._schema = self.schema
-        ds.name = os.path.basename(base_dir)
-        ds.base_dir_ = base_dir
+class DatasetPopulationPlugin(DatasetPlugin):
+    def execute(self, dataset: model.Dataset):
+        self.schema = dataset._schema
+        base_dir = dataset.base_dir_
         # 1. pass: load file system structure
-        self._load_folder(ds, base_dir)
+        self._load_folder(dataset, base_dir)
         # 2. pass: transform files to artifacts, i.e. files containing entities in their name
-        self._convert_files_to_artifacts(ds)
+        self._convert_files_to_artifacts(dataset)
         # 3. pass: expand structure based on schema-files
-        self._expand_members(ds)
-        return ds
+        self._expand_members(dataset)
 
     def _convert_files_to_artifacts(self, parent: model.Folder):
         for i, file in enumerate(parent.files):
@@ -53,9 +49,6 @@ class DatasetLoader:
         artifact.suffix = match[4]
         artifact.extension = match[5]
         return artifact
-
-    def _get_schema(self, context):
-        return self.schema
 
     def _handle_direct_folders(self, parent, member, pattern, new_type):
         if not isinstance(parent, model.Folder):
@@ -206,5 +199,5 @@ class DatasetLoader:
         json_file.parent_object_ = parent
 
 
-_TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetLoader) if
+_TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetPopulationPlugin) if
                  inspect.isfunction(obj) and obj.__name__.startswith('_type_handler_')}

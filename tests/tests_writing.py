@@ -10,10 +10,8 @@ class WritingTestCase(BaseTestCase):
         ds005_original = load_dataset(RESOURCES_FOLDER + "/ds005-small")
 
         target_dir = tempfile.TemporaryDirectory().name
-        ds005_copy_path = save_dataset(ds005_original, target_dir)
-        self.assertTrue(isinstance(ds005_copy_path, str))
-
-        ds005_copy = load_dataset(ds005_copy_path)
+        save_dataset(ds005_original, target_dir)
+        ds005_copy = load_dataset(target_dir)
         subjects = ds005_copy.subjects
         self.assertEqual(1, len(subjects))
         first_subject = subjects[0]

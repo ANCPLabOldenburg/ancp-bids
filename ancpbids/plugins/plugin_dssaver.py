@@ -1,16 +1,12 @@
 import inspect
 import os
-import shutil
 
 from ancpbids import model
-from ancpbids.schema import Schema
+from ancpbids.plugin import WritingPlugin
 
 
-class DatasetSaver:
-    def __init__(self, schema: Schema):
-        self.schema = schema
-
-    def save(self, ds: model.Dataset, target_dir: str, context_folder: model.Folder = None, src_dir: str = None):
+class DatasetWritingPlugin(WritingPlugin):
+    def execute(self, ds: model.Dataset, target_dir: str, context_folder: model.Folder = None, src_dir: str = None):
         if context_folder is None and os.path.exists(target_dir) and len(os.listdir(target_dir)) > 0:
             raise ValueError("Directory not empty: " + target_dir)
 
@@ -19,6 +15,7 @@ class DatasetSaver:
         if src_dir is None:
             src_dir = ds.get_absolute_path()
 
+        self.schema = ds._schema
         generator = context_folder.to_generator()
         for obj in generator:
             typ = type(obj)
@@ -29,7 +26,6 @@ class DatasetSaver:
             mapper(self, src_dir, target_dir, obj)
         # copy internal children (files/folders)
         self._type_handler_Folder(src_dir, target_dir, context_folder, traverse_children=True)
-        return target_dir
 
     def _type_handler_default(self, src_dir, target_dir, obj):
         if isinstance(obj, model.Folder):
@@ -76,5 +72,5 @@ class DatasetSaver:
         self._type_handler_File(src_dir, target_dir, artifact, new_file_name)
 
 
-_TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetSaver) if
+_TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetWritingPlugin) if
                  inspect.isfunction(obj) and obj.__name__.startswith('_type_handler_')}

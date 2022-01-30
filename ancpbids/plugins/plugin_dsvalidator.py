@@ -1,17 +1,29 @@
-from ancpbids import XPathQuery, model
-from ancpbids.model import Dataset
-from ancpbids.schema import Schema
-from ancpbids.validator import ValidationRule, ValidationReport
+from ancpbids import XPathQuery, model, utils
+from ancpbids.plugin import ValidationPlugin
 
 
-class StaticStructureValidationRule(ValidationRule):
-    def validate(self, dataset: Dataset, report: ValidationReport, **kwargs):
-        dataset.validate(report)
+class StaticStructureValidationPlugin(ValidationPlugin):
+    def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
+        gen = dataset.to_generator()
+        for obj in gen:
+            members = utils.get_members(type(obj))
+            for member in members:
+                typ = member['type']
+                name = member['name']
+                lb = member['min']
+                ub = member['max']
+                val = getattr(obj, name)
+                use = member['use']
+                if (lb > 0 or use == 'required') and not val:
+                    report.error(f"Missing required field {name}.")
+                if use == 'recommended' and not val:
+                    report.warn(f"Missing recommended field {name}.")
 
 
-class DatatypesValidationRule(ValidationRule):
-    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, **kwargs):
+class DatatypesValidationPlugin(ValidationPlugin):
+    def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
         invalid = []
+        schema = dataset._schema
         valid_datatypes = schema.model.DatatypeEnum.__members__
         for subject in dataset.subjects:
             invalid.extend([f for f in subject.datatypes if f.name not in valid_datatypes])
@@ -22,8 +34,10 @@ class DatatypesValidationRule(ValidationRule):
             report.error("Unsupported datatype folder '%s'" % folder.get_relative_path())
 
 
-class EntitiesValidationRule(ValidationRule):
-    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, query: XPathQuery):
+class EntitiesValidationPlugin(ValidationPlugin):
+    def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
+        schema = dataset._schema
+        query = XPathQuery(dataset, schema)
         artifacts = query.execute('//entities/..')
         entities = list(map(lambda e: e.entity_, list(schema.model.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(entities)}
@@ -51,6 +65,6 @@ class EntitiesValidationRule(ValidationRule):
                     break
 
 
-class SuffixesValidationRule(ValidationRule):
-    def validate(self, schema: Schema, dataset: Dataset, report: ValidationReport, query: XPathQuery):
+class SuffixesValidationPlugin(ValidationPlugin):
+    def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
         pass
