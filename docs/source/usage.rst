@@ -1,0 +1,5 @@
+Usage
+=====
+
+.. autosummary::
+   :toctree: generated
