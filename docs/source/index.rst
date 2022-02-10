@@ -1,25 +1,15 @@
-.. ancpBIDS documentation master file, created by
-   sphinx-quickstart on Mon Feb  7 21:06:06 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to ancpBIDS's documentation!
-====================================
+About
+========
+ancpBIDS is a lightweight Python library to read/query/validate/write BIDS datasets.
+It can be used in workflows or analysis pipelines to handle IO specific aspects without bothering much about low level file system operations.
+Its implementation is based on the BIDS schema and allows it to evolve with the BIDS specification in a generic way.
+Using a plugin mechanism, contributors can extend its functionality in a controlled and clean manner.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    installation
    usage
    arch
    api
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

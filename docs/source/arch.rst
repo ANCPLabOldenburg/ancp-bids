@@ -1,5 +1,5 @@
-Software Architecture
-=====================
+Technical Overview
+==================
 
 .. autosummary::
    :toctree: generated
