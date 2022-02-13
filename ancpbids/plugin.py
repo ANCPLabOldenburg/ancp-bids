@@ -13,6 +13,9 @@ class Plugin:
     def __init__(self, **props):
         self.props = props
 
+class SchemaPlugin(Plugin):
+    def execute(self, schema: model):
+        raise NotImplementedError()
 
 class DatasetPlugin(Plugin):
     def execute(self, dataset: model.Dataset):
@@ -42,6 +45,9 @@ class ValidationPlugin(Plugin):
                 'message': message
             })
 
+        def has_errors(self):
+            return len(filter(lambda m: m['severity'] == 'error'), self.messages) > 0
+
     class ValidationRule:
         def validate(self, **kwargs):
             raise NotImplementedError()
@@ -51,7 +57,7 @@ class ValidationPlugin(Plugin):
 
 
 def is_valid_plugin(plugin_class):
-    plugin_types = (DatasetPlugin, WritingPlugin, ValidationPlugin)
+    plugin_types = (SchemaPlugin, DatasetPlugin, WritingPlugin, ValidationPlugin)
     return issubclass(plugin_class, plugin_types) and plugin_class not in plugin_types
 
 

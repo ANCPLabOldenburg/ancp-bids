@@ -5,9 +5,9 @@ import ancpbids.plugins
 from . import files
 from . import model
 from . import utils
-from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin
-from .query import XPathQuery, BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, EntityExpr, \
-    DatatypeExpr
+from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin
+from .plugins.plugin_query import XPathQuery, BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
+    EntityExpr, DatatypeExpr
 from .schema import Schema
 
 LOGGER = logging.getLogger("ancpbids")
@@ -48,6 +48,10 @@ def write_derivative(ds: model.Dataset, derivative: model.DerivativeFolder):
 
 # load system plugins using lowest rank value
 load_plugins_by_package(ancpbids.plugins, ranking=0, system=True)
+
+# execute all SchemaPlugins, these plugins may monkey-patch the schema
+for pl in get_plugins(SchemaPlugin):
+    pl.execute(model)
 
 from .pybids_compat import BIDSLayout
 

@@ -1,8 +1,7 @@
 import re
-from typing import List
 
-from . import model
-from . import schema
+from ancpbids import model, schema
+from ancpbids.plugin import SchemaPlugin
 
 
 class BoolExpr:
@@ -108,7 +107,7 @@ class Select:
     def get_file_paths(self):
         return self._exec(model.File.get_relative_path)
 
-    def objects(self):
+    def get_artifacts(self):
         return self._exec(lambda m: m)
 
 
@@ -137,3 +136,18 @@ class XPathQuery(Query):
             return result
         result = list(map(lambda e: self.x2id[e] if e in self.x2id else e, result))
         return result
+
+
+def query(ds: model.Dataset, expr: str):
+    query_ = XPathQuery(ds, ds._schema)
+    return query.execute(expr), query_
+
+
+def select(context: model.Model, target_type):
+    return Select(context, target_type)
+
+
+class QuerySchemaPlugin(SchemaPlugin):
+    def execute(self, schema: model):
+        schema.Dataset.query = query
+        schema.Dataset.select = select

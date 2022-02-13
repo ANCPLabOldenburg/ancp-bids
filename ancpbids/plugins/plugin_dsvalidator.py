@@ -36,9 +36,7 @@ class DatatypesValidationPlugin(ValidationPlugin):
 
 class EntitiesValidationPlugin(ValidationPlugin):
     def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
-        schema = dataset._schema
-        query = XPathQuery(dataset, schema)
-        artifacts = query.execute('//entities/..')
+        artifacts = dataset.select(model.Artifact).get_artifacts()
         entities = list(map(lambda e: e.entity_, list(schema.model.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(entities)}
         expected_order_key = {i: k for i, k in enumerate(entities)}

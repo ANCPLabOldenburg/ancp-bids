@@ -1,10 +1,8 @@
 from collections import OrderedDict
 from functools import partial
 
-import lxml.etree
-
+from ancpbids import XPathQuery, CustomOpExpr
 from . import load_dataset, model, LOGGER
-from .query import XPathQuery, CustomOpExpr
 from .utils import deepupdate
 
 

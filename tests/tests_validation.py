@@ -7,7 +7,6 @@ from ancpbids.plugins import plugin_dsvalidator
 class ValidationTestCase(BaseTestCase):
     def createSUT(self, ds_dir, rule_class):
         test_ds = load_dataset(ds_dir)
-        bids_schema = test_ds._schema
         # only test this plugin
         report = validate_dataset(test_ds, lambda plugin: isinstance(plugin, rule_class))
         self.assertTrue(isinstance(report, ValidationPlugin.ValidationReport))
