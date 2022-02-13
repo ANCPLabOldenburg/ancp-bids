@@ -1,4 +1,6 @@
-requirements_file: docs/source/requirements.txt
+requirements_file:
+  - requirements.txt
+  - docs/source/requirements.txt
 python:
   version: 3.9
 build:
