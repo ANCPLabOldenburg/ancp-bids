@@ -1,7 +1,7 @@
+requirements_file: docs/source/requirements.txt
 python:
   version: 3.9
   install:
-    - requirements: docs/source/requirements.txt
     - requirements: requirements.txt
 build:
   image: testing
