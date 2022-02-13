@@ -14,6 +14,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import ancpbids
 
 # -- Project information -----------------------------------------------------
 
@@ -22,7 +23,7 @@ copyright = '2022, ANCP Lab, University of Oldenburg'
 author = 'ANCP Lab'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.0.14'
+release = ancpbids.__version__
 
 # -- General configuration ---------------------------------------------------
 
