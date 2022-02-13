@@ -19,7 +19,7 @@
 
 project = 'ancpBIDS'
 copyright = '2022, ANCP Lab, University of Oldenburg'
-author = 'Erdal Karaca'
+author = 'ANCP Lab'
 
 # The full version, including alpha/beta/rc tags
 release = 'v0.0.14'
@@ -34,6 +34,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx_copybutton',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -6,10 +6,11 @@ Its implementation is based on the BIDS schema and allows it to evolve with the 
 Using a plugin mechanism, contributors can extend its functionality in a controlled and clean manner.
 
 .. toctree::
-   :maxdepth: 2
 
    installation
    usage
+   howto
+   faq
    arch
    api
 

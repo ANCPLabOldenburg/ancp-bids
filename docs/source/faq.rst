@@ -1,0 +1,5 @@
+FAQ
+=====
+
+.. autosummary::
+   :toctree: generated
