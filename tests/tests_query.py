@@ -63,7 +63,7 @@ class QueryTestCase(BaseTestCase):
             'synthetic/derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-02_space-T1w_desc-brain_mask.nii',
         ]
         for file in expected_paths:
-            self.assertTrue(list(filter(lambda f: f.endswith(file), mask_niftis)))
+            self.assertTrue(list(filter(lambda f: f.endswith(os.path.normpath(file)), mask_niftis)))
 
     def test_bidslayout_get_entities(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)

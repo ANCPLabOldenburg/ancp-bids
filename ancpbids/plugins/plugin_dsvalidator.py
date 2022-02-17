@@ -1,4 +1,4 @@
-from ancpbids import XPathQuery, model, utils
+from ancpbids import model, utils
 from ancpbids.plugin import ValidationPlugin
 
 
@@ -37,7 +37,7 @@ class DatatypesValidationPlugin(ValidationPlugin):
 class EntitiesValidationPlugin(ValidationPlugin):
     def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
         artifacts = dataset.select(model.Artifact).get_artifacts()
-        entities = list(map(lambda e: e.entity_, list(schema.model.EntityEnum)))
+        entities = list(map(lambda e: e.entity_, list(dataset._schema.model.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(entities)}
         expected_order_key = {i: k for i, k in enumerate(entities)}
         for artifact in artifacts:

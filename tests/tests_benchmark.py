@@ -2,8 +2,6 @@ from unittest import skip
 
 import sys
 
-import ancpbids
-import bids
 from base_test_case import *
 
 OPENNEURO_DS001734 = os.path.join(os.environ.get('TEST_DATASETS', os.path.expanduser('~/datasets')), 'ds001734')
@@ -25,7 +23,9 @@ class BenchmarkTestCase(BaseTestCase):
 
 
     def test_ancpbids_openneuro_ds001734(self):
+        import ancpbids
         self._assert_on(ancpbids.BIDSLayout)
 
     def test_pybids_measure_scan_ds001734(self):
+        import bids
         self._assert_on(bids.BIDSLayout)

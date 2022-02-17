@@ -108,6 +108,10 @@ class Select:
         return self._exec(model.File.get_relative_path)
 
     def get_artifacts(self):
+        # TODO filter by Artifact instances
+        return self.objects()
+
+    def objects(self):
         return self._exec(lambda m: m)
 
 
@@ -140,7 +144,7 @@ class XPathQuery(Query):
 
 def query(ds: model.Dataset, expr: str):
     query_ = XPathQuery(ds, ds._schema)
-    return query.execute(expr), query_
+    return query_.execute(expr), query_
 
 
 def select(context: model.Model, target_type):

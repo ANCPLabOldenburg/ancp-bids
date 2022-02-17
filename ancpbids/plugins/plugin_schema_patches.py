@@ -1,6 +1,6 @@
 import fnmatch
 import os
-from xml import etree
+from lxml import etree
 
 from ancpbids import model
 from ancpbids.model_v1_7_0 import *
