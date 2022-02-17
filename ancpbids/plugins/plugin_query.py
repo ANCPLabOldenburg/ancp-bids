@@ -1,6 +1,6 @@
 import re
 
-from ancpbids import model, schema
+from ancpbids import model
 from ancpbids.plugin import SchemaPlugin
 
 
@@ -116,9 +116,8 @@ class Select:
 
 
 class Query:
-    def __init__(self, dataset: model.Dataset, scm: schema.Schema):
+    def __init__(self, dataset: model.Dataset):
         self.dataset = dataset
-        self.scm = scm
         self.id2x = {}
         self.x2id = {}
         self.root = dataset.to_etree(id2x=self.id2x, x2id=self.x2id, nsmap_={})
@@ -128,8 +127,8 @@ class Query:
 
 
 class XPathQuery(Query):
-    def __init__(self, dataset: model.Dataset, scm: schema.Schema):
-        super(XPathQuery, self).__init__(dataset, scm)
+    def __init__(self, dataset: model.Dataset):
+        super(XPathQuery, self).__init__(dataset)
 
     def execute(self, expr, search_node=None, return_lxml_objects=False):
         context = self.root
@@ -143,7 +142,7 @@ class XPathQuery(Query):
 
 
 def query(ds: model.Dataset, expr: str):
-    query_ = XPathQuery(ds, ds._schema)
+    query_ = XPathQuery(ds)
     return query_.execute(expr), query_
 
 

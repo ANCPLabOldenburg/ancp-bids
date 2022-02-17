@@ -8,15 +8,13 @@ from . import utils
 from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin
 from .plugins.plugin_query import XPathQuery, BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
     EntityExpr, DatatypeExpr
-from .schema import Schema
 
 LOGGER = logging.getLogger("ancpbids")
-SCHEMA_LATEST = Schema(model)
 
 
-def load_dataset(base_dir: str, bids_schema=SCHEMA_LATEST):
+def load_dataset(base_dir: str):
     ds = model.Dataset()
-    ds._schema = bids_schema
+    ds._schema = model
     ds.name = os.path.basename(base_dir)
     ds.base_dir_ = base_dir
     dataset_plugins = get_plugins(DatasetPlugin)

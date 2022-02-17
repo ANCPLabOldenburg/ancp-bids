@@ -9,8 +9,7 @@ from .utils import deepupdate
 class BIDSLayout:
     def __init__(self, ds_dir: str, **kwargs):
         self.dataset = load_dataset(ds_dir)
-        self.sc = self.dataset._schema
-        self.query = XPathQuery(self.dataset, self.sc)
+        self.query = XPathQuery(self.dataset)
 
     def _query(self, expr: str, search_node=None, return_lxml_objects=False):
         return self.query.execute(expr, search_node, return_lxml_objects)
@@ -84,13 +83,13 @@ class BIDSLayout:
                 extension = '*'
                 result_extractor = lambda artifacts: [a.extension for a in artifacts]
             else:
-                target = self.sc.fuzzy_match_entity_key(target)
+                target = model.fuzzy_match_entity_key(target)
                 entities = {**entities, target: '*'}
                 result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
                                                       filter(lambda e: e.key == target, a.entities)]
         for k, v in entities.items():
-            k = self.sc.fuzzy_match_entity_key(k)
-            v = self.sc.process_entity_value(k, v)
+            k = model.fuzzy_match_entity_key(k)
+            v = model.process_entity_value(k, v)
             v = self._scalar_or_list('value/text()', v)
             entity_filters.append('entities[key/text()="%s" and %s]' % (k, v))
         if extension:

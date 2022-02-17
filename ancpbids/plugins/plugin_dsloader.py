@@ -6,7 +6,6 @@ import os
 import regex
 
 from ancpbids import model
-from ancpbids.schema import Schema
 from .. import utils
 
 ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
@@ -14,7 +13,6 @@ ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
 
 class DatasetPopulationPlugin(DatasetPlugin):
     def execute(self, dataset: model.Dataset):
-        self.schema = dataset._schema
         base_dir = dataset.base_dir_
         # 1. pass: load file system structure
         self._load_folder(dataset, base_dir)
@@ -43,7 +41,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
             entity = model.EntityRef()
             key = pair[0]
             entity.key = key
-            value = self.schema.process_entity_value(key, pair[1])
+            value = model.process_entity_value(key, pair[1])
             entity.value = value
             artifact.entities.append(entity)
         artifact.suffix = match[4]
