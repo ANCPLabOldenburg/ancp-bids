@@ -13,6 +13,18 @@ LOGGER = logging.getLogger("ancpbids")
 
 
 def load_dataset(base_dir: str):
+    """
+    Loads a dataset given its directory path on the file system.
+
+    .. code-block::
+
+        from ancpbids import load_dataset, validate_dataset
+        dataset_path = 'path/to/your/dataset'
+        dataset = load_dataset(dataset_path)
+
+    :param base_dir: the dataset path to load from
+    :return: an object instance of type :py:class:`ancpbids.model.Dataset` which represents the dataset as an in-memory graph
+    """
     ds = model.Dataset()
     ds._schema = model
     ds.name = os.path.basename(base_dir)
@@ -29,7 +41,28 @@ def save_dataset(ds: model.Dataset, target_dir: str, context_folder: model.Folde
         dsplugin.execute(ds, target_dir, context_folder=context_folder)
 
 
-def validate_dataset(dataset: model.Dataset, plugin_acceptor=None):
+def validate_dataset(dataset: model.Dataset):
+    """
+    Validates a dataset and returns a report object containing any detected validation errors.
+
+    Example:
+
+    .. code-block::
+
+        report = validate_dataset(dataset)
+        for message in report.messages:
+            print(message)
+        if report.has_errors():
+            raise "The dataset contains validation errors, cannot continue".
+
+
+    :param dataset: the dataset to validate
+    :return: a report object containing any detected validation errors or warning
+    """
+    return _internal_validate_dataset(dataset)
+
+
+def _internal_validate_dataset(dataset: model.Dataset, plugin_acceptor=None):
     validation_plugins = get_plugins(ValidationPlugin)
     report = ValidationPlugin.ValidationReport()
     for validation_plugin in validation_plugins:
