@@ -1,4 +1,5 @@
 Dataset:
+  .doc: The entry point of an in-memory graph representation of a BIDS dataset.
   .extends: Folder
   subjects:
     type: Subject

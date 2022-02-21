@@ -1,4 +1,4 @@
-from ancpbids import load_dataset, validate_dataset
+from ancpbids import load_dataset, _internal_validate_dataset
 from base_test_case import *
 from ancpbids.plugin import ValidationPlugin
 from ancpbids.plugins import plugin_dsvalidator
@@ -8,7 +8,7 @@ class ValidationTestCase(BaseTestCase):
     def createSUT(self, ds_dir, rule_class):
         test_ds = load_dataset(ds_dir)
         # only test this plugin
-        report = validate_dataset(test_ds, lambda plugin: isinstance(plugin, rule_class))
+        report = _internal_validate_dataset(test_ds, lambda plugin: isinstance(plugin, rule_class))
         self.assertTrue(isinstance(report, ValidationPlugin.ValidationReport))
         return report
 

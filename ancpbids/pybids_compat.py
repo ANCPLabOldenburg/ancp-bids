@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from functools import partial
+from typing import List, Union
 
 from ancpbids import XPathQuery, CustomOpExpr
 from . import load_dataset, model, LOGGER
@@ -7,6 +8,17 @@ from .utils import deepupdate
 
 
 class BIDSLayout:
+    """A convenience class to provide access to an in-memory representation of a BIDS dataset.
+
+    :param ds_dir: the (absolute) path to the dataset to load
+    :type ds_dir: str
+
+    .. code-block::
+
+        dataset_path = 'path/to/your/dataset'
+        layout = BIDSLayout(dataset_path)
+    """
+
     def __init__(self, ds_dir: str, **kwargs):
         self.dataset = load_dataset(ds_dir)
         self.query = XPathQuery(self.dataset)
@@ -33,6 +45,14 @@ class BIDSLayout:
             return self._gen_scalar_expr(attr_name, v)
 
     def get_metadata(self, *args, **kwargs):
+        """
+        Returns a dictionary of metadata matching the provided criteria (see :meth:`ancpbids.BIDSLayout.get`).
+        Also takes the BIDS inheritance principle into account, i.e. any metadata defined at dataset level
+        may be overridden by a more specific metadata entry at a lower level such as the subject level.
+
+        As of the BIDS specification, metadata is kept in JSON files.
+
+        """
         qry_result = self.get(return_type='lxml', element_source='metadatafiles', *args, **kwargs)
         # build lists of ancestors + the leaf (metadata file)
         ancestors = list(map(lambda e: (list(reversed(list(e.iterancestors()))), e), qry_result))
@@ -60,10 +80,43 @@ class BIDSLayout:
 
         return metadata
 
-    def get(self, return_type='object', target=None, scope: str = None,
-            extension=None, suffix=None,
-            regex_search=False, absolute_paths=None, invalid_filters='error', element_source='*',
+    def get(self, return_type: str = 'object', target: str = None, scope: str = None,
+            extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None, element_source='*',
             **entities):
+        """
+        Depending on the return_type value returns either paths to files that matched the filtering criteria
+        or :class:`Artifact <ancpbids.model_v1_7_0.Artifact>` objects for further processing by the caller.
+
+        Note that all provided filter criteria are AND combined, i.e. subj='02',task='lang' will match files containing
+        '02' as a subject AND 'lang' as a task. If you provide a list of values for a criteria, they will be OR combined.
+
+        .. code-block::
+
+            file_paths = layout.get(subj='02', task='lang', suffix='bold', return_type='files')
+
+            file_paths = layout.get(subj=['02', '03'], task='lang', return_type='files')
+
+
+        :param return_type: Either 'files' to return paths of matched files
+            or 'object' to return :class:`Artifact <ancpbids.model_v1_7_0.Artifact>` object, defaults to 'object'
+
+        :param target: Either `suffixes`, `extensions` or one of any valid BIDS entities key
+            (see :class:`EntityEnum <ancpbids.model_v1_7_0.EntityEnum>`, defaults to `None`
+
+        :param scope: a hint where to search for files, eiher raw or a relative path to a derivatives folder,
+            defaults to None to search everywhere
+
+        :param extension: criterion to match any files containing the provided extension only
+
+        :param suffix: criterion to match any files containing the provided suffix only
+
+        :param element_source: advanced/internal parameter to control/limit matched types, defaults to `*`
+
+        :param entities: a list of key-values to match the entities of interest, example: subj='02',task='lang'
+
+        :return: depending on the return_type value either paths to files that matched the filtering criteria
+            or Artifact objects for further processing by the caller
+        """
         expr = []
         if scope:
             if scope == 'raw':

@@ -707,6 +707,7 @@ class GeneratedByContainer(Model):
 
 
 class Dataset(Folder):
+    r"""The entry point of an in-memory graph representation of a BIDS dataset."""
     def __init__(self, subjects: 'List[Subject]' = None, dataset_description: 'DatasetDescriptionFile' = None, README: 'File' = None, CHANGES: 'File' = None, LICENSE: 'File' = None, genetic_info: 'JsonFile' = None, samples: 'JsonFile' = None, participants_tsv: 'File' = None, participants_json: 'JsonFile' = None, code: 'Folder' = None, derivatives: 'DerivativeFolder' = None, sourcedata: 'Folder' = None, stimuli: 'Folder' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
         super(Dataset, self).__init__(name or None, files or [], folders or [], metadatafiles or [])
         self['subjects'] = subjects or []
