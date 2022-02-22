@@ -2,7 +2,7 @@ import logging
 import os
 import regex
 
-import ancpbids.plugins
+from . import plugins
 from . import files
 from . import model
 from . import utils
@@ -81,7 +81,7 @@ def write_derivative(ds: model.Dataset, derivative: model.Folder):
 
 
 # load system plugins using lowest rank value
-load_plugins_by_package(ancpbids.plugins, ranking=0, system=True)
+load_plugins_by_package(plugins, ranking=0, system=True)
 
 # execute all SchemaPlugins, these plugins may monkey-patch the schema
 for pl in get_plugins(SchemaPlugin):
