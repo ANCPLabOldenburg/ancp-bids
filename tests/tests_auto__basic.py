@@ -1,10 +1,19 @@
 import numpy
 
-from ancpbids import model, load_dataset
+from ancpbids import model, load_dataset, ENTITIES_PATTERN
 from base_test_case import *
 
 
 class BasicTestCase(BaseTestCase):
+    def test_naming_scheme(self):
+        valid_names = ["sub-11_task-mixedgamblestask_run-02_events.tsv", "sub-11_dwi.nii.gz", "x-01_y-02_z-03_xyz.abc", "sub-01_task-mixedgamblestask_run-01_bold.nii.gz"]
+        for name in valid_names:
+            self.assertTrue(ENTITIES_PATTERN.match(name))
+
+        invalid_names = ["sub-04_T1w_bias.nii.gz", "cat.jpg", "readme.txt"]
+        for name in invalid_names:
+            self.assertFalse(ENTITIES_PATTERN.match(name))
+
     def test_ds005_basic_structure(self):
         ds005 = load_dataset(DS005_DIR)
         self.assertEqual("ds005", ds005.name)

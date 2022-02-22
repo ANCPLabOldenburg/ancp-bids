@@ -26,7 +26,7 @@ Dataset:
   code:
     type: Folder
   derivatives:
-    type: DerivativeFolder
+    type: Folder
   sourcedata:
     type: Folder
   stimuli:
@@ -175,9 +175,6 @@ DerivativeFolder:
   .extends: Folder
   dataset_description:
     type: DerivativeDatasetDescriptionFile
-  derivatives:
-    type: DerivativeFolder
-    max: -1
 
 Session:
   .extends: Folder

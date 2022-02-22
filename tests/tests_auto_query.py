@@ -1,3 +1,5 @@
+import os.path
+
 import ancpbids
 from ancpbids import model, select, re, any_of, all_of, eq, op, entity
 from base_test_case import *
@@ -57,18 +59,20 @@ class QueryTestCase(BaseTestCase):
                                  run=["01", "02"])
         self.assertEqual(4, len(mask_niftis))
         expected_paths = [
-            'synthetic/derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-01_space-MNI152NLin2009cAsym_desc-brain_mask.nii',
-            'synthetic/derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-01_space-T1w_desc-brain_mask.nii',
-            'synthetic/derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-02_space-MNI152NLin2009cAsym_desc-brain_mask.nii',
-            'synthetic/derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-02_space-T1w_desc-brain_mask.nii',
+            'derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-01_space-MNI152NLin2009cAsym_desc-brain_mask.nii',
+            'derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-01_space-T1w_desc-brain_mask.nii',
+            'derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-02_space-MNI152NLin2009cAsym_desc-brain_mask.nii',
+            'derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-02_space-T1w_desc-brain_mask.nii',
         ]
+        expected_paths = list(map(lambda p: os.path.normpath(os.path.join(SYNTHETIC_DIR, p)), expected_paths))
         for file in expected_paths:
-            self.assertTrue(list(filter(lambda f: f.endswith(os.path.normpath(file)), mask_niftis)))
+            self.assertTrue(list(filter(lambda p: file == p, mask_niftis)))
 
     def test_bidslayout_get_entities(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
         sorted_entities = layout.get_entities(scope='raw', sort=True)
-        self.assertListEqual(['run', 'sub', 'task'], list(sorted_entities.keys()))
+        # note: 'ds' and 'type' entities are contained in folder 'models' at dataset level, so considered raw data
+        self.assertListEqual(['ds', 'run', 'sub', 'task', 'type'], list(sorted_entities.keys()))
         self.assertListEqual(['1', '2', '3'], sorted_entities['run'])
         self.assertEqual(['%02d' % i for i in range(1, 17)], sorted_entities['sub'])
         self.assertListEqual(['mixedgamblestask'], sorted_entities['task'])

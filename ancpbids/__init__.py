@@ -1,5 +1,6 @@
 import logging
 import os
+import regex
 
 import ancpbids.plugins
 from . import files
@@ -10,6 +11,8 @@ from .plugins.plugin_query import XPathQuery, BoolExpr, Select, EqExpr, AnyExpr,
     EntityExpr, DatatypeExpr
 
 LOGGER = logging.getLogger("ancpbids")
+
+ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)((\.[^\W_]+)+)')
 
 
 def load_dataset(base_dir: str):
@@ -73,7 +76,7 @@ def _internal_validate_dataset(dataset: model.Dataset, plugin_acceptor=None):
     return report
 
 
-def write_derivative(ds: model.Dataset, derivative: model.DerivativeFolder):
+def write_derivative(ds: model.Dataset, derivative: model.Folder):
     save_dataset(ds, target_dir=ds.get_absolute_path(), context_folder=derivative)
 
 

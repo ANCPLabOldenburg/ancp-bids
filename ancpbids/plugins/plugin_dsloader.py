@@ -5,21 +5,31 @@ import os
 
 import regex
 
-from ancpbids import model
+from ancpbids import model, ENTITIES_PATTERN
 from .. import utils
-
-ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)(.*)')
-
 
 class DatasetPopulationPlugin(DatasetPlugin):
     def execute(self, dataset: model.Dataset):
         base_dir = dataset.base_dir_
-        # 1. pass: load file system structure
+        # load file system structure
         self._load_folder(dataset, base_dir)
-        # 2. pass: transform files to artifacts, i.e. files containing entities in their name
+        # transform files to artifacts, i.e. files containing entities in their name
         self._convert_files_to_artifacts(dataset)
-        # 3. pass: expand structure based on schema-files
+        # expand structure based on schema-files
         self._expand_members(dataset)
+        # convert Folders within derivatives to DerivativeFolder
+        self._convert_derivatives_folders(dataset.derivatives)
+
+    def _convert_derivatives_folders(self, parent: model.Folder):
+        if not parent:
+            return
+        for i, folder in enumerate(list(parent.folders)):
+            dfolder = model.DerivativeFolder()
+            dfolder.parent_object_ = parent
+            dfolder.update(folder)
+            parent.folders[i] = dfolder
+            self._convert_derivatives_folders(dfolder)
+            self._expand_members(dfolder)
 
     def _convert_files_to_artifacts(self, parent: model.Folder):
         for i, file in enumerate(parent.files):

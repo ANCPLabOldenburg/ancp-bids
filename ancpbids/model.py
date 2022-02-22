@@ -23,11 +23,14 @@ def process_entity_value(key, value):
 
 
 def fuzzy_match_entity_key(user_key):
+    return fuzzy_match_entity(user_key).entity_
+
+
+def fuzzy_match_entity(user_key):
     ratios = list(
         map(lambda item: (
             item,
             1.0 if item.name.startswith(user_key) else SequenceMatcher(None, user_key, item.name).quick_ratio()),
             list(EntityEnum)))
     ratios = sorted(ratios, key=lambda t: t[1])
-    return ratios[-1][0].entity_
-
+    return ratios[-1][0]

@@ -481,10 +481,9 @@ class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
 
 
 class DerivativeFolder(Folder):
-    def __init__(self, dataset_description: 'DerivativeDatasetDescriptionFile' = None, derivatives: 'List[DerivativeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
+    def __init__(self, dataset_description: 'DerivativeDatasetDescriptionFile' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
         super(DerivativeFolder, self).__init__(name or None, files or [], folders or [], metadatafiles or [])
         self['dataset_description'] = dataset_description or None
-        self['derivatives'] = derivatives or []
 
     @property
     def dataset_description(self) -> 'DerivativeDatasetDescriptionFile':
@@ -494,17 +493,8 @@ class DerivativeFolder(Folder):
     def dataset_description(self, dataset_description: 'DerivativeDatasetDescriptionFile'):
         self['dataset_description'] = dataset_description
             
-    @property
-    def derivatives(self) -> 'List[DerivativeFolder]':
-        return self['derivatives']
-
-    @derivatives.setter
-    def derivatives(self, derivatives: 'List[DerivativeFolder]'):
-        self['derivatives'] = derivatives
-            
     MEMBERS = {
         'dataset_description': {'type': 'DerivativeDatasetDescriptionFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'derivatives': {'type': 'DerivativeFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
     }
 
 
@@ -708,7 +698,7 @@ class GeneratedByContainer(Model):
 
 class Dataset(Folder):
     r"""The entry point of an in-memory graph representation of a BIDS dataset."""
-    def __init__(self, subjects: 'List[Subject]' = None, dataset_description: 'DatasetDescriptionFile' = None, README: 'File' = None, CHANGES: 'File' = None, LICENSE: 'File' = None, genetic_info: 'JsonFile' = None, samples: 'JsonFile' = None, participants_tsv: 'File' = None, participants_json: 'JsonFile' = None, code: 'Folder' = None, derivatives: 'DerivativeFolder' = None, sourcedata: 'Folder' = None, stimuli: 'Folder' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
+    def __init__(self, subjects: 'List[Subject]' = None, dataset_description: 'DatasetDescriptionFile' = None, README: 'File' = None, CHANGES: 'File' = None, LICENSE: 'File' = None, genetic_info: 'JsonFile' = None, samples: 'JsonFile' = None, participants_tsv: 'File' = None, participants_json: 'JsonFile' = None, code: 'Folder' = None, derivatives: 'Folder' = None, sourcedata: 'Folder' = None, stimuli: 'Folder' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None):
         super(Dataset, self).__init__(name or None, files or [], folders or [], metadatafiles or [])
         self['subjects'] = subjects or []
         self['dataset_description'] = dataset_description or None
@@ -805,11 +795,11 @@ class Dataset(Folder):
         self['code'] = code
             
     @property
-    def derivatives(self) -> 'DerivativeFolder':
+    def derivatives(self) -> 'Folder':
         return self['derivatives']
 
     @derivatives.setter
-    def derivatives(self, derivatives: 'DerivativeFolder'):
+    def derivatives(self, derivatives: 'Folder'):
         self['derivatives'] = derivatives
             
     @property
@@ -839,7 +829,7 @@ class Dataset(Folder):
         'participants_tsv': {'type': 'File', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
         'participants_json': {'type': 'JsonFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
         'code': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'derivatives': {'type': 'DerivativeFolder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
+        'derivatives': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
         'sourcedata': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
         'stimuli': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
     }

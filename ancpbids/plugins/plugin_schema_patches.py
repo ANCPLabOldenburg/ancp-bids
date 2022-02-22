@@ -73,7 +73,7 @@ def _get_path(folder: Folder, file_name=None, absolute=True):
             segments.insert(0, current_folder.name)
         current_folder = current_folder.parent_object_
     _path = os.path.join(*segments) if segments else ''
-    return _path
+    return os.path.normpath(_path)
 
 
 def remove_file(folder: Folder, file_name, from_meta=True):
@@ -165,6 +165,15 @@ def to_generator(source: Model, depth_first=False, filter_=None):
         yield source
 
 
+def iterancestors(source: Model):
+    context = source
+    while context is not None:
+        if not hasattr(context, 'parent_object_'):
+            break
+        context = context.parent_object_
+        yield context
+
+
 def to_etree(source: dict, parent=None, name=None, id2x=None, x2id=None, nsmap_=None):
     if not name:
         name = type(source).__name__
@@ -224,3 +233,4 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.Model.to_generator = to_generator
         schema.Model.to_etree = to_etree
         schema.Model.to_dict = to_dict
+        schema.Model.iterancestors = iterancestors

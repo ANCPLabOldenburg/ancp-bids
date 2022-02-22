@@ -1,4 +1,5 @@
 import re
+from fnmatch import fnmatch
 
 from ancpbids import model
 from ancpbids.plugin import SchemaPlugin
@@ -64,9 +65,18 @@ class CustomOpExpr(CompExpr):
     def eval(self, context) -> bool:
         return self.op(context)
 
+class FnMatchExpr(CompExpr):
+    def __init__(self, attr: property, pattern):
+        self.attr = attr
+        self.pattern = pattern
+
+    def eval(self, context) -> bool:
+        value = self.attr.fget(context)
+        return fnmatch(value, self.pattern)
+
 
 class EntityExpr(CompExpr):
-    def __init__(self, key: model.EntityEnum, value, op=EqExpr):
+    def __init__(self, key: model.EntityEnum, value, op=FnMatchExpr):
         self.op = AllExpr(EqExpr(model.EntityRef.key, key.entity_), op(model.EntityRef.value, value))
 
     def eval(self, context) -> bool:
@@ -106,6 +116,9 @@ class Select:
 
     def get_file_paths(self):
         return self._exec(model.File.get_relative_path)
+
+    def get_file_paths_absolute(self):
+        return self._exec(model.File.get_absolute_path)
 
     def get_artifacts(self):
         # TODO filter by Artifact instances
@@ -153,4 +166,4 @@ def select(context: model.Model, target_type):
 class QuerySchemaPlugin(SchemaPlugin):
     def execute(self, schema: model):
         schema.Dataset.query = query
-        schema.Dataset.select = select
+        schema.Model.select = select
