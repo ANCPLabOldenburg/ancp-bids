@@ -65,6 +65,7 @@ class CustomOpExpr(CompExpr):
     def eval(self, context) -> bool:
         return self.op(context)
 
+
 class FnMatchExpr(CompExpr):
     def __init__(self, attr: property, pattern):
         self.attr = attr
@@ -128,42 +129,10 @@ class Select:
         return self._exec(lambda m: m)
 
 
-class Query:
-    def __init__(self, dataset: model.Dataset):
-        self.dataset = dataset
-        self.id2x = {}
-        self.x2id = {}
-        self.root = dataset.to_etree(id2x=self.id2x, x2id=self.x2id, nsmap_={})
-
-    def execute(self, expr, search_node=None, return_model_objects=True):
-        raise NotImplemented()
-
-
-class XPathQuery(Query):
-    def __init__(self, dataset: model.Dataset):
-        super(XPathQuery, self).__init__(dataset)
-
-    def execute(self, expr, search_node=None, return_lxml_objects=False):
-        context = self.root
-        if search_node:
-            context = search_node
-        result = context.xpath(expr)
-        if return_lxml_objects:
-            return result
-        result = list(map(lambda e: self.x2id[e] if e in self.x2id else e, result))
-        return result
-
-
-def query(ds: model.Dataset, expr: str):
-    query_ = XPathQuery(ds)
-    return query_.execute(expr), query_
-
-
 def select(context: model.Model, target_type):
     return Select(context, target_type)
 
 
 class QuerySchemaPlugin(SchemaPlugin):
     def execute(self, schema: model):
-        schema.Dataset.query = query
         schema.Model.select = select
