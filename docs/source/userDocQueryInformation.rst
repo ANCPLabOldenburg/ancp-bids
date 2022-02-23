@@ -21,7 +21,7 @@ First we read information about a BIDS dataset in to a layout-object using BIDSL
     from ancpbids import BIDSLayout
     dataset_path = './tests/data/ds005'
     layout = BIDSLayout(dataset_path)
-Note that in order optimize speed BIDSLayout does not perform a deep search within data files. I  only parses the fiels and directories necessery to gather the information defined in the Brain Imaging Data Standard (BIDS).
+Note that in order optimize speed BIDSLayout does not perform a deep search within data files. I  only parses the fiels and directories necessery to gather the information defined in the Brain Imaging Data Structure (BIDS).
 
 Perform some basic queries
 --------------------------
