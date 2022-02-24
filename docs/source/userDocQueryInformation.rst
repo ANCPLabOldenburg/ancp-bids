@@ -15,7 +15,7 @@ One core functionality of the ancpbids tools is to query information about local
 
 Load an existing BIDS dataset
 -----------------------------
-First we read information about a BIDS dataset in to a layout-object using BIDSLayout. BIDSLayout takes as input the absolute or relative path to a BIDS-dataset and returns a layout in which most of the information about the dataset is held.
+First we read information about a BIDS dataset in to a layout-object using BIDSLayout. We use the sample dataset provided with XX ancp-bids datasets .... BIDSLayout takes as input the absolute or relative path to a BIDS-dataset and returns a layout in which most of the information about the dataset is held.
 
 .. code-block:: python
     from ancpbids import BIDSLayout
@@ -31,10 +31,10 @@ We can now use several methods to query information about the dataset. We can as
     subs=layout.get_subjects()
     print(subs)
     #Output:
-    #['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16']
+    # ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16']
 This will provide a list of all subject names in the dataset.
 
-Next lest us see how many runs there are.
+Next lest us see how many runs there are. XX Guarantee that all participants have all runs???XX
 @Erdal: what happens if participants have different numbers of runs?
 
 .. code:: python
@@ -51,12 +51,16 @@ Now the task
     #['mixedgamblestask']
 These simple queries should support most of the `entities defined in BIDS`_. The queries are constructed as **layout.get_NameOfTheEntity()**. The query will return '[]' if the entity does not exist in the dataset or if some wrong query string was written after 'get\_'.
 
+XX Remark ancp-bids can handle both singulra and plurals
+
 .. _entities defined in BIDS: https://bids-specification.readthedocs.io/en/stable/99-appendices/09-entities.html
 
 
 Query available entitities and metadata
 ---------------------------------------
 The command layout.get_entities() returns a dictionary with all entities defined in the dataset and their values.
+
+XX Check if pybids outputs ds and type
 
 .. code:: python
     avail_entitities=layout.get_entities()
@@ -65,8 +69,9 @@ The command layout.get_entities() returns a dictionary with all entities defined
     #Output:
     #Entities:  ['task', 'sub', 'run', 'ds', 'type']
     #Value of task:  {'mixedgamblestask'}
+Note that BIDS allows the definition of `non standard labels and indexes in filenames`_.
 
-**@Erdal:** seems like layout.get_entities returns entitities that are not defined in https://bids-specification.readthedocs.io/en/stable/99-appendices/09-entities.html .Examples with ds005 are 'ds' and 'type'. Are they rather metadata?
+.. _non standard labels and indexes in filenames: https://bids-specification.readthedocs.io/en/stable/02-common-principles.html#participant-names-and-other-labels
 
 Metadata from json files can be queried using layout.get_metadata(entity='abc',suffix='xyz'). It will return a dictionary with keys and values
 

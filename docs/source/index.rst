@@ -10,6 +10,7 @@ Using a plugin mechanism, contributors can extend its functionality in a control
    installation
    User Documentation
     Querying information about BIDS datasets/userDocQueryInformation.rst
+   validate
    usage
    howto
    faq
