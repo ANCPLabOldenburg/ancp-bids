@@ -8,7 +8,7 @@ from . import model
 from . import utils
 from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin
 from .plugins.plugin_query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
-    EntityExpr, DatatypeExpr
+    EntityExpr
 
 LOGGER = logging.getLogger("ancpbids")
 
@@ -96,7 +96,6 @@ eq = EqExpr
 re = ReExpr
 op = CustomOpExpr
 entity = EntityExpr
-datatype = DatatypeExpr
 
 from . import _version
 

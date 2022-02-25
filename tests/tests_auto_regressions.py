@@ -6,8 +6,9 @@ class RegressionsTestCase(BaseTestCase):
     def test_get_all_files_from_pipeline(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
         all_derivative_files = layout.get(scope='derivatives/affine/matrix', return_type='file')
-        # that derivatives folder has no valid BIDS files
-        self.assertEqual(0, len(all_derivative_files))
+        # that derivatives folder has no valid BIDS files (of type model.Artifact)
+        # but ordinary files (if type model.File)
+        self.assertEqual(16, len(all_derivative_files))
 
     def test_get_metadata_no_params(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)

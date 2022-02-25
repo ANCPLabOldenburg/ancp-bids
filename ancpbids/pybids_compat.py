@@ -75,6 +75,13 @@ class BIDSLayout:
 
         return metadata
 
+    def _require_artifact(self, expr):
+        """
+        :param expr: the expression to wrap
+        :return: a wrapping expression to make sure that the provided object is an instance of model.Artifact
+        """
+        return AllExpr(CustomOpExpr(lambda m: isinstance(m, model.Artifact)), expr)
+
     def get(self, return_type: str = 'object', target: str = None, scope: str = 'all',
             extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None,
             **entities):
@@ -122,14 +129,17 @@ class BIDSLayout:
 
         context = self.dataset
         ops = []
+        target_type = model.File
         if scope.startswith("derivatives"):
             context = self.dataset.derivatives
             # we already consumed the first path segment
             segments = os.path.normpath(scope).split(os.sep)[1:]
             for segment in segments:
                 context = context.get_folder(segment)
+            # derivatives may contain non-artifacts which should also be considered
+            target_type = model.File
 
-        select = context.select(model.Artifact)
+        select = context.select(target_type)
 
         if scope == 'raw':
             # the raw scope does not consider derivatives folder but everything else
@@ -148,16 +158,19 @@ class BIDSLayout:
                 entities = {**entities, target: '*'}
                 result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
                                                       filter(lambda e: e.key == target, a.entities)]
+
         for k, v in entities.items():
             entity_key = model.fuzzy_match_entity(k)
             v = model.process_entity_value(k, v)
-            ops.append(self._to_any_expr(v, lambda val: EntityExpr(entity_key, val)))
+            ops.append(self._require_artifact(self._to_any_expr(v, lambda val: EntityExpr(entity_key, val))))
 
         if extension:
-            ops.append(self._to_any_expr(extension, lambda ext: FnMatchExpr(model.Artifact.extension, ext)))
+            ops.append(self._require_artifact(
+                self._to_any_expr(extension, lambda ext: FnMatchExpr(model.Artifact.extension, ext))))
 
         if suffix:
-            ops.append(self._to_any_expr(suffix, lambda suf: FnMatchExpr(model.Artifact.suffix, suf)))
+            ops.append(
+                self._require_artifact(self._to_any_expr(suffix, lambda suf: FnMatchExpr(model.Artifact.suffix, suf))))
 
         select.where(AllExpr(*ops))
 
@@ -170,7 +183,7 @@ class BIDSLayout:
             return list(artifacts)
 
     def get_entities(self, scope=None, sort=False):
-        artifacts = self.get(scope=scope)
+        artifacts = filter(lambda m: isinstance(m, model.Artifact), self.get(scope=scope))
         result = OrderedDict()
         for e in [e for a in artifacts for e in a.entities]:
             if e.key not in result:
