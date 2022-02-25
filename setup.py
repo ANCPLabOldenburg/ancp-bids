@@ -10,6 +10,7 @@ SETUP_REQUIRES = ['setuptools >= 30.3.0']
 # This enables setuptools to install wheel on-the-fly
 SETUP_REQUIRES += ['wheel'] if 'bdist_wheel' in sys.argv else []
 INSTALL_REQUIRES = []
+TESTS_REQUIRE = ['pandas']
 
 if __name__ == '__main__':
     REQ_FILE_PATH = os.path.dirname(os.path.realpath(__file__)) + "/requirements.txt"
@@ -19,4 +20,5 @@ if __name__ == '__main__':
           version=versioneer.get_version(),
           cmdclass=versioneer.get_cmdclass(),
           setup_requires=SETUP_REQUIRES,
-          install_requires=INSTALL_REQUIRES)
+          install_requires=INSTALL_REQUIRES,
+          tests_require=TESTS_REQUIRE)
