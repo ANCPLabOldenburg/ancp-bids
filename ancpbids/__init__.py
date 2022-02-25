@@ -44,7 +44,7 @@ def save_dataset(ds: model.Dataset, target_dir: str, context_folder: model.Folde
         dsplugin.execute(ds, target_dir, context_folder=context_folder)
 
 
-def validate_dataset(dataset: model.Dataset):
+def validate_dataset(dataset: model.Dataset) -> ValidationPlugin.ValidationReport:
     """
     Validates a dataset and returns a report object containing any detected validation errors.
 

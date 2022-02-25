@@ -4,7 +4,7 @@ from functools import partial
 from typing import List, Union
 
 import ancpbids
-from ancpbids import CustomOpExpr, EntityExpr, AllExpr
+from ancpbids import CustomOpExpr, EntityExpr, AllExpr, ValidationPlugin
 from . import load_dataset, model, LOGGER
 from .plugins.plugin_query import FnMatchExpr, AnyExpr
 from .utils import deepupdate
@@ -213,3 +213,22 @@ class BIDSLayout:
         :param derivative: the derivative folder to write
         """
         ancpbids.write_derivative(self.dataset, derivative)
+
+    def validate(self) -> ValidationPlugin.ValidationReport:
+        """
+        Validates a dataset and returns a report object containing any detected validation errors.
+
+        Example:
+
+        .. code-block::
+
+            report = layout.validate()
+            for message in report.messages:
+                print(message)
+            if report.has_errors():
+                raise "The dataset contains validation errors, cannot continue".
+
+
+        :return: a report object containing any detected validation errors or warning
+        """
+        return ancpbids.validate_dataset(self.dataset)
