@@ -3,6 +3,7 @@ from collections import OrderedDict
 from functools import partial
 from typing import List, Union
 
+import ancpbids
 from ancpbids import CustomOpExpr, EntityExpr, AllExpr
 from . import load_dataset, model, LOGGER
 from .plugins.plugin_query import FnMatchExpr, AnyExpr
@@ -178,3 +179,24 @@ class BIDSLayout:
         if sort:
             result = {k: sorted(v) for k, v in sorted(result.items())}
         return result
+
+    def get_dataset_description(self) -> dict:
+        """
+        :return: the dataset's dataset_description.json as a dictionary or None if not provided
+        """
+        return self.dataset.dataset_description
+
+    def get_dataset(self) -> model.Dataset:
+        """
+        :return: the in-memory representation of this layout/dataset
+        """
+        return self.dataset
+
+    def write_derivative(self, derivative: model.DerivativeFolder):
+        """
+        Writes the provided derivative folder to the dataset.
+        Note that a 'derivatives' folder will be created if not present.
+
+        :param derivative: the derivative folder to write
+        """
+        ancpbids.write_derivative(self.dataset, derivative)
