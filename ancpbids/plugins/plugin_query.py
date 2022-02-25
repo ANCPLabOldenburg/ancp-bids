@@ -125,8 +125,11 @@ class Select:
         # TODO filter by Artifact instances
         return self.objects()
 
-    def objects(self):
-        return self._exec(lambda m: m)
+    def objects(self, as_list=False):
+        result = self._exec(lambda m: m)
+        if as_list:
+            result = list(result)
+        return result
 
 
 def select(context: model.Model, target_type):

@@ -104,7 +104,7 @@ def create_derivative(ds: Dataset, **kwargs):
         ds.derivatives = derivatives_folder
     derivative = DerivativeFolder(**kwargs)
     derivative.parent_object_ = derivatives_folder
-    derivatives_folder.derivatives.append(derivative)
+    derivatives_folder.folders.append(derivative)
 
     derivative.dataset_description = DerivativeDatasetDescriptionFile()
     derivative.dataset_description.parent_object_ = derivative
@@ -173,37 +173,6 @@ def iterancestors(source: Model):
         yield context
 
 
-def to_etree(source: dict, parent=None, name=None, id2x=None, x2id=None, nsmap_=None):
-    if not name:
-        name = type(source).__name__
-    if parent is None:
-        parent = etree.Element(name, nsmap=nsmap_)
-
-    if isinstance(source, Model):
-        if id2x is not None:
-            id2x[id(source)] = parent
-        if x2id is not None:
-            x2id[parent] = source
-
-    if isinstance(source, dict):
-        for key, value in source.items():
-            if value is None:
-                continue
-            context = parent
-            if isinstance(value, dict):
-                context = etree.SubElement(context, key)
-            to_etree(value, parent=context, name=key, id2x=id2x, x2id=x2id, nsmap_=nsmap_)
-    elif isinstance(source, list):
-        for item in source:
-            sub = etree.SubElement(parent, name)
-            to_etree(item, parent=sub, name=name, id2x=id2x, x2id=x2id, nsmap_=nsmap_)
-    else:
-        sub = etree.SubElement(parent, name)
-        sub.text = str(source)
-
-    return parent
-
-
 def to_dict(source: Model):
     return source
 
@@ -230,6 +199,5 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.Folder.get_files_sorted = get_files_sorted
         schema.Folder.get_folders_sorted = get_folders_sorted
         schema.Model.to_generator = to_generator
-        schema.Model.to_etree = to_etree
         schema.Model.to_dict = to_dict
         schema.Model.iterancestors = iterancestors

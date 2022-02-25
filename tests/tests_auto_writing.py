@@ -1,39 +1,69 @@
-import tempfile
+import time
 import unittest
-from unittest import skip
 
-from ancpbids import load_dataset, save_dataset, model
-from base_test_case import BaseTestCase, RESOURCES_FOLDER
+import numpy as np
+import pandas as pd
+
+import ancpbids
+from ancpbids import model, re
+from base_test_case import BaseTestCase, DS005_DIR
 
 
-@skip
 class WritingTestCase(BaseTestCase):
-    def test_writing_ds005(self):
-        ds005_original = load_dataset(RESOURCES_FOLDER + "/ds005-small")
+    def write_test_derivative(self):
+        layout = ancpbids.BIDSLayout(DS005_DIR)
+        dataset = layout.get_dataset()
+        pipeline_name = "mypipeline-%d" % time.time()
+        derivative = dataset.create_derivative(name=pipeline_name)
+        derivative.dataset_description.GeneratedBy.Name = "My Test Pipeline"
+        task_label = layout.get_tasks()[0]
 
-        target_dir = tempfile.TemporaryDirectory().name
-        save_dataset(ds005_original, target_dir)
-        ds005_copy = load_dataset(target_dir)
-        subjects = ds005_copy.subjects
-        self.assertEqual(1, len(subjects))
-        first_subject = subjects[0]
-        self.assertEqual("sub-01", first_subject.name)
-        datatypes = first_subject.datatypes
-        self.assertEqual(2, len(datatypes))
-        self.assertEqual("anat", datatypes[0].name)
-        self.assertEqual("func", datatypes[1].name)
-        self.assertEqual(1, len(datatypes[0].artifacts))
-        self.assertEqual(1, len(datatypes[1].artifacts))
-        self.assertEqual(2, len(datatypes[1].metadatafiles))
+        for sub_label in layout.get_subjects():
+            subject = derivative.create_folder(name='sub-' + sub_label)
 
-        ds_descr = ds005_copy.dataset_description
-        self.assertTrue(isinstance(ds_descr, model.DatasetDescriptionFile))
-        self.assertEqual('dataset_description.json', ds_descr.name)
-        self.assertEqual("1.0.0rc2", ds_descr.BIDSVersion)
-        self.assertEqual("Mixed-gambles task", ds_descr.Name)
+            # do some complex task
+            # ... doing complex task ...
+            # ... done
+            txt_artifact = subject.create_artifact()
+            txt_artifact.add_entity("desc", "mypipeline")
+            txt_artifact.add_entity("task", task_label)
+            txt_artifact.suffix = 'textual'
+            txt_artifact.extension = ".txt"
+            txt_artifact.content = "Subject %s participated in task %s" % (sub_label, task_label)
 
-        # TODO more exhaustive comparison/assertions
+            # create some random data
+            df = pd.DataFrame(np.random.randint(0, 100, size=(100, 4)), columns=list('ABCD'))
+            ev_artifact = subject.create_artifact()
+            ev_artifact.add_entity("desc", "mypipeline")
+            ev_artifact.add_entity("task", task_label)
+            ev_artifact.suffix = 'events'
+            ev_artifact.extension = ".tsv"
+            # at this point, the file path is not known and will be provided
+            # to lambda when the derivative is written to disk
+            ev_artifact.content = lambda file_path: df.to_csv(file_path, index=None)
 
+        layout.write_derivative(derivative)
+        return DS005_DIR, pipeline_name
+
+    def test_write_derivative(self):
+        # create a temporary dataset with a test derivative and return its root path and the created derivative
+        ds_path, pipeline_name = self.write_test_derivative()
+        # pretend loading a new dataset
+        layout = ancpbids.BIDSLayout(ds_path)
+        # get the underlying graph/dataset for further inspection
+        dataset = layout.get_dataset()
+        derivative_folder = filter(lambda f: f.name == pipeline_name, dataset.derivatives.folders)
+        self.assertIsNotNone(derivative_folder)
+        derivative_folder = next(derivative_folder)
+        subjects = derivative_folder.select(model.Folder) \
+            .where(re(model.Folder.name, r"sub-[\d]+")) \
+            .objects(True)
+        self.assertEqual(16, len(subjects))
+
+        for i, subject in enumerate(subjects):
+            self.assertEqual("sub-%02d" % (i+1), subject.name)
+
+        # TODO complete the assertions
 
 
 if __name__ == '__main__':
