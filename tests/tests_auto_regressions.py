@@ -17,6 +17,11 @@ class RegressionsTestCase(BaseTestCase):
                        'SliceTiming': [0.0, 0.0571, 0.1143, 0.1714, 0.2286, 0.2857], 'run': 1}
         self.assertEqual(md, expected_md)
 
+    def test_report_errors(self):
+        layout = ancpbids.BIDSLayout(DS005_DIR)
+        report = layout.validate()
+        self.assertTrue(report.has_errors())
+
 
 if __name__ == '__main__':
     unittest.main()

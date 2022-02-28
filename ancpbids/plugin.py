@@ -46,7 +46,10 @@ class ValidationPlugin(Plugin):
             })
 
         def has_errors(self):
-            return len(filter(lambda m: m['severity'] == 'error'), self.messages) > 0
+            for m in self.messages:
+                if m['severity'] == 'error':
+                    return True
+            return False
 
     class ValidationRule:
         def validate(self, **kwargs):
