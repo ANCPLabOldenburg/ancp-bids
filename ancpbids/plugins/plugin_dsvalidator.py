@@ -1,3 +1,5 @@
+import os
+
 from ancpbids import model, utils
 from ancpbids.plugin import ValidationPlugin
 
@@ -6,6 +8,7 @@ class StaticStructureValidationPlugin(ValidationPlugin):
     def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
         gen = dataset.to_generator()
         for obj in gen:
+            top_path = obj.get_relative_path().replace("\\", "/") if isinstance(obj, (model.File, model.Folder)) else '???'
             members = utils.get_members(type(obj))
             for member in members:
                 typ = member['type']
@@ -15,9 +18,9 @@ class StaticStructureValidationPlugin(ValidationPlugin):
                 val = getattr(obj, name)
                 use = member['use']
                 if (lb > 0 or use == 'required') and not val:
-                    report.error(f"Missing required field {name}.")
+                    report.error(f"Missing required field {name} at {top_path}.")
                 if use == 'recommended' and not val:
-                    report.warn(f"Missing recommended field {name}.")
+                    report.warn(f"Missing recommended field {name} at {top_path}.")
 
 
 class DatatypesValidationPlugin(ValidationPlugin):
