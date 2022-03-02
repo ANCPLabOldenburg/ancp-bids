@@ -1,4 +1,4 @@
-name: ancp-bids package build/deploy/test/coverage
+name: build/deploy/test/coverage
 
 on:
   push:

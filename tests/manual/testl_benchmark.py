@@ -2,7 +2,7 @@ from unittest import skip
 
 import sys
 
-from base_test_case import *
+from ..base_test_case import *
 
 OPENNEURO_DS001734 = os.path.join(os.environ.get('TEST_DATASETS', os.path.expanduser('~/datasets')), 'ds001734')
 

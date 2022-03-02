@@ -1,7 +1,7 @@
 import numpy
 
 from ancpbids import model, load_dataset, ENTITIES_PATTERN
-from base_test_case import *
+from ..base_test_case import *
 
 
 class BasicTestCase(BaseTestCase):

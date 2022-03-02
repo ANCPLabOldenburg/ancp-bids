@@ -6,7 +6,7 @@ import pandas as pd
 
 import ancpbids
 from ancpbids import model, re
-from base_test_case import BaseTestCase, DS005_DIR
+from ..base_test_case import BaseTestCase, DS005_DIR
 
 
 class WritingTestCase(BaseTestCase):

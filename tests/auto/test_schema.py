@@ -1,7 +1,7 @@
 import unittest
 
 from ancpbids import model
-from base_test_case import BaseTestCase
+from ..base_test_case import BaseTestCase
 
 
 class SchemaTestCase(BaseTestCase):

@@ -1,5 +1,5 @@
 from ancpbids import load_dataset, _internal_validate_dataset
-from base_test_case import *
+from ..base_test_case import *
 from ancpbids.plugin import ValidationPlugin
 from ancpbids.plugins import plugin_dsvalidator
 

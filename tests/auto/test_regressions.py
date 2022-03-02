@@ -1,5 +1,5 @@
 import ancpbids
-from base_test_case import *
+from ..base_test_case import *
 
 
 class RegressionsTestCase(BaseTestCase):
