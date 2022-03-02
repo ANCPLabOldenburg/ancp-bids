@@ -1,4 +1,4 @@
-name: build/deploy/test/coverage
+name: Run tests with coverage
 
 on:
   push:
@@ -14,7 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -33,10 +32,12 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
+      env:
+        PYTHONPATH=. pytest
       run: |
         pip install -r requirements_tests.txt
         pytest --cov=ancppbids --cov-report=xml tests/auto
-    - name: "Upload coverage to Codecov"
+    - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
         fail_ci_if_error: true
