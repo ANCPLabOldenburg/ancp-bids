@@ -33,7 +33,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       env:
-        PYTHONPATH: . pytest
+        PYTHONPATH: .
       run: |
         pip install -r requirements_tests.txt
         pytest --cov=ancppbids --cov-report=xml tests/auto
