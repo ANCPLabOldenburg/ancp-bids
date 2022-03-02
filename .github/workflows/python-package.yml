@@ -36,7 +36,7 @@ jobs:
         PYTHONPATH: .
       run: |
         pip install -r requirements_tests.txt
-        pytest --cov=ancppbids --cov-report=xml tests/auto
+        pytest --cov=ancpbids --cov-report=xml tests/auto
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
