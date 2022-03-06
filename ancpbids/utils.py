@@ -1,4 +1,5 @@
 import inspect
+import os
 
 from ancpbids import model
 
@@ -71,4 +72,28 @@ def deepupdate(target, src):
                 target[k].update(v.copy())
         else:
             target[k] = copy.copy(v)
+
+
+def fetch_dataset(dataset_id: str, output_dir='~/.ancp-bids/datasets'):
+    output_dir = os.path.expanduser(output_dir)
+    output_dir = os.path.abspath(os.path.normpath(output_dir))
+    output_path = os.path.join(output_dir, dataset_id)
+    if os.path.exists(output_path):
+        return output_path
+
+    os.makedirs(output_path)
+
+    download_file = f'{dataset_id}-testdata.zip'
+    download_path = os.path.join(output_dir, download_file)
+
+    if os.path.exists(download_path):
+        return output_path
+
+    url = f'https://github.com/ANCPLabOldenburg/ancp-bids-dataset/raw/main/{download_file}'
+    import urllib.request, zipfile, io
+    with urllib.request.urlopen(url) as dl_file:
+        with open(download_path, 'wb') as out_file:
+            out_file.write(dl_file.read())
+    z = zipfile.ZipFile(download_path)
+    z.extractall(output_dir)
 
