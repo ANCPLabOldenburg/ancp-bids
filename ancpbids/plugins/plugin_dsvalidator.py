@@ -26,7 +26,7 @@ class StaticStructureValidationPlugin(ValidationPlugin):
 class DatatypesValidationPlugin(ValidationPlugin):
     def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
         invalid = []
-        valid_datatypes = model.DatatypeEnum.__members__
+        valid_datatypes = [v.literal_ for v in model.DatatypeEnum.__members__.values()]
         for subject in dataset.subjects:
             invalid.extend([f for f in subject.datatypes if f.name not in valid_datatypes])
             for session in subject.sessions:
