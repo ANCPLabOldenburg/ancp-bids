@@ -96,4 +96,5 @@ def fetch_dataset(dataset_id: str, output_dir='~/.ancp-bids/datasets'):
             out_file.write(dl_file.read())
     z = zipfile.ZipFile(download_path)
     z.extractall(output_dir)
+    return output_path
 
