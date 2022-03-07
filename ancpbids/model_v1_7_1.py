@@ -3,7 +3,7 @@ from typing import List, Union, Dict, Any
 from math import inf
 import sys
 
-VERSION = 'v1.7.0'
+VERSION = 'v1.7.1'
 SCHEMA = sys.modules[__name__]
 
 class Model(dict):
@@ -1283,6 +1283,29 @@ Siemens scanners."""
     r"""Physiological recordings such as cardiac and respiratory signals."""
     _sbref = 'sbref', r"Single-band reference image", r""
     r"""Single-band reference for one or more multi-band `dwi` images."""
+    _scans = 'scans', r"Scans file", r""
+    r"""The purpose of this file is to describe timing and other properties of each imaging acquisition
+sequence (each run file) within one session.
+Each neural recording file SHOULD be described by exactly one row. Some recordings consist of
+multiple parts, that span several files, for example through echo-, part-, or split- entities.
+Such recordings MUST be documented with one row per file.
+Relative paths to files should be used under a compulsory filename header.
+If acquisition time is included it should be listed under the acq_time header.
+Acquisition time refers to when the first data point in each run was acquired.
+Furthermore, if this header is provided, the acquisition times of all files that belong to a
+recording MUST be identical.
+Datetime should be expressed as described in Units.
+Additional fields can include external behavioral measures relevant to the scan.
+For example vigilance questionnaire score administered after a resting state scan.
+All such included additional fields SHOULD be documented in an accompanying _scans.json file
+that describes these fields in detail (see Tabular files)."""
+    _sessions = 'sessions', r"Sessions file", r""
+    r"""In case of multiple sessions there is an option of adding additional sessions.tsv files
+describing variables changing between sessions.
+In such case one file per participant SHOULD be added.
+These files MUST include a session_id column and describe each session by one and only one row.
+Column names in sessions.tsv files MUST be different from group level participant key column
+names in the participants.tsv file."""
     _stim = 'stim', r"Continuous recording", r""
     r"""Continuous measures, such as parameters of a film or audio stimulus."""
     _uCT = 'uCT', r"Micro-CT", r""
@@ -1478,6 +1501,11 @@ For example: `_recording-contrast`, `_recording-saturation`."""
     r"""The `chunk-<index>` key/value pair is used to distinguish between different
 regions, 2D images or 3D volumes files, of the same physical sample with
 different fields of view acquired in the same imaging experiment."""
+    _atlas = 'atlas', r"Atlas", r"atlas", r"string", r"label"
+    r"""The `atlas-<label>` key/value pair corresponds to a custom label the user
+MAY use to distinguish a different atlas used for similar type of data.
+
+This entity is only applicable to derivative data."""
     _resolution = 'resolution', r"Resolution", r"res", r"string", r"label"
     r"""Resolution of regularly sampled N-dimensional data.
 MUST have a corresponding `"Resolution"` metadata field to provide

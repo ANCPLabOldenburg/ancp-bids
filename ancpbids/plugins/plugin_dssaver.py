@@ -1,12 +1,11 @@
 import inspect
 import os
 
-from ancpbids import model
 from ancpbids.plugin import WritingPlugin
 
 
 class DatasetWritingPlugin(WritingPlugin):
-    def execute(self, ds: model.Dataset, target_dir: str, context_folder: model.Folder = None, src_dir: str = None):
+    def execute(self, ds, target_dir: str, context_folder=None, src_dir: str = None):
         if context_folder is None and os.path.exists(target_dir) and len(os.listdir(target_dir)) > 0:
             raise ValueError("Directory not empty: " + target_dir)
 
@@ -15,7 +14,7 @@ class DatasetWritingPlugin(WritingPlugin):
         if src_dir is None:
             src_dir = ds.get_absolute_path()
 
-        self.schema = ds._schema
+        self.schema = ds.get_schema()
         generator = context_folder.to_generator()
         for obj in generator:
             typ = type(obj)
@@ -28,12 +27,12 @@ class DatasetWritingPlugin(WritingPlugin):
         self._type_handler_Folder(src_dir, target_dir, context_folder, traverse_children=True)
 
     def _type_handler_default(self, src_dir, target_dir, obj):
-        if isinstance(obj, model.Folder):
+        if isinstance(obj, self.schema.Folder):
             self._type_handler_Folder(src_dir, target_dir, obj)
-        elif isinstance(obj, model.File):
+        elif isinstance(obj, self.schema.File):
             self._type_handler_File(src_dir, target_dir, obj)
 
-    def _type_handler_File(self, src_dir, target_dir, file: model.File, new_file_name=None):
+    def _type_handler_File(self, src_dir, target_dir, file, new_file_name=None):
         old_file_name = file.get_relative_path()
         old_file_path = os.path.join(src_dir, old_file_name)
         new_file_path = new_file_name
@@ -48,7 +47,7 @@ class DatasetWritingPlugin(WritingPlugin):
             # TODO process fields
             pass
 
-    def _type_handler_Folder(self, src_dir, target_dir, folder: model.Folder, traverse_children=False):
+    def _type_handler_Folder(self, src_dir, target_dir, folder, traverse_children=False):
         new_dir = os.path.join(target_dir, folder.get_relative_path())
         # the new directory may exist because model Artifacts/Folders are processed first
         if not os.path.exists(new_dir):
@@ -60,7 +59,7 @@ class DatasetWritingPlugin(WritingPlugin):
             for child_file in folder.files:
                 self._type_handler_File(src_dir, target_dir, child_file)
 
-    def _type_handler_Artifact(self, src_dir, target_dir, artifact: model.Artifact):
+    def _type_handler_Artifact(self, src_dir, target_dir, artifact):
         segments = []
         # TODO sort according order defined in schema
         for e in artifact.entities:

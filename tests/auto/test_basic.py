@@ -1,6 +1,6 @@
 import numpy
 
-from ancpbids import model, load_dataset, ENTITIES_PATTERN
+from ancpbids import load_dataset, ENTITIES_PATTERN
 from ..base_test_case import *
 
 
@@ -19,7 +19,7 @@ class BasicTestCase(BaseTestCase):
         self.assertEqual("ds005", ds005.name)
 
         ds_descr = ds005.dataset_description
-        self.assertTrue(isinstance(ds_descr, model.DatasetDescriptionFile))
+        self.assertTrue(isinstance(ds_descr, ds005.get_schema().DatasetDescriptionFile))
         self.assertEqual('dataset_description.json', ds_descr.name)
         self.assertEqual("1.0.0rc2", ds_descr.BIDSVersion)
         self.assertEqual("Mixed-gambles task", ds_descr.Name)
@@ -79,7 +79,7 @@ class BasicTestCase(BaseTestCase):
         # get first artifact in func datatype of first subject/session:
         # sub-16_task-mixedgamblesatask_run-01_bold.nii.gz
         artifact = ds005.subjects[0].datatypes[-1].artifacts[0]
-        self.assertTrue(isinstance(artifact, model.Artifact))
+        self.assertTrue(isinstance(artifact, ds005.get_schema().Artifact))
 
         self.assertEqual("bold", artifact.suffix)
         self.assertEqual(".nii.gz", artifact.extension)

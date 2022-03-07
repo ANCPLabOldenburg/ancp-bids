@@ -1,13 +1,14 @@
-from ancpbids import load_dataset, model
+from ancpbids import load_dataset
 from ..base_test_case import *
 
 
 class DerivativesTestCase(BaseTestCase):
     def test_derivative_generated_by(self):
         test_ds = load_dataset(SYNTHETIC_DIR)
+        schema = test_ds.get_schema()
         fmriprep_folder = test_ds.derivatives.get_folder('fmriprep')
-        self.assertTrue(isinstance(fmriprep_folder, model.DerivativeFolder))
-        self.assertTrue(isinstance(fmriprep_folder.dataset_description, model.DerivativeDatasetDescriptionFile))
+        self.assertTrue(isinstance(fmriprep_folder, schema.DerivativeFolder))
+        self.assertTrue(isinstance(fmriprep_folder.dataset_description, schema.DerivativeDatasetDescriptionFile))
         dddf = fmriprep_folder.dataset_description
         self.assertEqual(1, len(dddf.GeneratedBy))
         generated_by = dddf.GeneratedBy[0]

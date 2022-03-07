@@ -55,8 +55,9 @@ class WritingTestCase(BaseTestCase):
         derivative_folder = filter(lambda f: f.name == pipeline_name, dataset.derivatives.folders)
         self.assertIsNotNone(derivative_folder)
         derivative_folder = next(derivative_folder)
-        subjects = derivative_folder.select(model.Folder) \
-            .where(re(model.Folder.name, r"sub-[\d]+")) \
+        schema = dataset.get_schema()
+        subjects = derivative_folder.select(schema.Folder) \
+            .where(re(schema.Folder.name, r"sub-[\d]+")) \
             .objects(True)
         self.assertEqual(16, len(subjects))
 

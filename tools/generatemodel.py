@@ -1,4 +1,5 @@
 import math
+import sys
 from io import StringIO
 
 import yaml
@@ -25,15 +26,23 @@ class ClassGenerator:
             }
         }
 
-    def generate(self):
-        self.append("from enum import Enum, auto")
-        self.append("from typing import List, Union, Dict, Any")
-        self.append("from math import inf")
-        self.append()
-        self.append("class Model(dict):")
-        self.append("    def __init__(self, *args, **kwargs):")
-        self.append("        pass")
-        self.append()
+    def generate(self, version='0.0.0'):
+        self.append(f"""\
+from enum import Enum, auto
+from typing import List, Union, Dict, Any
+from math import inf
+import sys
+
+VERSION = '{version}'
+SCHEMA = sys.modules[__name__]
+
+class Model(dict):
+    def __init__(self, *args, **kwargs):
+        self._schema = SCHEMA
+
+    def get_schema(self):
+        return self._schema
+        """)
 
         # generate types first as they are referenced by the elements and need to be declared before usage
         for name, sub_schema in self.types.items():
@@ -173,23 +182,27 @@ class ClassGenerator:
             fields = [f"r\"{schema['name']}\""]
             if additional_fields:
                 fields += list(map(lambda f: f"r\"{schema[f] if f in schema else ''}\"", additional_fields))
-            generator.append(f"    {name} = {', '.join(fields)}")
+            fields_str = ', '.join([f'\'{name}\'']+fields)
+            generator.append(f"    _{name} = {fields_str}")
             if 'description' in schema and schema['description'] and schema['description'].strip():
                 generator.append(f"    r\"\"\"{schema['description'].strip()}\"\"\"")
         generator.append()
-        if additional_fields:
-            fields = list(map(lambda f: f"{f}_", additional_fields))
-            generator.append(f"    def __init__(self, value, {', '.join(fields)}):")
-            for field in fields:
-                generator.append(f"        self.{field} = {field}")
-            generator.append()
+
+        fields = list(map(lambda f: f"{f}_", additional_fields))
+        generator.append(f"    def __init__(self, literal, value, {', '.join(fields)}):")
+        generator.append(f"        self.literal_ = literal")
+        generator.append(f"        self.value_ = value")
+        for field in fields:
+            generator.append(f"        self.{field} = {field}")
+        generator.append()
 
 
 if __name__ == '__main__':
     # extractor = MetadataExtractor("./test.yaml")
-    version_tag = "v1_7_0"
-    generator = ClassGenerator("../ancpbids/data/bids_%s.yaml" % version_tag)
-    generator.generate()
+    version_tag = 'v1.7.1'
+    module_version_tag = version_tag.replace('.', '_')
+    generator = ClassGenerator("../ancpbids/data/bids_graph_schema.yaml")
+    generator.generate(version_tag)
 
     generator.generate_enum("../../bids-specification/src/schema/objects/datatypes.yaml", "DatatypeEnum")
     generator.generate_enum("../../bids-specification/src/schema/objects/modalities.yaml", "ModalityEnum")
@@ -208,5 +221,5 @@ if __name__ == '__main__':
 
     generator.output.flush()
     generator.output.seek(0)
-    with open("../ancpbids/model_%s.py" % version_tag, 'w') as f:
+    with open("../ancpbids/model_%s.py" % module_version_tag, 'w') as f:
         f.write(generator.output.read())

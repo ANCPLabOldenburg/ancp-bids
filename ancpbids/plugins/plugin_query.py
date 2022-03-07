@@ -1,7 +1,6 @@
 import re
 from fnmatch import fnmatch
 
-from ancpbids import model
 from ancpbids.plugin import SchemaPlugin
 
 
@@ -81,18 +80,20 @@ class FnMatchExpr(CompExpr):
 
 
 class EntityExpr(CompExpr):
-    def __init__(self, key: model.EntityEnum, value, op=FnMatchExpr):
-        self.op = AllExpr(EqExpr(model.EntityRef.key, key.entity_), op(model.EntityRef.value, value))
+    def __init__(self, schema, key, value, op=FnMatchExpr):
+        self.schema = schema
+        self.op = AllExpr(EqExpr(schema.EntityRef.key, key.entity_), op(schema.EntityRef.value, value))
 
-    def eval(self, context: model.Artifact) -> bool:
-        if not isinstance(context, model.Artifact):
+    def eval(self, context) -> bool:
+        if not isinstance(context, self.schema.Artifact):
             # for non-Artifacts, for example File, just return false
             return False
         return any([self.op.eval(e) for e in context.entities])
 
 
 class Select:
-    def __init__(self, context: model.Model, filter_type):
+    def __init__(self, context, filter_type):
+        self.schema = context.get_schema()
         self.context = context
         self.filter_type = filter_type
         self._where = TrueExpr()
@@ -111,10 +112,10 @@ class Select:
                 yield callback(m)
 
     def get_file_paths(self):
-        return self._exec(model.File.get_relative_path)
+        return self._exec(self.schema.File.get_relative_path)
 
     def get_file_paths_absolute(self):
-        return self._exec(model.File.get_absolute_path)
+        return self._exec(self.schema.File.get_absolute_path)
 
     def get_artifacts(self):
         # TODO filter by Artifact instances
@@ -127,10 +128,10 @@ class Select:
         return result
 
 
-def select(context: model.Model, target_type):
+def select(context, target_type):
     return Select(context, target_type)
 
 
 class QuerySchemaPlugin(SchemaPlugin):
-    def execute(self, schema: model):
+    def execute(self, schema):
         schema.Model.select = select
