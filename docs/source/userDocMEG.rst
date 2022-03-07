@@ -272,6 +272,7 @@ We can then load the contents of the first element of our dictionary to access t
 .. code-block:: python
     events = layout.get(suffix='events',subject='009',task='deduction')
     df_events = events[0].load_contents()
-The
+This way you will be able to load the contents of the metadata and descriptive tabular files.
+@Erdal: für imaging data brauchen wir aber noch bibleotheken die die daten interpretieren können richtig?
 
 
