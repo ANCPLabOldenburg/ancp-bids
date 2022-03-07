@@ -1,15 +1,17 @@
 import os
 
-from ancpbids import model, utils
+from ancpbids import utils
 from ancpbids.plugin import ValidationPlugin
 
 
 class StaticStructureValidationPlugin(ValidationPlugin):
-    def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
+    def execute(self, dataset, report: ValidationPlugin.ValidationReport):
+        self.schema = dataset.get_schema()
         gen = dataset.to_generator()
         for obj in gen:
-            top_path = obj.get_relative_path().replace("\\", "/") if isinstance(obj, (model.File, model.Folder)) else '???'
-            members = utils.get_members(type(obj))
+            top_path = obj.get_relative_path().replace("\\", "/") if isinstance(obj, (
+                self.schema.File, self.schema.Folder)) else '???'
+            members = utils.get_members(self.schema, type(obj))
             for member in members:
                 typ = member['type']
                 name = member['name']
@@ -24,9 +26,9 @@ class StaticStructureValidationPlugin(ValidationPlugin):
 
 
 class DatatypesValidationPlugin(ValidationPlugin):
-    def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
+    def execute(self, dataset, report: ValidationPlugin.ValidationReport):
         invalid = []
-        valid_datatypes = [v.literal_ for v in model.DatatypeEnum.__members__.values()]
+        valid_datatypes = [v.literal_ for v in dataset.get_schema().DatatypeEnum.__members__.values()]
         for subject in dataset.subjects:
             invalid.extend([f for f in subject.datatypes if f.name not in valid_datatypes])
             for session in subject.sessions:
@@ -37,9 +39,10 @@ class DatatypesValidationPlugin(ValidationPlugin):
 
 
 class EntitiesValidationPlugin(ValidationPlugin):
-    def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
-        artifacts = dataset.select(model.Artifact).get_artifacts()
-        entities = list(map(lambda e: e.entity_, list(model.EntityEnum)))
+    def execute(self, dataset, report: ValidationPlugin.ValidationReport):
+        schema = dataset.get_schema()
+        artifacts = dataset.select(schema.Artifact).get_artifacts()
+        entities = list(map(lambda e: e.entity_, list(schema.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(entities)}
         expected_order_key = {i: k for i, k in enumerate(entities)}
         for artifact in artifacts:
@@ -66,5 +69,5 @@ class EntitiesValidationPlugin(ValidationPlugin):
 
 
 class SuffixesValidationPlugin(ValidationPlugin):
-    def execute(self, dataset: model.Dataset, report: ValidationPlugin.ValidationReport):
+    def execute(self, dataset, report: ValidationPlugin.ValidationReport):
         pass

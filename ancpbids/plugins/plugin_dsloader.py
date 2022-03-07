@@ -5,12 +5,14 @@ import os
 
 import regex
 
-from ancpbids import model, ENTITIES_PATTERN
+from ancpbids import ENTITIES_PATTERN
 from .. import utils
 
+
 class DatasetPopulationPlugin(DatasetPlugin):
-    def execute(self, dataset: model.Dataset):
+    def execute(self, dataset):
         base_dir = dataset.base_dir_
+        self.schema = dataset.get_schema()
         # load file system structure
         self._load_folder(dataset, base_dir)
         # transform files to artifacts, i.e. files containing entities in their name
@@ -20,18 +22,18 @@ class DatasetPopulationPlugin(DatasetPlugin):
         # convert Folders within derivatives to DerivativeFolder
         self._convert_derivatives_folders(dataset.derivatives)
 
-    def _convert_derivatives_folders(self, parent: model.Folder):
+    def _convert_derivatives_folders(self, parent):
         if not parent:
             return
         for i, folder in enumerate(list(parent.folders)):
-            dfolder = model.DerivativeFolder()
+            dfolder = self.schema.DerivativeFolder()
             dfolder.parent_object_ = parent
             dfolder.update(folder)
             parent.folders[i] = dfolder
             self._convert_derivatives_folders(dfolder)
             self._expand_members(dfolder)
 
-    def _convert_files_to_artifacts(self, parent: model.Folder):
+    def _convert_files_to_artifacts(self, parent):
         for i, file in enumerate(parent.files):
             artifact = self._convert_to_artifact(file)
             if not artifact:
@@ -41,17 +43,17 @@ class DatasetPopulationPlugin(DatasetPlugin):
         for folder in parent.folders:
             self._convert_files_to_artifacts(folder)
 
-    def _convert_to_artifact(self, file: model.File):
+    def _convert_to_artifact(self, file):
         match = ENTITIES_PATTERN.match(file.name)
         if not match:
             return None
-        artifact = model.Artifact()
+        artifact = self.schema.Artifact()
         artifact.name = file.name
         for pair in zip(match.captures(2), match.captures(3)):
-            entity = model.EntityRef()
+            entity = self.schema.EntityRef()
             key = pair[0]
             entity.key = key
-            value = model.process_entity_value(key, pair[1])
+            value = utils.process_entity_value(self.schema, key, pair[1])
             entity.value = value
             artifact.entities.append(entity)
         artifact.suffix = match[4]
@@ -59,7 +61,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
         return artifact
 
     def _handle_direct_folders(self, parent, member, pattern, new_type):
-        if not isinstance(parent, model.Folder):
+        if not isinstance(parent, self.schema.Folder):
             return
         folders = list(filter(lambda f: regex.match(pattern, f.name), parent.get_folders_sorted()))
         for folder in folders:
@@ -77,7 +79,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _expand_member(self, parent, member):
         typ = member['type']
-        if not issubclass(typ, model.Model):
+        if not issubclass(typ, self.schema.Model):
             return
         mapper_name = '_type_handler_' + typ.__name__
         if mapper_name not in _TYPE_MAPPERS:
@@ -85,21 +87,21 @@ class DatasetPopulationPlugin(DatasetPlugin):
         mapper = _TYPE_MAPPERS[mapper_name]
         mapper(self, parent, member)
 
-    def _expand_members(self, folder: model.Folder):
-        members = utils.get_members(type(folder))
+    def _expand_members(self, folder):
+        members = utils.get_members(folder.get_schema(), type(folder))
         for member in members:
             self._expand_member(folder, member)
 
-    def _load_folder(self, parent: model.Folder, dir_path):
+    def _load_folder(self, parent, dir_path):
         for root, directories, files in os.walk(dir_path):
             for directory in sorted(directories):
-                folder = model.Folder()
+                folder = self.schema.Folder()
                 folder.parent_object_ = parent
                 folder.name = directory
                 parent.folders.append(folder)
                 self._load_folder(folder, root + "/" + directory)
             for file in sorted(files):
-                model_file = model.File()
+                model_file = self.schema.File()
                 model_file.parent_object_ = parent
                 model_file.name = file
                 parent.files.append(model_file)
@@ -107,9 +109,9 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _type_handler_default(self, parent, member):
         typ = member['type']
-        if issubclass(typ, model.JsonFile):
+        if issubclass(typ, self.schema.JsonFile):
             self._type_handler_JsonFile(parent, member, True)
-        elif issubclass(typ, model.Folder):
+        elif issubclass(typ, self.schema.Folder):
             pattern = '.*'
             meta = member['meta']
             if 'name_pattern' in meta:
@@ -117,7 +119,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
             self._handle_direct_folders(parent, member, pattern=pattern, new_type=typ)
 
     def _type_handler_File(self, parent, member):
-        if not isinstance(parent, model.Folder):
+        if not isinstance(parent, self.schema.Folder):
             return
         file = parent.get_file(member['name'])
         if file:
@@ -125,13 +127,13 @@ class DatasetPopulationPlugin(DatasetPlugin):
             parent.remove_file(file.name)
 
     def _type_handler_MetadataFile(self, parent, member):
-        if not isinstance(parent, model.Folder):
+        if not isinstance(parent, self.schema.Folder):
             return
         if member['max'] > 1:
             files = parent.get_files(member['meta']['name_pattern'])
-            files = list(filter(lambda f: isinstance(f, model.Artifact), files))
+            files = list(filter(lambda f: isinstance(f, self.schema.Artifact), files))
             for file in files:
-                mdfile = model.MetadataFile()
+                mdfile = self.schema.MetadataFile()
                 mdfile.parent_object_ = parent
                 mdfile.update(file)
                 mdfile.contents = mdfile.load_contents()
@@ -139,8 +141,8 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 parent.remove_file(file.name, from_meta=False)
         else:
             file = parent.get_file(member['name'])
-            if isinstance(file, model.Artifact):
-                mdfile = model.MetadataFile()
+            if isinstance(file, self.schema.Artifact):
+                mdfile = self.schema.MetadataFile()
                 mdfile.parent_object_ = parent
                 mdfile.update(file)
                 mdfile.contents = mdfile.load_contents()
@@ -148,14 +150,14 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 parent.remove_file(file.name, from_meta=False)
 
     def _type_handler_Artifact(self, parent, member):
-        if not isinstance(parent, model.Folder):
+        if not isinstance(parent, self.schema.Folder):
             return
         attr = getattr(parent, member['name'])
         multi = isinstance(attr, list)
         name = member['name']
         files = parent.files if multi else list(filter(lambda f: f.name == name, parent.files))
         for file in files:
-            if not isinstance(file, model.Artifact):
+            if not isinstance(file, self.schema.Artifact):
                 continue
             file.parent_object_ = parent
             parent.remove_file(file.name)
@@ -165,7 +167,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 setattr(parent, member['name'], file)
 
     def _type_handler_Folder(self, parent, member):
-        if not isinstance(parent, model.Folder):
+        if not isinstance(parent, self.schema.Folder):
             return
         name = member['name']
         folder = parent.get_folder(name)
@@ -175,7 +177,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _map_object(self, model_type, json_object):
         target = model_type()
-        members = utils.get_members(model_type, False)
+        members = utils.get_members(self.schema, model_type, False)
         actual_props = json_object.keys()
         direct_props = list(map(lambda m: (m['name'], m), members))
         for prop_name, prop in direct_props:

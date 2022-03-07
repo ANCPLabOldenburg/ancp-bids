@@ -27,16 +27,22 @@ class ClassGenerator:
         }
 
     def generate(self, version='0.0.0'):
-        self.append("from enum import Enum, auto")
-        self.append("from typing import List, Union, Dict, Any")
-        self.append("from math import inf")
-        self.append()
-        self.append("VERSION = '%s'" % version)
-        self.append()
-        self.append("class Model(dict):")
-        self.append("    def __init__(self, *args, **kwargs):")
-        self.append("        pass")
-        self.append()
+        self.append(f"""\
+from enum import Enum, auto
+from typing import List, Union, Dict, Any
+from math import inf
+import sys
+
+VERSION = '{version}'
+SCHEMA = sys.modules[__name__]
+
+class Model(dict):
+    def __init__(self, *args, **kwargs):
+        self._schema = SCHEMA
+
+    def get_schema(self):
+        return self._schema
+        """)
 
         # generate types first as they are referenced by the elements and need to be declared before usage
         for name, sub_schema in self.types.items():
@@ -193,9 +199,9 @@ class ClassGenerator:
 
 if __name__ == '__main__':
     # extractor = MetadataExtractor("./test.yaml")
-    version_tag = 'v1.7.0'
+    version_tag = 'v1.7.1'
     module_version_tag = version_tag.replace('.', '_')
-    generator = ClassGenerator("../ancpbids/data/bids_%s.yaml" % module_version_tag)
+    generator = ClassGenerator("../ancpbids/data/bids_graph_schema.yaml")
     generator.generate(version_tag)
 
     generator.generate_enum("../../bids-specification/src/schema/objects/datatypes.yaml", "DatatypeEnum")

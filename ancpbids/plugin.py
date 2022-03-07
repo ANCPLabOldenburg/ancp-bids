@@ -6,24 +6,24 @@ from typing import List
 # global plugins registry (list of plugin metadata/settings)
 __PLUGINS__ = []
 
-from ancpbids import model
-
 
 class Plugin:
     def __init__(self, **props):
         self.props = props
 
+
 class SchemaPlugin(Plugin):
-    def execute(self, schema: model):
+    def execute(self, schema):
         raise NotImplementedError()
 
+
 class DatasetPlugin(Plugin):
-    def execute(self, dataset: model.Dataset):
+    def execute(self, dataset):
         raise NotImplementedError()
 
 
 class WritingPlugin(Plugin):
-    def execute(self, dataset: model.Dataset, target_dir: str, context_folder: model.Folder = None,
+    def execute(self, dataset, target_dir: str, context_folder=None,
                 src_dir: str = None):
         raise NotImplementedError()
 
@@ -55,7 +55,7 @@ class ValidationPlugin(Plugin):
         def validate(self, **kwargs):
             raise NotImplementedError()
 
-    def execute(self, dataset: model.Dataset, report: ValidationReport):
+    def execute(self, dataset, report: ValidationReport):
         raise NotImplementedError()
 
 

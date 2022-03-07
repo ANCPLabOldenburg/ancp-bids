@@ -1,7 +1,7 @@
 import os.path
 
 import ancpbids
-from ancpbids import model, select, re, any_of, all_of, eq, op, entity
+from ancpbids import select, re, any_of, all_of, eq, op, entity
 from ..base_test_case import *
 
 
@@ -110,9 +110,10 @@ class QueryTestCase(BaseTestCase):
 
     def test_query_language(self):
         ds = ancpbids.load_dataset(DS005_DIR)
-        file_paths = ds.select(model.Artifact) \
-            .where(all_of(eq(model.Artifact.suffix, 'bold'),
-                          entity(model.EntityEnum._subject, '02'))) \
+        schema = ds.get_schema()
+        file_paths = ds.select(schema.Artifact) \
+            .where(all_of(eq(schema.Artifact.suffix, 'bold'),
+                          entity(schema, schema.EntityEnum._subject, '02'))) \
             .get_file_paths()
         file_paths = list(file_paths)
         self.assertEqual(3, len(file_paths))
