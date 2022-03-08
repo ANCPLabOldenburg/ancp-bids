@@ -61,3 +61,25 @@ The previous example can be re-written to (more convenient):
     >>> file_paths = layout.get(suffix='bold', subject='02', return_type='filename')
 
 Technical note: the `BIDSLayout` implementation uses the fluent API.
+
+.. tab:: fmri
+
+    .. code::
+
+        fMRI specific instructions
+
+.. tab:: EEG
+
+    .. code::
+
+        EEG specific instructions
+
+.. tab:: MEG
+
+    .. code::
+
+        MEG specific instructions
+        sdfsd fsdf
+        sdfsd fsdf sdf
+
+asd asd asd
