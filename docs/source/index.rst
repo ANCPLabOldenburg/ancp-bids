@@ -8,7 +8,8 @@ Using a plugin mechanism, contributors can extend its functionality in a control
 .. toctree::
 
    installation
-   userDocQueryInformation.rst
+   userDocQueryInformation
+   userDocMEG
    validate
    arch
    api
