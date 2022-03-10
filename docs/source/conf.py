@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx_copybutton',
+    'sphinx.ext.autosectionlabel',
     'sphinx_inline_tabs'
 ]
 
