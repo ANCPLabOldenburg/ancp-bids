@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx_copybutton',
     'sphinx.ext.autosectionlabel',
+    'sphinx_inline_tabs'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
