@@ -63,15 +63,17 @@ class BIDSLayout:
             deepupdate(metadata, ancestors[0][1].contents)
             if len(ancestors) > 1:
                 for i in range(1, len(ancestors)):
-                    a0 = ancestors[i - 1][0]
-                    a1 = ancestors[i][0]
-                    # remove the ancestors from a0 and make sure it is empty
-                    remaining_ancestors = set(*a0).difference(*a1)
-                    if remaining_ancestors:
-                        # if remaining ancestors list is not empty,
-                        # this is interpreted as having the leaves from different branches
-                        # for example, metadata from func/sub-01/...json must not be mixed with func/sub-02/...json
-                        LOGGER.warn("Query returned metadata files from incompatible sources.")
+                    # FIXME ancestors handling is unstable, disable it for now
+                    if False:
+                        a0 = ancestors[i - 1][0]
+                        a1 = ancestors[i][0]
+                        # remove the ancestors from a0 and make sure it is empty, i.e. both nodes have same ancestors
+                        remaining_ancestors = set(a0).difference(*a1)
+                        if remaining_ancestors:
+                            # if remaining ancestors list is not empty,
+                            # this is interpreted as having the leaves from different branches
+                            # for example, metadata from func/sub-01/...json must not be mixed with func/sub-02/...json
+                            LOGGER.warn("Query returned metadata files from incompatible sources.")
                     deepupdate(metadata, ancestors[i][1].contents)
 
         return metadata
