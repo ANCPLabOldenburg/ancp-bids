@@ -83,7 +83,7 @@ class BIDSLayout:
         """
         return AllExpr(CustomOpExpr(lambda m: isinstance(m, self.schema.Artifact)), expr)
 
-    def get(self, return_type: str = 'object', target: str = None, scope: str = 'all',
+    def get(self, return_type: str = 'object', target: str = None, scope: str = None,
             extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None,
             **entities):
         """
@@ -124,6 +124,8 @@ class BIDSLayout:
         :return: depending on the return_type value either paths to files that matched the filtering criteria
             or Artifact objects for further processing by the caller
         """
+        if scope is None:
+            scope = 'all'
         if return_type == 'id':
             if not target:
                 raise ValueError("return_type=id requires the target parameter to be set")
