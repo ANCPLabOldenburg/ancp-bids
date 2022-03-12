@@ -5,9 +5,9 @@ import sys
 import regex
 
 from . import plugins
-from . import files
 from . import utils
-from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin
+from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin, \
+    FileHandlerPlugin
 from .plugins.plugin_query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
     EntityExpr
 
@@ -42,7 +42,7 @@ def load_dataset(base_dir: str):
 def load_schema(base_dir):
     ds_descr_path = os.path.join(base_dir, "dataset_description.json")
     if os.path.exists(ds_descr_path):
-        ds_descr = files.load_contents(ds_descr_path)
+        ds_descr = utils.load_contents(ds_descr_path)
         if isinstance(ds_descr, dict) and 'BIDSVersion' in ds_descr:
             schema_version = ds_descr['BIDSVersion']
             schema_version = schema_version.replace('.', '_')
@@ -106,6 +106,10 @@ from ancpbids import model_v1_7_0, model_v1_7_1
 for pl in get_plugins(SchemaPlugin):
     for model in [model_v1_7_0, model_v1_7_1]:
         pl.execute(model)
+
+# load file handler plugins
+for pl in get_plugins(FileHandlerPlugin):
+    pl.execute(utils.FILE_READERS, utils.FILE_WRITERS)
 
 from .pybids_compat import BIDSLayout
 

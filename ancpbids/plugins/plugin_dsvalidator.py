@@ -1,6 +1,3 @@
-import os
-
-from ancpbids import utils
 from ancpbids.plugin import ValidationPlugin
 
 
@@ -11,7 +8,7 @@ class StaticStructureValidationPlugin(ValidationPlugin):
         for obj in gen:
             top_path = obj.get_relative_path().replace("\\", "/") if isinstance(obj, (
                 self.schema.File, self.schema.Folder)) else '???'
-            members = utils.get_members(self.schema, type(obj))
+            members = self.schema.get_members(type(obj))
             for member in members:
                 typ = member['type']
                 name = member['name']

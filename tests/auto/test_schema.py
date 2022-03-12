@@ -1,19 +1,19 @@
 import unittest
 
-from ancpbids import utils, model_v1_7_0, model_v1_7_1, load_dataset, load_schema
+from ancpbids import model_v1_7_0, model_v1_7_1, load_dataset, load_schema
 from ..base_test_case import BaseTestCase, DS005_DIR, DS005_SMALL_DIR
 
 
 class SchemaTestCase(BaseTestCase):
     def test_entitmatching(self):
-        self.assertEqual('sub', utils.fuzzy_match_entity_key(model_v1_7_0, 'sub'))
-        self.assertEqual('sub', utils.fuzzy_match_entity_key(model_v1_7_0, 'subject'))
-        self.assertEqual('sub', utils.fuzzy_match_entity_key(model_v1_7_0, 'subjects'))
-        self.assertEqual('sub', utils.fuzzy_match_entity_key(model_v1_7_0, 'subjs'))
+        self.assertEqual('sub', model_v1_7_0.fuzzy_match_entity_key('sub'))
+        self.assertEqual('sub', model_v1_7_0.fuzzy_match_entity_key('subject'))
+        self.assertEqual('sub', model_v1_7_0.fuzzy_match_entity_key('subjects'))
+        self.assertEqual('sub', model_v1_7_0.fuzzy_match_entity_key('subjs'))
 
-        self.assertEqual('desc', utils.fuzzy_match_entity_key(model_v1_7_0, 'des'))
-        self.assertEqual('desc', utils.fuzzy_match_entity_key(model_v1_7_0, 'dscr'))
-        self.assertEqual('desc', utils.fuzzy_match_entity_key(model_v1_7_0, 'descriptions'))
+        self.assertEqual('desc', model_v1_7_0.fuzzy_match_entity_key('des'))
+        self.assertEqual('desc', model_v1_7_0.fuzzy_match_entity_key('dscr'))
+        self.assertEqual('desc', model_v1_7_0.fuzzy_match_entity_key('descriptions'))
 
     def test_schema_versions(self):
         ds = load_dataset(DS005_DIR)
@@ -37,7 +37,6 @@ class SchemaTestCase(BaseTestCase):
 
         # the classes of each schema are separate identities
         self.assertFalse(schema_v170.Model == schema_v171.Model)
-
 
 
 if __name__ == '__main__':

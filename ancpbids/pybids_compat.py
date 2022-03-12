@@ -4,7 +4,7 @@ from functools import partial
 from typing import List, Union
 
 import ancpbids
-from ancpbids import CustomOpExpr, EntityExpr, AllExpr, ValidationPlugin, utils
+from ancpbids import CustomOpExpr, EntityExpr, AllExpr, ValidationPlugin
 from . import load_dataset, LOGGER
 from .plugins.plugin_query import FnMatchExpr, AnyExpr
 from .utils import deepupdate
@@ -159,14 +159,14 @@ class BIDSLayout:
                 extension = '*'
                 result_extractor = lambda artifacts: [a.extension for a in artifacts]
             else:
-                target = utils.fuzzy_match_entity_key(self.schema, target)
+                target = self.schema.fuzzy_match_entity_key(target)
                 entities = {**entities, target: '*'}
                 result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
                                                       filter(lambda e: e.key == target, a.entities)]
 
         for k, v in entities.items():
-            entity_key = utils.fuzzy_match_entity(self.schema, k)
-            v = utils.process_entity_value(self.schema, k, v)
+            entity_key = self.schema.fuzzy_match_entity(k)
+            v = self.schema.process_entity_value(k, v)
             ops.append(self._require_artifact(self._to_any_expr(v, lambda val: EntityExpr(self.schema, entity_key, val))))
 
         if extension:

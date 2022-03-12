@@ -22,6 +22,11 @@ class DatasetPlugin(Plugin):
         raise NotImplementedError()
 
 
+class FileHandlerPlugin(Plugin):
+    def execute(self, file_readers_registry, file_writers_registry):
+        raise NotImplementedError()
+
+
 class WritingPlugin(Plugin):
     def execute(self, dataset, target_dir: str, context_folder=None,
                 src_dir: str = None):
@@ -60,7 +65,7 @@ class ValidationPlugin(Plugin):
 
 
 def is_valid_plugin(plugin_class):
-    plugin_types = (SchemaPlugin, DatasetPlugin, WritingPlugin, ValidationPlugin)
+    plugin_types = (SchemaPlugin, DatasetPlugin, WritingPlugin, ValidationPlugin, FileHandlerPlugin)
     return issubclass(plugin_class, plugin_types) and plugin_class not in plugin_types
 
 

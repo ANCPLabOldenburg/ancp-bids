@@ -1,50 +1,41 @@
-import inspect
+import logging
 import os
-from difflib import SequenceMatcher
 
-# used to cache access to schema classes
-SCHEMA_CLASSES_LUT = {}
+FILE_READERS = {}
+FILE_WRITERS = {}
 
-
-def get_model_classes(schema):
-    if schema in SCHEMA_CLASSES_LUT:
-        return SCHEMA_CLASSES_LUT[schema]
-    classes = {name: obj for name, obj in inspect.getmembers(schema) if inspect.isclass(obj)}
-    SCHEMA_CLASSES_LUT[schema] = classes
-    return classes
+LOGGER = logging.getLogger(__file__)
 
 
-def get_members(schema, element_type, include_superclass=True):
-    if element_type == schema.Model:
-        return []
-    super_members = []
+def load_contents(file_path):
+    """Loads the contents of the provided file path.
 
-    if include_superclass:
-        try:
-            superclass = inspect.getmro(element_type)[1]
-            if superclass:
-                super_members = get_members(schema, superclass, include_superclass)
-        except AttributeError:
-            pass
+    Parameters
+    ----------
+    file_path :
+        the file path to load contents from
 
-    element_members = []
-    try:
-        members = element_type.MEMBERS
-        element_members = list(
-            map(lambda item: {'name': item[0], **item[1], 'type': _to_type(schema, item[1]['type'])},
-                members.items()))
-    except AttributeError as ae:
-        pass
-    return super_members + element_members
+    Returns
+    -------
+        The result depends on the extension of the file name.
+        For example, a .json file may be returned as an ordinary Python dict or a .txt as a str value.
 
-
-def _to_type(schema, model_type_name: str):
-    classes = get_model_classes(schema)
-    if model_type_name in classes:
-        return classes[model_type_name]
-    if model_type_name in __builtins__:
-        return __builtins__[model_type_name]
-    return model_type_name
+    """
+    if not os.path.exists(file_path):
+        return None
+    reader = None
+    file_name = os.path.basename(file_path)
+    parts = os.path.splitext(file_name)
+    if len(parts) > 1:
+        extension = parts[-1][1:]
+        if extension in FILE_READERS:
+            reader = FILE_READERS[extension]
+    if reader is None:
+        LOGGER.debug("No reader found for file '%s', defaulting to 'txt' file reader" % file_name)
+        reader = FILE_READERS['txt']
+    if reader is None:
+        raise ValueError('No file reader registered to load file %s' % file_path)
+    return reader(file_path)
 
 
 def deepupdate(target, src):
@@ -84,6 +75,22 @@ def deepupdate(target, src):
 
 
 def fetch_dataset(dataset_id: str, output_dir='~/.ancp-bids/datasets'):
+    """Downloads and extracts an ancpBIDS  test dataset from Github.
+
+    Parameters
+    ----------
+    dataset_id :
+        The dataset ID of the ancp-bids-datasets github repository.
+        See `https://github.com/ANCPLabOldenburg/ancp-bids-dataset` for more details.
+
+    output_dir :
+        The output directory to download and extract the dataset to.
+        Default is to write to user's home directory at `~/.ancp-bids/datasets`
+
+    Returns
+    -------
+        The path of the extracted dataset.
+    """
     output_dir = os.path.expanduser(output_dir)
     output_dir = os.path.abspath(os.path.normpath(output_dir))
     output_path = os.path.join(output_dir, dataset_id)
@@ -106,38 +113,3 @@ def fetch_dataset(dataset_id: str, output_dir='~/.ancp-bids/datasets'):
     z = zipfile.ZipFile(download_path)
     z.extractall(output_dir)
     return output_path
-
-
-def _trim_int(value):
-    try:
-        # remove paddings/fillers in index values: 001 -> 1, 000230 -> 230
-        return str(int(value))
-    except ValueError:
-        return value
-
-
-def process_entity_value(schema, key, value):
-    if not value:
-        return value
-    for sc_entity in filter(lambda e: e.literal_ == key, schema.EntityEnum.__members__.values()):
-        if sc_entity.format_ == 'index':
-            if isinstance(value, list):
-                return list(map(lambda v: _trim_int(v), value))
-            else:
-                return _trim_int(value)
-    return value
-
-
-def fuzzy_match_entity_key(schema, user_key):
-    return fuzzy_match_entity(schema, user_key).entity_
-
-
-def fuzzy_match_entity(schema, user_key):
-    ratios = list(
-        map(lambda item: (
-            item,
-            1.0 if item.literal_.startswith(user_key) else SequenceMatcher(None, user_key,
-                                                                           item.literal_).quick_ratio()),
-            list(schema.EntityEnum)))
-    ratios = sorted(ratios, key=lambda t: t[1])
-    return ratios[-1][0]
