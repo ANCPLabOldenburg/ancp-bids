@@ -1,7 +1,7 @@
 import os.path
 from collections import OrderedDict
 from functools import partial
-from typing import List, Union
+from typing import List, Union, Dict
 
 import ancpbids
 from ancpbids import CustomOpExpr, EntityExpr, AllExpr, ValidationPlugin
@@ -13,13 +13,15 @@ from .utils import deepupdate
 class BIDSLayout:
     """A convenience class to provide access to an in-memory representation of a BIDS dataset.
 
-    :param ds_dir: the (absolute) path to the dataset to load
-    :type ds_dir: str
-
     .. code-block::
 
         dataset_path = 'path/to/your/dataset'
         layout = BIDSLayout(dataset_path)
+
+    Parameters
+    ----------
+    ds_dir:
+        the (absolute) path to the dataset to load
     """
 
     def __init__(self, ds_dir: str, **kwargs):
@@ -40,14 +42,13 @@ class BIDSLayout:
         k = key if not key.startswith("get_") else key[4:]
         return partial(self.get, return_type='id', target=k, **kwargs)
 
-    def get_metadata(self, *args, **kwargs):
-        """
-        Returns a dictionary of metadata matching the provided criteria (see :meth:`ancpbids.BIDSLayout.get`).
+    def get_metadata(self, *args, **kwargs) -> dict:
+        """Returns a dictionary of metadata matching the provided criteria (see :meth:`ancpbids.BIDSLayout.get`).
         Also takes the BIDS inheritance principle into account, i.e. any metadata defined at dataset level
         may be overridden by a more specific metadata entry at a lower level such as the subject level.
 
-        As of the BIDS specification, metadata is kept in JSON files.
-
+        As of the BIDS specification, metadata is kept in JSON files,
+        i.e. only JSON files will be assumed to contain metadata.
         """
         qry_result = filter(lambda a: isinstance(a, self.schema.MetadataFile), self.get(*args, **kwargs))
         # build lists of ancestors + the leaf (metadata file)
@@ -78,18 +79,24 @@ class BIDSLayout:
 
         return metadata
 
-    def _require_artifact(self, expr):
-        """
-        :param expr: the expression to wrap
-        :return: a wrapping expression to make sure that the provided object is an instance of Artifact
+    def _require_artifact(self, expr) -> AllExpr:
+        """Wraps the provided expression in an expression that makes sure the context of evaluation is an Artifact.
+
+        Parameters
+        ----------
+        expr :
+            the expression to wrap
+
+        Returns
+        -------
+            a wrapping expression to make sure that the provided object is an instance of Artifact
         """
         return AllExpr(CustomOpExpr(lambda m: isinstance(m, self.schema.Artifact)), expr)
 
     def get(self, return_type: str = 'object', target: str = None, scope: str = None,
             extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None,
-            **entities):
-        """
-        Depending on the return_type value returns either paths to files that matched the filtering criteria
+            **entities) -> Union[List[str], List[object]]:
+        """Depending on the return_type value returns either paths to files that matched the filtering criteria
         or :class:`Artifact <ancpbids.model_v1_7_0.Artifact>` objects for further processing by the caller.
 
         Note that all provided filter criteria are AND combined, i.e. subj='02',task='lang' will match files containing
@@ -101,14 +108,17 @@ class BIDSLayout:
 
             file_paths = layout.get(subj=['02', '03'], task='lang', return_type='files')
 
-
-        :param return_type: Either 'files' to return paths of matched files
+        Parameters
+        ----------
+        return_type:
+            Either 'files' to return paths of matched files
             or 'object' to return :class:`Artifact <ancpbids.model_v1_7_0.Artifact>` object, defaults to 'object'
 
-        :param target: Either `suffixes`, `extensions` or one of any valid BIDS entities key
+        target:
+            Either `suffixes`, `extensions` or one of any valid BIDS entities key
             (see :class:`EntityEnum <ancpbids.model_v1_7_0.EntityEnum>`, defaults to `None`
-
-        :param scope: a hint where to search for files
+        scope:
+            a hint where to search for files
             If passed, only nodes/directories that match the specified scope will be
             searched. Possible values include:
             'all' (default): search all available directories.
@@ -116,14 +126,16 @@ class BIDSLayout:
             'raw': search only BIDS-Raw directories.
             'self': search only the directly called BIDSLayout.
             <PipelineName>: the name of a BIDS-Derivatives pipeline.
+        extension:
+            criterion to match any files containing the provided extension only
+        suffix:
+            criterion to match any files containing the provided suffix only
+        entities
+            a list of key-values to match the entities of interest, example: subj='02',task='lang'
 
-        :param extension: criterion to match any files containing the provided extension only
-
-        :param suffix: criterion to match any files containing the provided suffix only
-
-        :param entities: a list of key-values to match the entities of interest, example: subj='02',task='lang'
-
-        :return: depending on the return_type value either paths to files that matched the filtering criteria
+        Returns
+        -------
+            depending on the return_type value either paths to files that matched the filtering criteria
             or Artifact objects for further processing by the caller
         """
         if scope is None:
@@ -167,7 +179,8 @@ class BIDSLayout:
         for k, v in entities.items():
             entity_key = self.schema.fuzzy_match_entity(k)
             v = self.schema.process_entity_value(k, v)
-            ops.append(self._require_artifact(self._to_any_expr(v, lambda val: EntityExpr(self.schema, entity_key, val))))
+            ops.append(
+                self._require_artifact(self._to_any_expr(v, lambda val: EntityExpr(self.schema, entity_key, val))))
 
         if extension:
             ops.append(self._require_artifact(
@@ -175,7 +188,8 @@ class BIDSLayout:
 
         if suffix:
             ops.append(
-                self._require_artifact(self._to_any_expr(suffix, lambda suf: FnMatchExpr(self.schema.Artifact.suffix, suf))))
+                self._require_artifact(
+                    self._to_any_expr(suffix, lambda suf: FnMatchExpr(self.schema.Artifact.suffix, suf))))
 
         select.where(AllExpr(*ops))
 
@@ -187,7 +201,30 @@ class BIDSLayout:
                 return sorted(set(result_extractor(artifacts)))
             return list(artifacts)
 
-    def get_entities(self, scope=None, sort=False):
+    def get_entities(self, scope: str = None, sort: bool = False) -> dict:
+        """Returns a unique set of entities found within the dataset as a dict.
+        Each key of the resulting dict contains a list of values (with at least one element).
+
+        Example dict:
+        .. code-block::
+
+            {
+                'sub': ['01', '02', '03'],
+                'task': ['gamblestask']
+            }
+
+        Parameters
+        ----------
+        scope:
+            see BIDSLayout.get()
+        sort: default is `False`
+            whether to sort the keys by name
+
+        Returns
+        -------
+        dict
+            a unique set of entities found within the dataset as a dict
+        """
         artifacts = filter(lambda m: isinstance(m, self.schema.Artifact), self.get(scope=scope))
         result = OrderedDict()
         for e in [e for a in artifacts for e in a.entities]:
@@ -200,29 +237,34 @@ class BIDSLayout:
 
     def get_dataset_description(self) -> dict:
         """
-        :return: the dataset's dataset_description.json as a dictionary or None if not provided
+        Returns
+        -------
+            the dataset's dataset_description.json as a dictionary or None if not provided
         """
         return self.dataset.dataset_description
 
-    def get_dataset(self):
+    def get_dataset(self) -> object:
         """
-        :return: the in-memory representation of this layout/dataset
+        Returns
+        -------
+            the in-memory representation of this layout/dataset
         """
         return self.dataset
 
     def write_derivative(self, derivative):
-        """
-        Writes the provided derivative folder to the dataset.
+        """Writes the provided derivative folder to the dataset.
         Note that a 'derivatives' folder will be created if not present.
 
-        :param derivative: the derivative folder to write
+        Parameters
+        ----------
+        derivative:
+            the derivative folder to write
         """
         assert isinstance(derivative, self.schema.DerivativeFolder)
         ancpbids.write_derivative(self.dataset, derivative)
 
     def validate(self) -> ValidationPlugin.ValidationReport:
-        """
-        Validates a dataset and returns a report object containing any detected validation errors.
+        """Validates a dataset and returns a report object containing any detected validation errors.
 
         Example:
 
@@ -234,7 +276,8 @@ class BIDSLayout:
             if report.has_errors():
                 raise "The dataset contains validation errors, cannot continue".
 
-
-        :return: a report object containing any detected validation errors or warning
+        Returns
+        -------
+            a report object containing any detected validation errors or warning
         """
         return ancpbids.validate_dataset(self.dataset)

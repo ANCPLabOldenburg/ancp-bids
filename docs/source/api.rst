@@ -27,3 +27,6 @@ API
 
 .. automodule:: ancpbids.utils
     :members:
+
+.. automodule:: ancpbids.plugin
+    :members:
