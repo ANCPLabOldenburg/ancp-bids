@@ -149,11 +149,14 @@ def register_plugin(plugin_class, ranking: int = 1000, **props):
     Parameters
     ----------
     plugin_class:
-        the plugin class to register
+        The plugin class to register.
     ranking:
-        the rank to use for the plugin to help prioritize plugins of same type
+        The rank to use for the plugin to help prioritize plugins of same type.
+        Note that the lower the ranking the higher its prioritization in the processing.
+        System level plugins are registered with `ranking = 0`, i.e.
+        if you need your plugin to be prioritized over system plugins, use a ranking below 0.
     props
-        additional (static) properties to attach to the provided plugin class
+        Additional (static) properties to attach to the provided plugin class.
 
     """
     if not is_valid_plugin(plugin_class):
