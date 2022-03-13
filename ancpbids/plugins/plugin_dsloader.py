@@ -81,7 +81,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
         typ = member['type']
         if not issubclass(typ, self.schema.Model):
             return
-        mapper_name = '_type_handler_' + typ.__name__
+        mapper_name = '_type_handler_%s' % typ.__name__
         if mapper_name not in _TYPE_MAPPERS:
             mapper_name = '_type_handler_default'
         mapper = _TYPE_MAPPERS[mapper_name]
@@ -99,7 +99,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 folder.parent_object_ = parent
                 folder.name = directory
                 parent.folders.append(folder)
-                self._load_folder(folder, root + "/" + directory)
+                self._load_folder(folder, '/'.join([root, directory]))
             for file in sorted(files):
                 model_file = self.schema.File()
                 model_file.parent_object_ = parent

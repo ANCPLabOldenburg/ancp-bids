@@ -190,19 +190,7 @@ def get_model_classes(schema):
     return schema._CLASSES
 
 
-def get_members(schema, element_type, include_superclass=True):
-    if element_type == schema.Model:
-        return []
-    super_members = []
-
-    if include_superclass:
-        try:
-            superclass = inspect.getmro(element_type)[1]
-            if superclass:
-                super_members = schema.get_members(superclass, include_superclass)
-        except AttributeError:
-            pass
-
+def _get_element_members(schema, element_type):
     element_members = []
     try:
         members = element_type.MEMBERS
@@ -211,6 +199,26 @@ def get_members(schema, element_type, include_superclass=True):
                 members.items()))
     except AttributeError as ae:
         pass
+    return element_members
+
+
+def get_members(schema, element_type, include_superclass=True):
+    if element_type == schema.Model:
+        return []
+    super_members = []
+
+    if include_superclass:
+        superclass = element_type
+        while True:
+            try:
+                superclass = inspect.getmro(superclass)[1]
+                if not superclass or superclass == schema.Model:
+                    break
+                super_members = super_members + _get_element_members(schema, superclass)
+            except AttributeError:
+                pass
+
+    element_members = _get_element_members(schema, element_type)
     return super_members + element_members
 
 
