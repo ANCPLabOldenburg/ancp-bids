@@ -1,6 +1,8 @@
 import inspect
+import json
 import os
 
+import ancpbids
 from ancpbids.plugin import WritingPlugin
 
 
@@ -33,19 +35,11 @@ class DatasetWritingPlugin(WritingPlugin):
             self._type_handler_File(src_dir, target_dir, obj)
 
     def _type_handler_File(self, src_dir, target_dir, file, new_file_name=None):
-        old_file_name = file.get_relative_path()
-        old_file_path = os.path.join(src_dir, old_file_name)
-        new_file_path = new_file_name
-        if new_file_path:
-            new_file_path = os.path.join(target_dir, file.parent_object_.get_relative_path(), new_file_path)
-        else:
-            new_file_path = os.path.join(target_dir, old_file_name)
-
         if hasattr(file, 'content') and callable(file.content):
             file.content(file.get_absolute_path())
         else:
-            # TODO process fields
-            pass
+            ancpbids.utils.write_contents(file.get_absolute_path(), file)
+
 
     def _type_handler_Folder(self, src_dir, target_dir, folder, traverse_children=False):
         new_dir = os.path.join(target_dir, folder.get_relative_path())

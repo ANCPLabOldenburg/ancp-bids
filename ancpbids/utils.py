@@ -38,6 +38,33 @@ def load_contents(file_path):
     return reader(file_path)
 
 
+def write_contents(file_path: str, contents):
+    """Writes the provided contents to the target file path using a registered file writer.
+
+    A valid file writer may be inferred by the file's extension and/or the given contents object.
+    If no file writer is found for the given file, a `ValueError` is raised.
+
+    Parameters
+    ----------
+    file_path:
+        The file path to write to.
+    contents:
+        The contents to write to the target file.
+
+    """
+    writer = None
+    parts = os.path.splitext(file_path)
+    if len(parts) > 1:
+        extension = parts[-1][1:]
+        if extension in FILE_WRITERS:
+            writer = FILE_WRITERS[extension]
+
+    if not writer:
+        raise ValueError("No file writer registered for file: %s" % file_path)
+
+    writer(file_path, contents)
+
+
 def deepupdate(target, src):
     """Deep update target dict with src
     For each k,v in src: if k doesn't exist in target, it is deep copied from

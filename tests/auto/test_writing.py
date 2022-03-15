@@ -3,6 +3,8 @@ import unittest
 
 import numpy as np
 import pandas as pd
+import shutil
+import tempfile
 
 import ancpbids
 from ancpbids import model, re
@@ -10,6 +12,7 @@ from ..base_test_case import BaseTestCase, DS005_DIR
 
 
 class WritingTestCase(BaseTestCase):
+
     def write_test_derivative(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
         dataset = layout.get_dataset()
@@ -62,9 +65,10 @@ class WritingTestCase(BaseTestCase):
         self.assertEqual(16, len(subjects))
 
         for i, subject in enumerate(subjects):
-            self.assertEqual("sub-%02d" % (i+1), subject.name)
+            self.assertEqual("sub-%02d" % (i + 1), subject.name)
 
-        # TODO complete the assertions
+        self.assertTrue(isinstance(derivative_folder.dataset_description, schema.DerivativeDatasetDescriptionFile))
+        self.assertEqual(derivative_folder.dataset_description.GeneratedBy.Name, "My Test Pipeline")
 
 
 if __name__ == '__main__':
