@@ -53,12 +53,35 @@ class DatasetWritingPlugin(WritingPlugin):
             for child_file in folder.files:
                 self._type_handler_File(src_dir, target_dir, child_file)
 
+    def _get_ordered_entity_keys(self, artifact):
+        schema = artifact.get_schema()
+        entity_refs = artifact.entities
+
+        schema_entities = list(map(lambda e: e.entity_, list(schema.EntityEnum)))
+        expected_key_order = {k: i for i, k in enumerate(schema_entities)}
+        expected_order_key = {i: k for i, k in enumerate(schema_entities)}
+
+        artifact_keys = list(map(lambda e: e.key, entity_refs))
+        actual_keys_order = list(map(lambda k: expected_key_order[k], artifact_keys))
+        expected = tuple(map(lambda k: expected_order_key[k], sorted(actual_keys_order)))
+        return expected
+
     def _type_handler_Artifact(self, src_dir, target_dir, artifact):
         segments = []
-        # TODO add missing entities
-        # TODO sort according order defined in schema
-        for e in artifact.entities:
-            seg = '-'.join([e.key, e.value])
+        schema = artifact.get_schema()
+        # add missing entities
+        for ancestor in artifact.iterancestors():
+            if isinstance(ancestor, schema.Folder):
+                name = ancestor.name
+                if name.startswith("ses-"):
+                    artifact.add_entity('ses', name[4:])
+                if name.startswith("sub-"):
+                    artifact.add_entity('sub', name[4:])
+
+        # sort according order defined in schema
+        ordered_keys = self._get_ordered_entity_keys(artifact)
+        for ok in ordered_keys:
+            seg = '-'.join([ok, artifact.get_entity(ok)])
             segments.append(seg)
         segments.append(artifact.suffix)
         new_file_name = '_'.join(segments) + artifact.extension
