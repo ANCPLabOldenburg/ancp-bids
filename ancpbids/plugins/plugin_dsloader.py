@@ -1,11 +1,9 @@
-from ..plugin import DatasetPlugin
-
 import inspect
 import os
-
-import regex
+import re
 
 from .. import utils
+from ..plugin import DatasetPlugin
 
 
 class DatasetPopulationPlugin(DatasetPlugin):
@@ -61,7 +59,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
     def _handle_direct_folders(self, parent, member, pattern, new_type):
         if not isinstance(parent, self.schema.Folder):
             return
-        folders = list(filter(lambda f: regex.match(pattern, f.name), parent.get_folders_sorted()))
+        folders = list(filter(lambda f: re.match(pattern, f.name), parent.get_folders_sorted()))
         for folder in folders:
             obj = new_type()
             obj.name = folder.name
