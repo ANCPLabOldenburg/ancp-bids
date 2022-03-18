@@ -1,6 +1,7 @@
 import numpy
 
-from ancpbids import load_dataset, ENTITIES_PATTERN
+from ancpbids import load_dataset
+from ancpbids.utils import parse_bids_name
 from ..base_test_case import *
 
 
@@ -8,11 +9,20 @@ class BasicTestCase(BaseTestCase):
     def test_naming_scheme(self):
         valid_names = ["sub-11_task-mixedgamblestask_run-02_events.tsv", "sub-11_dwi.nii.gz", "x-01_y-02_z-03_xyz.abc", "sub-01_task-mixedgamblestask_run-01_bold.nii.gz"]
         for name in valid_names:
-            self.assertTrue(ENTITIES_PATTERN.match(name))
+            self.assertTrue(parse_bids_name(name) is not None)
 
         invalid_names = ["sub-04_T1w_bias.nii.gz", "cat.jpg", "readme.txt"]
         for name in invalid_names:
-            self.assertFalse(ENTITIES_PATTERN.match(name))
+            self.assertTrue(parse_bids_name(name) is None)
+
+    def test_parse_bids_name(self):
+        bids_obj = parse_bids_name("sub-11_task-mixedgamblestask_run-02_bold.nii.gz")
+        self.assertTrue(isinstance(bids_obj, dict))
+        self.assertEqual(['sub', 'task', 'run'], list(bids_obj['entities'].keys()))
+        self.assertEqual(['11', 'mixedgamblestask', '02'], list(bids_obj['entities'].values()))
+        self.assertEqual('bold', bids_obj['suffix'])
+        self.assertEqual('.nii.gz', bids_obj['extension'])
+
 
     def test_ds005_basic_structure(self):
         ds005 = load_dataset(DS005_DIR)

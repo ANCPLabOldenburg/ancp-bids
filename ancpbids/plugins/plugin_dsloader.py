@@ -5,7 +5,6 @@ import os
 
 import regex
 
-from ancpbids import ENTITIES_PATTERN
 from .. import utils
 
 
@@ -44,20 +43,19 @@ class DatasetPopulationPlugin(DatasetPlugin):
             self._convert_files_to_artifacts(folder)
 
     def _convert_to_artifact(self, file):
-        match = ENTITIES_PATTERN.match(file.name)
-        if not match:
+        parts = utils.parse_bids_name(file.name)
+        if not parts:
             return None
         artifact = self.schema.Artifact()
         artifact.name = file.name
-        for pair in zip(match.captures(2), match.captures(3)):
+        for key, value in parts['entities'].items():
             entity = self.schema.EntityRef()
-            key = pair[0]
             entity.key = key
-            value = self.schema.process_entity_value(key, pair[1])
+            value = self.schema.process_entity_value(key, value)
             entity.value = value
             artifact.entities.append(entity)
-        artifact.suffix = match[4]
-        artifact.extension = match[5]
+        artifact.suffix = parts['suffix']
+        artifact.extension = parts['extension']
         return artifact
 
     def _handle_direct_folders(self, parent, member, pattern, new_type):
