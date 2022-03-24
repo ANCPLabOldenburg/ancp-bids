@@ -53,7 +53,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
             entity = self.schema.EntityRef()
             key = pair[0]
             entity.key = key
-            value = utils.process_entity_value(self.schema, key, pair[1])
+            value = self.schema.process_entity_value(key, pair[1])
             entity.value = value
             artifact.entities.append(entity)
         artifact.suffix = match[4]
@@ -81,14 +81,14 @@ class DatasetPopulationPlugin(DatasetPlugin):
         typ = member['type']
         if not issubclass(typ, self.schema.Model):
             return
-        mapper_name = '_type_handler_' + typ.__name__
+        mapper_name = '_type_handler_%s' % typ.__name__
         if mapper_name not in _TYPE_MAPPERS:
             mapper_name = '_type_handler_default'
         mapper = _TYPE_MAPPERS[mapper_name]
         mapper(self, parent, member)
 
     def _expand_members(self, folder):
-        members = utils.get_members(folder.get_schema(), type(folder))
+        members = folder.get_schema().get_members(type(folder))
         for member in members:
             self._expand_member(folder, member)
 
@@ -99,7 +99,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 folder.parent_object_ = parent
                 folder.name = directory
                 parent.folders.append(folder)
-                self._load_folder(folder, root + "/" + directory)
+                self._load_folder(folder, '/'.join([root, directory]))
             for file in sorted(files):
                 model_file = self.schema.File()
                 model_file.parent_object_ = parent
@@ -177,7 +177,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _map_object(self, model_type, json_object):
         target = model_type()
-        members = utils.get_members(self.schema, model_type, False)
+        members = self.schema.get_members(model_type, False)
         actual_props = json_object.keys()
         direct_props = list(map(lambda m: (m['name'], m), members))
         for prop_name, prop in direct_props:

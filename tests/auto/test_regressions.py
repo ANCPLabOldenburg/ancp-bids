@@ -22,6 +22,11 @@ class RegressionsTestCase(BaseTestCase):
         report = layout.validate()
         self.assertTrue(report.has_errors())
 
+    def test_get_entitites_no_scope(self):
+        layout = ancpbids.BIDSLayout(DS005_DIR)
+        entities = layout.get_entities(scope=None)
+        self.assertEqual(['ds', 'type', 'task', 'sub', 'run', 'desc'], list(entities.keys()))
+
 
 if __name__ == '__main__':
     unittest.main()

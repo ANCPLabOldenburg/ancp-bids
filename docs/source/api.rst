@@ -24,6 +24,9 @@ API
 .. automodule:: ancpbids
     :members:
 
-.. automodule:: ancpbids.model_v1_7_0
+
+.. automodule:: ancpbids.utils
     :members:
 
+.. automodule:: ancpbids.plugin
+    :members:

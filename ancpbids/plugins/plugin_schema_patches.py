@@ -1,5 +1,7 @@
 import fnmatch
+import inspect
 import os
+from difflib import SequenceMatcher
 
 from ancpbids.plugin import SchemaPlugin
 
@@ -27,16 +29,16 @@ def add_entity(artifact, key, value):
 
 
 def load_file_contents(folder, file_name):
-    from ancpbids import files
+    from ancpbids import utils
     file_path = get_absolute_path(folder, file_name)
-    contents = files.load_contents(file_path)
+    contents = utils.load_contents(file_path)
     return contents
 
 
 def load_contents(file):
-    from ancpbids import files
+    from ancpbids import utils
     file_path = get_absolute_path(file.parent_object_, file.name)
-    contents = files.load_contents(file_path)
+    contents = utils.load_contents(file_path)
     return contents
 
 
@@ -182,6 +184,88 @@ def to_dict(source):
     return source
 
 
+def get_model_classes(schema):
+    if not hasattr(schema, '_CLASSES'):
+        schema._CLASSES = {name: obj for name, obj in inspect.getmembers(schema) if inspect.isclass(obj)}
+    return schema._CLASSES
+
+
+def _get_element_members(schema, element_type):
+    element_members = []
+    try:
+        members = element_type.MEMBERS
+        element_members = list(
+            map(lambda item: {'name': item[0], **item[1], 'type': _to_type(schema, item[1]['type'])},
+                members.items()))
+    except AttributeError as ae:
+        pass
+    return element_members
+
+
+def get_members(schema, element_type, include_superclass=True):
+    if element_type == schema.Model:
+        return []
+    super_members = []
+
+    if include_superclass:
+        superclass = element_type
+        while True:
+            try:
+                superclass = inspect.getmro(superclass)[1]
+                if not superclass or superclass == schema.Model:
+                    break
+                super_members = super_members + _get_element_members(schema, superclass)
+            except AttributeError:
+                pass
+
+    element_members = _get_element_members(schema, element_type)
+    return super_members + element_members
+
+
+def _to_type(schema, model_type_name: str):
+    classes = schema.get_model_classes()
+    if model_type_name in classes:
+        return classes[model_type_name]
+    if model_type_name in __builtins__:
+        return __builtins__[model_type_name]
+    return model_type_name
+
+
+def _trim_int(value):
+    try:
+        # remove paddings/fillers in index values: 001 -> 1, 000230 -> 230
+        return str(int(value))
+    except ValueError:
+        return value
+
+
+def process_entity_value(schema, key, value):
+    if not value:
+        return value
+    for sc_entity in filter(lambda e: e.literal_ == key, schema.EntityEnum.__members__.values()):
+        if sc_entity.format_ == 'index':
+            if isinstance(value, list):
+                return list(map(lambda v: _trim_int(v), value))
+            else:
+                return _trim_int(value)
+    return value
+
+
+def fuzzy_match_entity_key(schema, user_key):
+    return fuzzy_match_entity(schema, user_key).entity_
+
+
+def fuzzy_match_entity(schema, user_key):
+    ratios = list(
+        map(lambda item: (
+            item,
+            1.0 if item.literal_.startswith(user_key) else SequenceMatcher(None, user_key,
+                                                                           item.literal_).quick_ratio()),
+            list(schema.EntityEnum)))
+    ratios = sorted(ratios, key=lambda t: t[1])
+    return ratios[-1][0]
+
+
 class PatchingSchemaPlugin(SchemaPlugin):
     def execute(self, schema):
         schema.Artifact.has_entity = has_entity
@@ -206,3 +290,10 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.Model.to_generator = to_generator
         schema.Model.to_dict = to_dict
         schema.Model.iterancestors = iterancestors
+
+        schema.get_model_classes = lambda: get_model_classes(schema)
+        schema.get_members = lambda element_type, include_superclass=True: get_members(schema, element_type,
+                                                                                       include_superclass)
+        schema.process_entity_value = lambda key, value: process_entity_value(schema, key, value)
+        schema.fuzzy_match_entity_key = lambda user_key: fuzzy_match_entity_key(schema, user_key)
+        schema.fuzzy_match_entity = lambda user_key: fuzzy_match_entity(schema, user_key)

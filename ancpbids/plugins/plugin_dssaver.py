@@ -61,6 +61,7 @@ class DatasetWritingPlugin(WritingPlugin):
 
     def _type_handler_Artifact(self, src_dir, target_dir, artifact):
         segments = []
+        # TODO add missing entities
         # TODO sort according order defined in schema
         for e in artifact.entities:
             seg = '-'.join([e.key, e.value])
