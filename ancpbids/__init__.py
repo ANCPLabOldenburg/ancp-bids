@@ -2,8 +2,6 @@ import logging
 import os
 import sys
 
-import regex
-
 from . import plugins
 from . import utils
 from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin, \
@@ -13,7 +11,7 @@ from .plugins.plugin_query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, Re
 
 LOGGER = logging.getLogger("ancpbids")
 
-ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)((\.[^\W_]+)+)')
+# ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)((\.[^\W_]+)+)')
 
 
 def load_dataset(base_dir: str):

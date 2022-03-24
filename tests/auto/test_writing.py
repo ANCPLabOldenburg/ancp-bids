@@ -3,6 +3,8 @@ import unittest
 
 import numpy as np
 import pandas as pd
+import shutil
+import tempfile
 
 import ancpbids
 from ancpbids import model, re
@@ -10,6 +12,7 @@ from ..base_test_case import BaseTestCase, DS005_DIR
 
 
 class WritingTestCase(BaseTestCase):
+
     def write_test_derivative(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
         dataset = layout.get_dataset()
@@ -26,7 +29,6 @@ class WritingTestCase(BaseTestCase):
             # ... done
             txt_artifact = subject.create_artifact()
             txt_artifact.add_entity("desc", "mypipeline")
-            txt_artifact.add_entity("task", task_label)
             txt_artifact.suffix = 'textual'
             txt_artifact.extension = ".txt"
             txt_artifact.content = "Subject %s participated in task %s" % (sub_label, task_label)
@@ -35,7 +37,6 @@ class WritingTestCase(BaseTestCase):
             df = pd.DataFrame(np.random.randint(0, 100, size=(100, 4)), columns=list('ABCD'))
             ev_artifact = subject.create_artifact()
             ev_artifact.add_entity("desc", "mypipeline")
-            ev_artifact.add_entity("task", task_label)
             ev_artifact.suffix = 'events'
             ev_artifact.extension = ".tsv"
             # at this point, the file path is not known and will be provided
@@ -62,9 +63,14 @@ class WritingTestCase(BaseTestCase):
         self.assertEqual(16, len(subjects))
 
         for i, subject in enumerate(subjects):
-            self.assertEqual("sub-%02d" % (i+1), subject.name)
+            exptected_sub_name = "sub-%02d" % (i + 1)
+            self.assertEqual(exptected_sub_name, subject.name)
+            for artifact in subject.files:
+                # check if 'sub' entity has been automatically added as it is inferrable from its parent directory
+                self.assertEqual(exptected_sub_name, "sub-%s" % artifact.get_entity('sub'))
 
-        # TODO complete the assertions
+        self.assertTrue(isinstance(derivative_folder.dataset_description, schema.DerivativeDatasetDescriptionFile))
+        self.assertEqual(derivative_folder.dataset_description.GeneratedBy.Name, "My Test Pipeline")
 
 
 if __name__ == '__main__':

@@ -7,6 +7,58 @@ FILE_WRITERS = {}
 LOGGER = logging.getLogger(__file__)
 
 
+def parse_bids_name(name: str):
+    """Parses a given string (file name) according to the BIDS naming scheme.
+
+    Parameters
+    ----------
+    name
+        The file name to parse. If a full path (with path separaters), the path segments will be ignored.
+
+    Returns
+    -------
+    dict
+        A dictionary describing the BIDS naming components.
+
+    Examples
+    --------
+
+    >>> bids_obj = parse_bids_name("sub-11_task-mixedgamblestask_run-02_bold.nii.gz")
+    {'entities': {'sub': '11', 'task': 'mixedgamblestask', 'run': '02'}, 'suffix': 'bold', 'extension': '.nii.gz'}
+
+    """
+    base_name = os.path.basename(name)
+    parts = base_name.split(os.extsep, 1)
+    if len(parts) != 2:
+        # if extension missing, then not a valid BIDS file
+        return None
+
+    extension = os.extsep + parts[1]
+    underscore_parts = parts[0].split('_')
+
+    if len(underscore_parts) < 2:
+        return None
+
+    # last segment must be suffix
+    suffix = underscore_parts[-1]
+    if '-' in suffix:
+        return None
+
+    entities = {}
+    for i in range(0, len(underscore_parts) - 1):
+        dash_parts = underscore_parts[i].split('-')
+        if len(dash_parts) < 2:
+            # not a key-value pair
+            return None
+        entities[dash_parts[0]] = dash_parts[1]
+
+    return {
+        'entities': entities,
+        'suffix': suffix,
+        'extension': extension
+    }
+
+
 def load_contents(file_path):
     """Loads the contents of the provided file path.
 
@@ -36,6 +88,33 @@ def load_contents(file_path):
     if reader is None:
         raise ValueError('No file reader registered to load file %s' % file_path)
     return reader(file_path)
+
+
+def write_contents(file_path: str, contents):
+    """Writes the provided contents to the target file path using a registered file writer.
+
+    A valid file writer may be inferred by the file's extension and/or the given contents object.
+    If no file writer is found for the given file, a `ValueError` is raised.
+
+    Parameters
+    ----------
+    file_path:
+        The file path to write to.
+    contents:
+        The contents to write to the target file.
+
+    """
+    writer = None
+    parts = os.path.splitext(file_path)
+    if len(parts) > 1:
+        extension = parts[-1][1:]
+        if extension in FILE_WRITERS:
+            writer = FILE_WRITERS[extension]
+
+    if not writer:
+        raise ValueError("No file writer registered for file: %s" % file_path)
+
+    writer(file_path, contents)
 
 
 def deepupdate(target, src):
