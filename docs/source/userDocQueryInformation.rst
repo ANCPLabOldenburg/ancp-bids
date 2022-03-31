@@ -130,6 +130,7 @@ The layout.get() function allows for more complex queries and can return a list 
 You can also specify lists of search items like ``subject=['02','03']`` in the above statement.
 This will retrieve all the BOLD files of subjects 02 and 03.
 
+
 Available search fields
 -----------------------
 The get() function can simultaneously search for matches in the following fields:

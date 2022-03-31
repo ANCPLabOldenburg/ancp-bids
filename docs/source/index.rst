@@ -9,6 +9,7 @@ Using a plugin mechanism, contributors can extend its functionality in a control
 
    installation
    userDocQueryInformation
+   userDocCombined
    userDocMEG
    validate
    arch

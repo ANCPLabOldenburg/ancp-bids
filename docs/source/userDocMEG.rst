@@ -1,6 +1,6 @@
-"""""""""""""""""""""""""""""""""""
-ANCP-BIDS User Documentation - MEG
-"""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""
+User Documentation - MEG specific files
+"""""""""""""""""""""""""""""""""""""""
 .. contents:: Overview
    :depth: 3
 
@@ -179,8 +179,9 @@ The query below demonstrates what happens if you don't specify the extension par
     #'./ancp-bids/tests/data/ds003483/derivatives/pipeline_preprocessing/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_desc-epochs_meg.mat',
     #'./ancp-bids/tests/data/ds003483/derivatives/pipeline_preprocessing/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_desc-epochs_meg.json',
     #'./ancp-bids/tests/data/ds003483/derivatives/pipeline_preprocessing/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_desc-epochs_meg.json']
-For the testdata there are some files in the derivatives with the 'meg' suffix besides the metadata of the
-acquisition defined in the json file.
+For the testdata there are some files in the derivatives with the 'meg' suffix (the epoched MEG timeseries) besides the metadata of the
+acquisition defined in the json files. So, if you only want to query for the raw timeseries data use the according extension
+e.g. '.fif' parameter in the
 
 Importantly, you could also use the extension parameter to explicitly search for available metadata or get the path
 of specific metadata files: ::
