@@ -76,10 +76,40 @@ rawdata we can use the same query that was used for the rawdata...
         print(*meg_timeseries, sep='\n')
         #Output:
         #./
-        #/Users/*yourUserName*/.ancp-bids/datasets/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_meg.fif
-        #/Users/*yourUserName*/.ancp-bids/datasets/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_meg.fif
+        #/Users/*yourUserName*/.ancp-bids/datasets/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_meg.json
+        #/Users/*yourUserName*/.ancp-bids/datasets/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_meg.json
+
+Note, the parameters that you can manipulate strongly depend on the dataset since every entity defined in your data
+is an parameter of the *get()* function. Hence the more complex the data the more complex a query could be.
+
+Now we can also **not** specify certain parameters in our query to **broaden** our search
+within the dataset at hand. For example, if we don't specify the *sub* parameter in the query above we will
+receive a list containing the paths of every .json file of every subject and not only subject 009.
 
 
+.. tab:: MRI
+
+    .. code-block:: python
+
+        bold_json_files = layout.get(scope='raw',
+                            return_type='filename',
+                            suffix='bold',
+                            extension='.nii.gz',
+                            task='mixedgamblestask',
+                            run=["01", "02"])
+        print(*bold_files, sep='\n')
+
+.. tab:: MEG
+
+    .. code-block:: python
+
+        meg_timeseries_json_files = layout.get(scope='raw',
+                            return_type='filename',
+                            suffix='meg',
+                            extension='.fif',
+                            task=['induction','deduction'])
+        print(*meg_timeseries, sep='\n')
+        #Output:
 
 
 
@@ -167,3 +197,15 @@ for the metadata or the actual event files by setting the extension parameter to
 
 We can search our data for the other files described above by setting the extension value to one
 of the values defined above.
+
+Moreover, the ancpbids library offers convenience functions to query for (or access?)
+the dataset_description.json (and the participants.tsv which are the most common metadata
+from the first level of hierarchy within the dataset, i.e.metadata that describes the whole dataset.)
+
+.. code-block:: python
+
+    dataset_desc = layout.get_dataset_description()
+
+
+
+
