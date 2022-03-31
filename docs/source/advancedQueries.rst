@@ -2,10 +2,95 @@
 Advanced Queries using ancpBIDS
 """""""""""""""""""""""""""""""
 
+In the *link to userDocCombined* you have learnt how to access your imaging data using the
+*get()* function. However, a BIDS dataset contains a lot of other valuable data and metadata
+apart from our primary data (e.g. MRI or MEG timeseries). This documentation should show you how to use ancpBIDS
+to query for the most common files usually contained in a BIDS dataset.
+
+Just to recall, these are the parameters of the *get()* function:
+
+    1. **scope**: The BIDS subdirectory to be searched. Can be any of 'raw' | 'derivatives'
+    2. **entities**: Key-value pairs in the filenames are entities defined in BIDS. Examples are 'sub' or 'run'. Use layout.get_entities() to get a list of entities available in the dataset.
+    3. **suffix**: Suffixes define the imaging modality or data type. Examples are 'bold' or 'meg' but also 'events' or 'participants'
+    4. **extension**: Is the file extensions. Examples are '.nii' or 'nii.gz' for MRI, '.fif' for MEG and .tsv for tabular files
+    5. **return_type**: Defines the what get() returns. This can be 'filename' or 'dict', where 'dict' is the default.
+
+We can now systematically manipulate these parameters to **narrow down** or **broaden**
+our queries.
+
+For example, if we want to query for the json metadata files, which contain information about the
+rawdata we can use the same query that was used for the rawdata...
+
+.. tab:: MRI
+
+    .. code-block:: python
+
+        bold_files = layout.get(scope='raw',
+                            return_type='filename',
+                            suffix='bold',
+                            extension='.nii.gz',
+                            sub='03',
+                            task='mixedgamblestask',
+                            run=["01", "02"])
+        print(*bold_files, sep='\n')
+
+
+.. tab:: MEG
+
+    .. code-block:: python
+
+        meg_timeseries_files = layout.get(scope='raw',
+                            return_type='filename',
+                            suffix='meg',
+                            extension='.fif',
+                            sub='009',
+                            task=['induction','deduction'])
+        print(*meg_timeseries, sep='\n')
+
+
+... but set the extension parameter to '.json' instead of '.fif' or '.nii.gz'. See the example below:
+
+.. tab:: MRI
+
+    .. code-block:: python
+
+        bold_files = layout.get(scope='raw',
+                            return_type='filename',
+                            suffix='bold',
+                            extension='.nii.gz',
+                            sub='03',
+                            task='mixedgamblestask',
+                            run=["01", "02"])
+        print(*bold_files, sep='\n')
+
+.. tab:: MEG
+
+    .. code-block:: python
+
+        meg_timeseries_files = layout.get(scope='raw',
+                            return_type='filename',
+                            suffix='meg',
+                            extension='.fif',
+                            sub='009',
+                            task=['induction','deduction'])
+        print(*meg_timeseries, sep='\n')
+        #Output:
+        #./
+        #/Users/*yourUserName*/.ancp-bids/datasets/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_meg.fif
+        #/Users/*yourUserName*/.ancp-bids/datasets/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_meg.fif
+
+
+
+
+
+
+
+
 Querying metadata and other descriptive files
 ______________________________________________
 
-As stated above the suffix parameter can be set to 'meg' for the timeseries data but luckily we can query our data for all of the files included in the BIDS standard by using their specific suffixes.
+As stated above the suffix parameter can be set to 'meg' or 'bold' for the timeseries data but luckily we can query our data for all of the
+other files included in the BIDS standard by using their specific suffixes.
 
 In the domain of MEG these suffixes are:
     1. `events`: search for event files

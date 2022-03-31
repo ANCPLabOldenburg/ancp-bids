@@ -219,9 +219,9 @@ The layout.get() function allows for more complex queries and can return a list 
         print("BOLD files of subject 2:", *file_paths, sep='\n')
         #Output:
         #BOLD files of subject 2:
-        #./tests/data/ds005/sub-02/func/sub-02_task-mixedgamblestask_run-01_bold.nii.gz
-        #./tests/data/ds005/sub-02/func/sub-02_task-mixedgamblestask_run-02_bold.nii.gz
-        #./tests/data/ds005/sub-02/func/sub-02_task-mixedgamblestask_run-03_bold.nii.gz
+        #/Users/*yourUserName*/.ancp-bids/datasets/ds005/sub-02/func/sub-02_task-mixedgamblestask_run-01_bold.nii.gz
+        #/Users/*yourUserName*/.ancp-bids/datasets/ds005/sub-02/func/sub-02_task-mixedgamblestask_run-02_bold.nii.gz
+        #/Users/*yourUserName*/.ancp-bids/datasets/ds005/sub-02/func/sub-02_task-mixedgamblestask_run-03_bold.nii.gz
 
     You can also specify lists of search items like ``subject=['02','03']`` in the above statement.
     This will retrieve all the BOLD files of subjects 02 and 03.
