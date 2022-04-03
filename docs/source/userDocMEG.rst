@@ -1,6 +1,6 @@
-"""""""""""""""""""""""""""""""""""
-ANCP-BIDS User Documentation - MEG
-"""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""
+User Documentation - MEG specific files
+"""""""""""""""""""""""""""""""""""""""
 .. contents:: Overview
    :depth: 3
 
@@ -11,12 +11,14 @@ As an input parameter provide the load_dataset function with a path
 to your root directory. The directory must be in BIDS compliant structure.
 
 .. code-block:: python
+
     from ancpbids import load_dataset
     dataset_path = './ancp-bids/tests/data/ds003483'
     dataset = load_dataset(dataset_path)
     len(dataset.subjects)
     #Output:
     #21
+
 Querying information about the dataset
 --------------------------------------
 First we read information about a BIDS dataset into a layout-object using
@@ -28,6 +30,7 @@ directories necessary to gather the information defined in the
 Brain Imaging Data Structure (BIDS).
 
 .. code-block:: python
+
     from ancpbids import BIDSLayout
     layout = BIDSLayout(dataset_path)
 Basic queries
@@ -46,6 +49,7 @@ a list of all subject identifiers present in your dataset.
 .. _entities defined in BIDS: https://bids-specification.readthedocs.io/en/stable/99-appendices/09-entities.html
 
 .. code-block:: python
+
     subject_ids = layout.get_subjects()
     print(subject_ids)
     subject_ids = layout.get_subject()
@@ -56,6 +60,7 @@ a list of all subject identifiers present in your dataset.
 Now lets see if we have different tasks defined in our dataset...
 
 .. code-block:: python
+
     tasks = layout.get_tasks()
     print(tasks)
     #Output:
@@ -65,6 +70,7 @@ To get an idea of the entities you can query for in your dataset you can use the
 dataset and its respective values.
 
 .. code-block:: python
+
     entities = layout.get_entities()
     print(entities)
     #Output:
@@ -85,6 +91,7 @@ The **get()** function can simultaneously search your dataset for filenames matc
     5. `return_type`: Defines the what get() returns. This can be 'filename' or 'dict', where 'dict' is the default.
 
 .. code-block:: python
+
     data_sub_009 = layout.get(suffix='meg',subject='009',extension='.fif',return_type='filename')
     print(data_sub_009)
     #Output
@@ -99,6 +106,7 @@ For example: We can add a value for the task parameter in the call above to **na
 to the MEG timeseries data of **sub-009** for the **deduction task**.
 
 .. code-block:: python
+
     data_sub_009_deduction = layout.get(suffix='meg',subject='009',extension='.fif',return_type='filename',task='deduction')
     print(data_sub_009_deduction)
     #Output:
@@ -109,6 +117,7 @@ above and will receive a list of paths to the MEG timeseries of all subjects for
 task, respectively.
 
 .. code-block:: python
+
     data_all_sub_deduction = layout.get(suffix='meg',extension='.fif',return_type='filename',task='deduction')
     print(data_sub_009)
     #Output:
@@ -138,6 +147,7 @@ This will search your data for matching filenames for all of the elements of the
 search our dataset for all MEG timeseries data of **sub-009**, **sub-013** and **sub-029** during the 'deduction' task
 
 .. code-block:: python
+
     data_sub_009_013_029 = layout.get(suffix='meg',subject=['009','013','029'],extension='.fif',return_type='filename',task='deduction')
     print(data_sub_009_013_029)
     #Output:
@@ -155,6 +165,7 @@ The query below demonstrates what happens if you don't specify the extension par
 .. _MEG data formats and their respective extensions: https://bids-specification.readthedocs.io/en/stable/99-appendices/06-meg-file-formats.html
 
 .. code-block:: python
+
     data_sub_009_meg_suffix = layout.get(suffix='meg',subject='009',return_type='filename')
     print(data_sub_009)
     #Output:
@@ -168,8 +179,9 @@ The query below demonstrates what happens if you don't specify the extension par
     #'./ancp-bids/tests/data/ds003483/derivatives/pipeline_preprocessing/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_desc-epochs_meg.mat',
     #'./ancp-bids/tests/data/ds003483/derivatives/pipeline_preprocessing/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_desc-epochs_meg.json',
     #'./ancp-bids/tests/data/ds003483/derivatives/pipeline_preprocessing/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_desc-epochs_meg.json']
-For the testdata there are some files in the derivatives with the 'meg' suffix besides the metadata of the
-acquisition defined in the json file.
+For the testdata there are some files in the derivatives with the 'meg' suffix (the epoched MEG timeseries) besides the metadata of the
+acquisition defined in the json files. So, if you only want to query for the raw timeseries data use the according extension
+e.g. '.fif' parameter in the
 
 Importantly, you could also use the extension parameter to explicitly search for available metadata or get the path
 of specific metadata files: ::
@@ -195,6 +207,7 @@ Here are some examples of how to query for these BIDS specific files.
 Retrieve a list of all event files available in your data:
 
 .. code-block:: python
+
     all_events = layout.get(suffix='events', return_type='filename')
     print(all_events)
     #Output
@@ -248,6 +261,7 @@ task or other entity defined in our data. See, *reference to section* to once ag
 Let's search our data for the event file of **sub-009** for the **deduction** task:
 
 .. code-block:: python
+
     events_sub009_deduc = layout.get(suffix='events', subject='009', task='deduction', return_type='filename')
     print(events_sub009_deduc)
     #Output
@@ -270,6 +284,7 @@ specified sticking to its default value 'dict'.
 We can then load the contents of the first element of our dictionary to access the file, see the example below:
 
 .. code-block:: python
+
     events = layout.get(suffix='events',subject='009',task='deduction')
     df_events = events[0].load_contents()
 This way you will be able to load the contents of the metadata and descriptive tabular files.
