@@ -1,5 +1,5 @@
 """"""""""""""""""""""""""
-User Documentation MEG-MRI
+User Documentation
 """"""""""""""""""""""""""
 
 Querying information about a BIDS dataset

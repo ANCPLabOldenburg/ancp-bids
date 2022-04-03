@@ -1,5 +1,5 @@
 """""""""""""""""""""""""""""""
-Advanced Queries using ancpBIDS
+Advanced Queries
 """""""""""""""""""""""""""""""
 
 In the *link to userDocCombined* you have learnt how to access your imaging data using the
