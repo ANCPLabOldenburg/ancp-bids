@@ -56,7 +56,7 @@ See the example below:
 
     .. code-block:: python
 
-        bold_files = layout.get(scope='raw',
+        bold_metadata = layout.get(scope='raw',
                             return_type='filename',
                             suffix='bold',
                             extension='.json',
@@ -69,7 +69,7 @@ See the example below:
 
     .. code-block:: python
 
-        meg_timeseries_files = layout.get(scope='raw',
+        meg_timeseries_metadata = layout.get(scope='raw',
                             return_type='filename',
                             suffix='meg',
                             extension='.json',
@@ -134,16 +134,26 @@ Here are some examples of how to query for these BIDS specific files.
 
 Retrieve a list of all event files available in your data:
 
-.. code-block:: python
+.. tab:: MRI
 
-    all_events = layout.get(suffix='events', return_type='filename')
-    print(all_events)
-    #Output
-    #['./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_events.tsv',
-    #...
-    #'./ancp-bids/tests/data/ds003483/sub-031/ses-1/meg/sub-031_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-031/ses-1/meg/sub-031_ses-1_task-induction_run-1_events.tsv']
+    .. code-block:: python
+
+        all_events = layout.get(suffix='events', return_type='filename')
+        print(all_events)
+
+.. tab:: MEG
+
+    .. code-block:: python
+
+        all_events = layout.get(suffix='events', return_type='filename')
+        print(all_events)
+        #Output
+        #['./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_events.tsv',
+        #'./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_events.tsv',
+        #...
+        #'./ancp-bids/tests/data/ds003483/sub-031/ses-1/meg/sub-031_ses-1_task-deduction_run-1_events.tsv',
+        #'./ancp-bids/tests/data/ds003483/sub-031/ses-1/meg/sub-031_ses-1_task-induction_run-1_events.tsv']
+
 Again we can use any combination of the parameters of the **get()** function to narrow down the search according
 to our needs.
 
@@ -158,15 +168,16 @@ Let's search our data for the event file of **sub-009** for the **deduction** ta
     print(events_sub009_deduc)
     #Output
     #['./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_events.tsv']
-Note, if your BIDS dataset contains metadata for your event files you can specify if you want to search
-for the metadata or the actual event files by setting the extension parameter to '.json' or '.tsv', respectively.
+Note, if your BIDS dataset contains metadata for your event files (i.e. a file describing the columns of your events file)
+you can specify if you want to search for the metadata or the actual event files
+by setting the extension parameter to '.json' or '.tsv', respectively.
 
 We can search our data for the other files described above by setting the extension value to one
 of the values defined above.
 
-Moreover, the ancpbids library offers convenience functions to query for (or access?)
-the dataset_description.json (and the participants.tsv which are the most common metadata
-from the first level of hierarchy within the dataset, i.e.metadata that describes the whole dataset.)
+Moreover, the ancpbids library offers a convenience function to query for (or access?)
+the dataset_description.json
+
 
 .. code-block:: python
 
