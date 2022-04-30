@@ -48,16 +48,18 @@ rawdata we can use the same query that was used for the rawdata...
         print(*meg_timeseries, sep='\n')
 
 
-... but set the extension parameter to '.json' instead of '.fif' or '.nii.gz'. See the example below:
+... but set the extension parameter to '.json' instead of '.fif' or '.nii.gz'. In general, it is important that you specify the extension since
+it is BIDS convention that metadata files should have the same name as the file they describe but with the '.json' extension
+See the example below:
 
 .. tab:: MRI
 
     .. code-block:: python
 
-        bold_files = layout.get(scope='raw',
+        bold_metadata = layout.get(scope='raw',
                             return_type='filename',
                             suffix='bold',
-                            extension='.nii.gz',
+                            extension='.json',
                             sub='03',
                             task='mixedgamblestask',
                             run=["01", "02"])
@@ -67,10 +69,10 @@ rawdata we can use the same query that was used for the rawdata...
 
     .. code-block:: python
 
-        meg_timeseries_files = layout.get(scope='raw',
+        meg_timeseries_metadata = layout.get(scope='raw',
                             return_type='filename',
                             suffix='meg',
-                            extension='.fif',
+                            extension='.json',
                             sub='009',
                             task=['induction','deduction'])
         print(*meg_timeseries, sep='\n')
@@ -132,52 +134,26 @@ Here are some examples of how to query for these BIDS specific files.
 
 Retrieve a list of all event files available in your data:
 
-.. code-block:: python
+.. tab:: MRI
 
-    all_events = layout.get(suffix='events', return_type='filename')
-    print(all_events)
-    #Output
-    #['./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-012/ses-1/meg/sub-012_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-012/ses-1/meg/sub-012_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-013/ses-1/meg/sub-013_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-013/ses-1/meg/sub-013_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-014/ses-1/meg/sub-014_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-014/ses-1/meg/sub-014_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-015/ses-1/meg/sub-015_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-015/ses-1/meg/sub-015_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-016/ses-1/meg/sub-016_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-016/ses-1/meg/sub-016_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-017/ses-1/meg/sub-017_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-017/ses-1/meg/sub-017_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-018/ses-1/meg/sub-018_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-018/ses-1/meg/sub-018_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-019/ses-1/meg/sub-019_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-019/ses-1/meg/sub-019_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-020/ses-1/meg/sub-020_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-020/ses-1/meg/sub-020_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-021/ses-1/meg/sub-021_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-021/ses-1/meg/sub-021_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-022/ses-1/meg/sub-022_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-022/ses-1/meg/sub-022_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-023/ses-1/meg/sub-023_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-023/ses-1/meg/sub-023_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-024/ses-1/meg/sub-024_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-024/ses-1/meg/sub-024_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-025/ses-1/meg/sub-025_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-025/ses-1/meg/sub-025_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-026/ses-1/meg/sub-026_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-026/ses-1/meg/sub-026_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-027/ses-1/meg/sub-027_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-027/ses-1/meg/sub-027_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-028/ses-1/meg/sub-028_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-028/ses-1/meg/sub-028_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-029/ses-1/meg/sub-029_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-030/ses-1/meg/sub-030_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-030/ses-1/meg/sub-030_ses-1_task-induction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-031/ses-1/meg/sub-031_ses-1_task-deduction_run-1_events.tsv',
-    #'./ancp-bids/tests/data/ds003483/sub-031/ses-1/meg/sub-031_ses-1_task-induction_run-1_events.tsv']
+    .. code-block:: python
+
+        all_events = layout.get(suffix='events', return_type='filename')
+        print(all_events)
+
+.. tab:: MEG
+
+    .. code-block:: python
+
+        all_events = layout.get(suffix='events', return_type='filename')
+        print(all_events)
+        #Output
+        #['./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_events.tsv',
+        #'./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-induction_run-1_events.tsv',
+        #...
+        #'./ancp-bids/tests/data/ds003483/sub-031/ses-1/meg/sub-031_ses-1_task-deduction_run-1_events.tsv',
+        #'./ancp-bids/tests/data/ds003483/sub-031/ses-1/meg/sub-031_ses-1_task-induction_run-1_events.tsv']
+
 Again we can use any combination of the parameters of the **get()** function to narrow down the search according
 to our needs.
 
@@ -192,15 +168,16 @@ Let's search our data for the event file of **sub-009** for the **deduction** ta
     print(events_sub009_deduc)
     #Output
     #['./ancp-bids/tests/data/ds003483/sub-009/ses-1/meg/sub-009_ses-1_task-deduction_run-1_events.tsv']
-Note, if your BIDS dataset contains metadata for your event files you can specify if you want to search
-for the metadata or the actual event files by setting the extension parameter to '.json' or '.tsv', respectively.
+Note, if your BIDS dataset contains metadata for your event files (i.e. a file describing the columns of your events file)
+you can specify if you want to search for the metadata or the actual event files
+by setting the extension parameter to '.json' or '.tsv', respectively.
 
 We can search our data for the other files described above by setting the extension value to one
 of the values defined above.
 
-Moreover, the ancpbids library offers convenience functions to query for (or access?)
-the dataset_description.json (and the participants.tsv which are the most common metadata
-from the first level of hierarchy within the dataset, i.e.metadata that describes the whole dataset.)
+Moreover, the ancpbids library offers a convenience function to query for (or access?)
+the dataset_description.json
+
 
 .. code-block:: python
 
