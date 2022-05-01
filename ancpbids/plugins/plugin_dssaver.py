@@ -11,6 +11,10 @@ class DatasetWritingPlugin(WritingPlugin):
         if context_folder is None and os.path.exists(target_dir) and len(os.listdir(target_dir)) > 0:
             raise ValueError("Directory not empty: " + target_dir)
 
+        # set the target_dir as the base directory for creation
+        if not hasattr(ds, 'base_dir_') or ds.base_dir_ is None:
+            ds.base_dir_ = target_dir
+
         if context_folder is None:
             context_folder = ds
         if src_dir is None:
@@ -39,7 +43,6 @@ class DatasetWritingPlugin(WritingPlugin):
             file.content(file.get_absolute_path())
         else:
             ancpbids.utils.write_contents(file.get_absolute_path(), file)
-
 
     def _type_handler_Folder(self, src_dir, target_dir, folder, traverse_children=False):
         new_dir = os.path.join(target_dir, folder.get_relative_path())

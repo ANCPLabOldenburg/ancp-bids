@@ -121,6 +121,14 @@ def create_derivative(ds, **kwargs):
 
     return derivative
 
+def create_dataset(schema, **kwargs):
+    ds = schema.Dataset()
+    ds.update(**kwargs)
+    ds.dataset_description = schema.DatasetDescriptionFile(name="dataset_description.json")
+    ds.dataset_description.BIDSVersion = schema.VERSION
+    ds.dataset_description.parent_object_ = ds
+    return ds
+
 
 def get_file(folder, file_name, from_meta=True):
     file = next(filter(lambda file: file.name == file_name, folder.files), None)
@@ -297,3 +305,5 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.process_entity_value = lambda key, value: process_entity_value(schema, key, value)
         schema.fuzzy_match_entity_key = lambda user_key: fuzzy_match_entity_key(schema, user_key)
         schema.fuzzy_match_entity = lambda user_key: fuzzy_match_entity(schema, user_key)
+
+        schema.create_dataset = lambda **kwargs: create_dataset(schema, **kwargs)

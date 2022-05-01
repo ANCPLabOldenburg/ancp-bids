@@ -1,3 +1,4 @@
+import os
 import time
 import unittest
 
@@ -5,6 +6,8 @@ import numpy as np
 import pandas as pd
 import shutil
 import tempfile
+
+from numpy.testing import tempdir
 
 import ancpbids
 from ancpbids import model, re
@@ -71,6 +74,27 @@ class WritingTestCase(BaseTestCase):
 
         self.assertTrue(isinstance(derivative_folder.dataset_description, schema.DerivativeDatasetDescriptionFile))
         self.assertEqual(derivative_folder.dataset_description.GeneratedBy.Name, "My Test Pipeline")
+
+    def test_create_new_dataset(self):
+        from ancpbids import model_v1_7_0 as schema
+        dataset = schema.create_dataset(name='my-test-ds')
+        dataset.dataset_description.Name = 'a programmatically created dataset'
+        dataset.dataset_description.BIDSVersion = schema.VERSION
+
+        for i in range(1, 10):
+            subject = dataset.create_folder(name=f"sub-{i}", type_=schema.Subject)
+            func_folder = subject.create_folder(name='func', type_=schema.DatatypeFolder)
+            img_file = func_folder.create_artifact()
+            img_file.suffix = 'bold'
+            img_file.extension = '.nii.gz'
+            img_file.add_entity('task', 'programming')
+            # just create an empty file
+            img_file.content = lambda file_name: open(file_name, 'w').close()
+
+        output_dir = tempfile.mkdtemp()
+        ancpbids.save_dataset(dataset, output_dir)
+
+        # TODO reload dataset and add assertions
 
 
 if __name__ == '__main__':

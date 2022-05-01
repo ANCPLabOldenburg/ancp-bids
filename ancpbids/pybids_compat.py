@@ -44,6 +44,7 @@ class BIDSLayout:
 
     def get_metadata(self, *args, **kwargs) -> dict:
         """Returns a dictionary of metadata matching the provided criteria (see :meth:`ancpbids.BIDSLayout.get`).
+
         Also takes the BIDS inheritance principle into account, i.e. any metadata defined at dataset level
         may be overridden by a more specific metadata entry at a lower level such as the subject level.
 
@@ -266,7 +267,8 @@ class BIDSLayout:
     def validate(self) -> ValidationPlugin.ValidationReport:
         """Validates a dataset and returns a report object containing any detected validation errors.
 
-        Example:
+        Example
+        ----------
 
         .. code-block::
 

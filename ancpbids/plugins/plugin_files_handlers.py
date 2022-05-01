@@ -44,7 +44,7 @@ def write_json(file_path: str, contents: dict):
     """
     import json
     with open(file_path, 'w') as fp:
-        json.dump(contents, fp)
+        json.dump(contents, fp, indent=2)
 
 def write_txt(file_path: str, contents: dict):
     """Writes the contents as a .txt file to the given file path.
