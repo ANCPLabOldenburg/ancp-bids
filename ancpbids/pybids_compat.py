@@ -38,9 +38,10 @@ class BIDSLayout:
         # else just return using the constructor function
         return ctor(value)
 
-    def __getattr__(self, key, **kwargs):
-        k = key if not key.startswith("get_") else key[4:]
-        return partial(self.get, return_type='id', target=k, **kwargs)
+    def __getattr__(self, key):
+        if key.startswith("get_"):
+            return partial(self.get, "id", key[4:])
+        raise AttributeError(key)
 
     def get_metadata(self, *args, **kwargs) -> dict:
         """Returns a dictionary of metadata matching the provided criteria (see :meth:`ancpbids.BIDSLayout.get`).
@@ -236,13 +237,21 @@ class BIDSLayout:
             result = {k: sorted(v) for k, v in sorted(result.items())}
         return result
 
-    def get_dataset_description(self) -> dict:
+    def get_dataset_description(self) -> list:
         """
         Returns
         -------
-            the dataset's dataset_description.json as a dictionary or None if not provided
+            the dataset's dataset_description.json as list of dictionaries or None if not
+            provided. if one or more derivatives datasets are available, this list will
+            contain one element per dataset, with the raw dataset always coming first.
         """
-        return self.dataset.dataset_description
+        dsets = [self]
+        if hasattr(self, 'derivatives'):
+            for k, v in self.derivatives.items():
+                dsets += [v]
+        # import pdb;pdb.set_trace()
+        descs = [d.get_dataset().dataset_description for d in dsets]
+        return descs
 
     def get_dataset(self) -> object:
         """
@@ -251,6 +260,16 @@ class BIDSLayout:
             the in-memory representation of this layout/dataset
         """
         return self.dataset
+
+    def add_derivatives(self, path):
+        if not hasattr(self, 'derivatives'):
+            self.derivatives = dict()
+        if not isinstance(path, list):
+            path = [path]
+        for p in path:
+            tmp_layout = BIDSLayout(p)
+            self.derivatives[tmp_layout.dataset.name] = tmp_layout
+            del tmp_layout
 
     def write_derivative(self, derivative):
         """Writes the provided derivative folder to the dataset.
