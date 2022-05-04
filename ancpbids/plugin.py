@@ -58,7 +58,7 @@ class ValidationPlugin(Plugin):
         def __init__(self):
             self.messages = []
 
-        def error(self, message):
+        def error(self, message, offender=None):
             """Adds a new error message to the report.
 
             Parameters
@@ -69,10 +69,11 @@ class ValidationPlugin(Plugin):
             """
             self.messages.append({
                 'severity': 'error',
+                'offender': offender,
                 'message': message
             })
 
-        def warn(self, message):
+        def warn(self, message, offender=None):
             """Adds a new warning message to the report.
 
             Parameters
@@ -83,6 +84,7 @@ class ValidationPlugin(Plugin):
             """
             self.messages.append({
                 'severity': 'warn',
+                'offender': offender,
                 'message': message
             })
 
