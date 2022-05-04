@@ -17,7 +17,6 @@ class StaticStructureValidationPlugin(ValidationPlugin):
                 val = getattr(obj, name)
                 use = member['use']
                 if (lb > 0 or use == 'required') and not val:
-                    # TODO: Identify more precisely where these errors emerge from
                     report.error(f"Missing required field {name} at {top_path}.",
                                  obj)
                 if use == 'recommended' and not val:
