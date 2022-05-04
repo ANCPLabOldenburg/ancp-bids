@@ -35,6 +35,8 @@ def load_dataset(base_dir: str):
     """
     schema = load_schema(base_dir)
     ds = schema.Dataset()
+    if not os.path.isdir(base_dir):
+        raise ValueError("Invalid Directory")
     ds.name = os.path.basename(base_dir)
     ds.base_dir_ = base_dir
     dataset_plugins = get_plugins(DatasetPlugin)
