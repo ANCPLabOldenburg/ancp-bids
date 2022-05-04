@@ -39,8 +39,15 @@ class BIDSLayout:
         return ctor(value)
 
     def __getattr__(self, key):
+        # replace arbitrary get functions with calls to get
         if key.startswith("get_"):
             return partial(self.get, "id", key[4:])
+
+        # look for BL attributes as attributes of the BL.dataset
+        if hasattr(self.dataset, key):
+            return self.dataset[key]
+
+        # give up if the above don't work
         raise AttributeError(key)
 
     def get_metadata(self, *args, **kwargs) -> dict:
@@ -262,6 +269,7 @@ class BIDSLayout:
         return self.dataset
 
     def add_derivatives(self, path):
+        # TODO: properly add to graph
         if not hasattr(self, 'derivatives'):
             self.derivatives = dict()
         if not isinstance(path, list):
