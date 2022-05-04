@@ -33,10 +33,10 @@ def load_dataset(base_dir: str):
     str
         an object instance of type :py:class:`ancpbids.model.Dataset` which represents the dataset as an in-memory graph
     """
-    schema = load_schema(base_dir)
-    ds = schema.Dataset()
     if not os.path.isdir(base_dir):
         raise ValueError("Invalid Directory")
+    schema = load_schema(base_dir)
+    ds = schema.Dataset()
     ds.name = os.path.basename(base_dir)
     ds.base_dir_ = base_dir
     dataset_plugins = get_plugins(DatasetPlugin)
