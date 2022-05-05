@@ -1,4 +1,5 @@
 import re
+import sys
 from fnmatch import fnmatch
 
 from ancpbids.plugin import SchemaPlugin
@@ -106,8 +107,8 @@ class Select:
         self._where = bool_expr
         return self
 
-    def _exec(self, callback):
-        for m in self.context.to_generator(filter_=lambda o: self._subtree.eval(o)):
+    def _exec(self, callback, depth=sys.maxsize):
+        for m in self.context.to_generator(filter_=lambda o: self._subtree.eval(o), depth=depth):
             if isinstance(m, self.filter_type) and self._where.eval(m):
                 yield callback(m)
 
@@ -121,8 +122,8 @@ class Select:
         # TODO filter by Artifact instances
         return self.objects()
 
-    def objects(self, as_list=False):
-        result = self._exec(lambda m: m)
+    def objects(self, as_list=False, depth=sys.maxsize):
+        result = self._exec(callback=lambda m: m, depth=depth)
         if as_list:
             result = list(result)
         return result

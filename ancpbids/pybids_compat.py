@@ -43,50 +43,50 @@ class BIDSLayout:
         if key.startswith("get_"):
             return partial(self.get, "id", key[4:])
 
-        # look for BL attributes as attributes of the BL.dataset
-        if hasattr(self.dataset, key):
-            return self.dataset[key]
-
         # give up if the above don't work
         raise AttributeError(key)
 
-    def get_metadata(self, *args, **kwargs) -> dict:
-        """Returns a dictionary of metadata matching the provided criteria (see :meth:`ancpbids.BIDSLayout.get`).
+    def get_metadata(self, path, include_entities=False, scope='all'):
+        """Return metadata found in JSON sidecars for the specified file.
 
-        Also takes the BIDS inheritance principle into account, i.e. any metadata defined at dataset level
-        may be overridden by a more specific metadata entry at a lower level such as the subject level.
+        Parameters
+        ----------
+        path : str
+            Path to the file to get metadata for.
+        include_entities : bool, optional
+            If True, all available entities extracted
+            from the filename (rather than JSON sidecars) are included in
+            the returned metadata dictionary.
+        scope : str or list, optional
+            The scope of the search space. Each element must
+            be one of 'all', 'raw', 'self', 'derivatives', or a
+            BIDS-Derivatives pipeline name. Defaults to searching all
+            available datasets.
 
-        As of the BIDS specification, metadata is kept in JSON files,
-        i.e. only JSON files will be assumed to contain metadata.
+        Returns
+        -------
+        dict
+            A dictionary of key/value pairs extracted from all of the
+            target file's associated JSON sidecars.
+
+        Notes
+        -----
+        A dictionary containing metadata extracted from all matching .json
+        files is returned. In cases where the same key is found in multiple
+        files, the values in files closer to the input filename will take
+        precedence, per the inheritance rules in the BIDS specification.
+
         """
-        qry_result = filter(lambda a: isinstance(a, self.schema.MetadataFile), self.get(*args, **kwargs))
-        # build lists of ancestors + the leaf (metadata file)
-        ancestors = list(map(lambda e: (list(reversed(list(e.iterancestors()))), e), qry_result))
-        # sort by number of ancestors
-        # TODO must sort by the items within the list not just by length of list
-        # example: [xyz,abc] would be treated the same when it should be [abc, xyz]
-        ancestors.sort(key=lambda e: len(e[0]))
-
-        metadata = {}
-        if ancestors:
-            # start with first metadata file
-            deepupdate(metadata, ancestors[0][1].contents)
-            if len(ancestors) > 1:
-                for i in range(1, len(ancestors)):
-                    # FIXME ancestors handling is unstable, disable it for now
-                    if False:
-                        a0 = ancestors[i - 1][0]
-                        a1 = ancestors[i][0]
-                        # remove the ancestors from a0 and make sure it is empty, i.e. both nodes have same ancestors
-                        remaining_ancestors = set(a0).difference(*a1)
-                        if remaining_ancestors:
-                            # if remaining ancestors list is not empty,
-                            # this is interpreted as having the leaves from different branches
-                            # for example, metadata from func/sub-01/...json must not be mixed with func/sub-02/...json
-                            LOGGER.warn("Query returned metadata files from incompatible sources.")
-                    deepupdate(metadata, ancestors[i][1].contents)
-
-        return metadata
+        path = os.path.normpath(path)
+        # make relative to dataset root, i.e., remove base path
+        if path.startswith(self.dataset.base_dir_):
+            path = path[len(self.dataset.base_dir_):].strip(os.sep)
+        file = self.dataset.get_file(path)
+        md = file.get_metadata()
+        if md and include_entities:
+            schema_entities = {e.entity_: e.literal_ for e in list(self.schema.EntityEnum)}
+            md.update({schema_entities[e.key]: e.value for e in file.entities})
+        return md
 
     def _require_artifact(self, expr) -> AllExpr:
         """Wraps the provided expression in an expression that makes sure the context of evaluation is an Artifact.
@@ -244,21 +244,31 @@ class BIDSLayout:
             result = {k: sorted(v) for k, v in sorted(result.items())}
         return result
 
-    def get_dataset_description(self) -> list:
-        """
+    def get_dataset_description(self, scope='self', all_=False) -> Union[List[Dict], Dict]:
+        """Return contents of dataset_description.json.
+
+        Parameters
+        ----------
+        scope : str
+            The scope of the search space. Only descriptions of
+            BIDSLayouts that match the specified scope will be returned.
+            See :obj:`bids.layout.BIDSLayout.get` docstring for valid values.
+            Defaults to 'self' --i.e., returns the dataset_description.json
+            file for only the directly-called BIDSLayout.
+        all_ : bool
+            If True, returns a list containing descriptions for
+            all matching layouts. If False (default), returns for only the
+            first matching layout.
+
         Returns
         -------
-            the dataset's dataset_description.json as list of dictionaries or None if not
-            provided. if one or more derivatives datasets are available, this list will
-            contain one element per dataset, with the raw dataset always coming first.
+        dict or list of dict
+            a dictionary or list of dictionaries (depending on all_).
         """
-        dsets = [self]
-        if hasattr(self, 'derivatives'):
-            for k, v in self.derivatives.items():
-                dsets += [v]
-        # import pdb;pdb.set_trace()
-        descs = [d.get_dataset().dataset_description for d in dsets]
-        return descs
+        all_descriptions = self.dataset.select(self.schema.DatasetDescriptionFile).objects(as_list=True)
+        if all_:
+            return all_descriptions
+        return all_descriptions[0] if all_descriptions else None
 
     def get_dataset(self) -> object:
         """
@@ -310,3 +320,65 @@ class BIDSLayout:
             a report object containing any detected validation errors or warning
         """
         return ancpbids.validate_dataset(self.dataset)
+
+    @property
+    def files(self):
+        return self.get_files()
+
+    def get_files(self, scope='all'):
+        """Get BIDSFiles for all layouts in the specified scope.
+
+        Parameters
+        ----------
+        scope : str
+            The scope of the search space. Indicates which
+            BIDSLayouts' entities to extract.
+            See :obj:`bids.layout.BIDSLayout.get` docstring for valid values.
+
+
+        Returns:
+            A dict, where keys are file paths and values
+            are :obj:`bids.layout.BIDSFile` instances.
+
+        """
+        all_files = self.get(return_type="object", scope=scope)
+        files = {file.get_absolute_path(): file for file in all_files}
+        return files
+
+    def get_file(self, filename, scope='all'):
+        """Return the BIDSFile object with the specified path.
+
+        Parameters
+        ----------
+        filename : str
+            The path of the file to retrieve. Must be either an absolute path,
+            or relative to the root of this BIDSLayout.
+        scope : str or list, optional
+            Scope of the search space. If passed, only BIDSLayouts that match
+            the specified scope will be searched. See :obj:`BIDSLayout.get`
+            docstring for valid values. Default is 'all'.
+
+        Returns
+        -------
+        :obj:`bids.layout.BIDSFile` or None
+            File found, or None if no match was found.
+        """
+        return self.dataset.get_file(filename)
+
+    @property
+    def description(self):
+        return self.get_dataset_description()
+
+    @property
+    def root(self):
+        return self.dataset.base_dir_
+
+    def __repr__(self):
+        """Provide a tidy summary of key properties."""
+        ents = self.get_entities()
+        n_subjects = len(set(ents['sub']))
+        n_sessions = len(set(ents['ses']))
+        n_runs = len(set(ents['run']))
+        s = ("BIDS Layout: ...{} | Subjects: {} | Sessions: {} | "
+             "Runs: {}".format(self.dataset.base_dir_, n_subjects, n_sessions, n_runs))
+        return s
