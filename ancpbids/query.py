@@ -244,7 +244,7 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
             _require_artifact(schema, _to_any_expr(v, lambda val: EntityExpr(schema, entity_key, val))))
 
     if extension:
-        if extension is not "*" and not extension.startswith("."):
+        if extension != "*" and not extension.startswith("."):
             extension = "." + extension
         ops.append(_require_artifact(schema,
                                      _to_any_expr(extension, lambda ext: FnMatchExpr(schema.Artifact.extension, ext))))
