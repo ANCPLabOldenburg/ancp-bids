@@ -6,7 +6,7 @@ from typing import List, Union, Dict
 import ancpbids
 from ancpbids import CustomOpExpr, EntityExpr, AllExpr, ValidationPlugin
 from . import load_dataset, LOGGER
-from .plugins.plugin_query import FnMatchExpr, AnyExpr
+from .query import query, query_entities, FnMatchExpr, AnyExpr
 from .utils import deepupdate
 
 
@@ -27,16 +27,6 @@ class BIDSLayout:
     def __init__(self, ds_dir: str, **kwargs):
         self.dataset = load_dataset(ds_dir)
         self.schema = self.dataset.get_schema()
-
-    def _to_any_expr(self, value, ctor):
-        # if the value is a list, then wrap it in an AnyExpr
-        if isinstance(value, list):
-            ops = []
-            for v in value:
-                ops.append(ctor(v))
-            return AnyExpr(*ops)
-        # else just return using the constructor function
-        return ctor(value)
 
     def __getattr__(self, key):
         # replace arbitrary get functions with calls to get
@@ -88,20 +78,6 @@ class BIDSLayout:
             md.update({schema_entities[e.key]: e.value for e in file.entities})
         return md
 
-    def _require_artifact(self, expr) -> AllExpr:
-        """Wraps the provided expression in an expression that makes sure the context of evaluation is an Artifact.
-
-        Parameters
-        ----------
-        expr :
-            the expression to wrap
-
-        Returns
-        -------
-            a wrapping expression to make sure that the provided object is an instance of Artifact
-        """
-        return AllExpr(CustomOpExpr(lambda m: isinstance(m, self.schema.Artifact)), expr)
-
     def get(self, return_type: str = 'object', target: str = None, scope: str = None,
             extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None,
             **entities) -> Union[List[str], List[object]]:
@@ -147,68 +123,12 @@ class BIDSLayout:
             depending on the return_type value either paths to files that matched the filtering criteria
             or Artifact objects for further processing by the caller
         """
-        if scope is None:
-            scope = 'all'
-        if return_type == 'id':
-            if not target:
-                raise ValueError("return_type=id requires the target parameter to be set")
+        folder = self.dataset
+        return query(folder, return_type, target, scope, extension, suffix, **entities)
 
-        context = self.dataset
-        ops = []
-        target_type = self.schema.File
-        if scope.startswith("derivatives"):
-            context = self.dataset.derivatives
-            # we already consumed the first path segment
-            segments = os.path.normpath(scope).split(os.sep)[1:]
-            for segment in segments:
-                context = context.get_folder(segment)
-            # derivatives may contain non-artifacts which should also be considered
-            target_type = self.schema.File
-
-        select = context.select(target_type)
-
-        if scope == 'raw':
-            # the raw scope does not consider derivatives folder but everything else
-            select.subtree(CustomOpExpr(lambda m: not isinstance(m, self.schema.DerivativeFolder)))
-
-        result_extractor = None
-        if target:
-            if target in 'suffixes':
-                suffix = '*'
-                result_extractor = lambda artifacts: [a.suffix for a in artifacts]
-            elif target in 'extensions':
-                extension = '*'
-                result_extractor = lambda artifacts: [a.extension for a in artifacts]
-            else:
-                target = self.schema.fuzzy_match_entity_key(target)
-                entities = {**entities, target: '*'}
-                result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
-                                                      filter(lambda e: e.key == target, a.entities)]
-
-        for k, v in entities.items():
-            entity_key = self.schema.fuzzy_match_entity(k)
-            v = self.schema.process_entity_value(k, v)
-            ops.append(
-                self._require_artifact(self._to_any_expr(v, lambda val: EntityExpr(self.schema, entity_key, val))))
-
-        if extension:
-            ops.append(self._require_artifact(
-                self._to_any_expr(extension, lambda ext: FnMatchExpr(self.schema.Artifact.extension, ext))))
-
-        if suffix:
-            ops.append(
-                self._require_artifact(
-                    self._to_any_expr(suffix, lambda suf: FnMatchExpr(self.schema.Artifact.suffix, suf))))
-
-        select.where(AllExpr(*ops))
-
-        if return_type and return_type.startswith("file"):
-            return list(select.get_file_paths_absolute())
-        else:
-            artifacts = select.objects()
-            if result_extractor:
-                return sorted(set(result_extractor(artifacts)))
-            return list(artifacts)
+    @property
+    def entities(self):
+        return self.get_entities()
 
     def get_entities(self, scope: str = None, sort: bool = False) -> dict:
         """Returns a unique set of entities found within the dataset as a dict.
@@ -234,15 +154,7 @@ class BIDSLayout:
         dict
             a unique set of entities found within the dataset as a dict
         """
-        artifacts = filter(lambda m: isinstance(m, self.schema.Artifact), self.get(scope=scope))
-        result = OrderedDict()
-        for e in [e for a in artifacts for e in a.entities]:
-            if e.key not in result:
-                result[e.key] = set()
-            result[e.key].add(e.value)
-        if sort:
-            result = {k: sorted(v) for k, v in sorted(result.items())}
-        return result
+        return query_entities(self.dataset, scope, sort)
 
     def get_dataset_description(self, scope='self', all_=False) -> Union[List[Dict], Dict]:
         """Return contents of dataset_description.json.
@@ -376,9 +288,9 @@ class BIDSLayout:
     def __repr__(self):
         """Provide a tidy summary of key properties."""
         ents = self.get_entities()
-        n_subjects = len(set(ents['sub']))
-        n_sessions = len(set(ents['ses']))
-        n_runs = len(set(ents['run']))
+        n_subjects = len(set(ents['sub'])) if 'sub' in ents else 0
+        n_sessions = len(set(ents['ses'])) if 'ses' in ents else 0
+        n_runs = len(set(ents['run'])) if 'run' in ents else 0
         s = ("BIDS Layout: ...{} | Subjects: {} | Sessions: {} | "
              "Runs: {}".format(self.dataset.base_dir_, n_subjects, n_sessions, n_runs))
         return s

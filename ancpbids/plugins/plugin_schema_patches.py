@@ -6,6 +6,8 @@ import sys
 from difflib import SequenceMatcher
 
 from ancpbids.plugin import SchemaPlugin
+from ancpbids.query import Select, query, query_entities
+from ancpbids.utils import resolve_segments
 
 
 def has_entity(artifact, entity_):
@@ -133,20 +135,8 @@ def create_dataset(schema, **kwargs):
     return ds
 
 
-def _resolve_segments(root, path_, last_seg_file=False):
-    normalized_path = os.path.normpath(path_)
-    path_segments = normalized_path.split(os.sep)
-    if last_seg_file:
-        path_ = path_segments[-1]
-        path_segments = path_segments[:-1]
-    context = root
-    for seg in path_segments:
-        context = context.get_folder(seg)
-    return context, path_
-
-
 def get_file(folder, file_name):
-    folder, file_name = _resolve_segments(folder, file_name, True)
+    folder, file_name = resolve_segments(folder, file_name, True)
     schema = folder.get_schema()
     direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File))
     file = next(filter(lambda f: f.name == file_name, direct_files), None)
@@ -302,8 +292,15 @@ def get_parent(file_or_folder):
     return None
 
 
+def select(context, target_type):
+    return Select(context, target_type)
+
+
 class PatchingSchemaPlugin(SchemaPlugin):
     def execute(self, schema):
+        schema.Folder.select = select
+        schema.Folder.query = query
+        schema.Artifact.query_entities = query_entities
         schema.File.get_parent = get_parent
         schema.Folder.get_parent = get_parent
         schema.Artifact.has_entity = has_entity

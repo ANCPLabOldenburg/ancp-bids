@@ -192,3 +192,15 @@ def fetch_dataset(dataset_id: str, output_dir='~/.ancp-bids/datasets'):
     z = zipfile.ZipFile(download_path)
     z.extractall(output_dir)
     return output_path
+
+
+def resolve_segments(root_folder, path_, last_seg_file=False):
+    normalized_path = os.path.normpath(path_)
+    path_segments = normalized_path.split(os.sep)
+    if last_seg_file:
+        path_ = path_segments[-1]
+        path_segments = path_segments[:-1]
+    context = root_folder
+    for seg in path_segments:
+        context = context.get_folder(seg)
+    return context, path_
