@@ -7,7 +7,7 @@ from difflib import SequenceMatcher
 
 from ancpbids.plugin import SchemaPlugin
 from ancpbids.query import Select, query, query_entities
-from ancpbids.utils import resolve_segments
+from ancpbids.utils import resolve_segments, convert_to_relative
 
 
 def has_entity(artifact, entity_):
@@ -104,7 +104,7 @@ def create_folder(folder, type_=None, **kwargs):
     return sub_folder
 
 
-def create_derivative(ds, **kwargs):
+def create_derivative(ds, path=None, **kwargs):
     schema = ds.get_schema()
     derivatives_folder = ds.derivatives
     if not ds.derivatives:
@@ -112,9 +112,11 @@ def create_derivative(ds, **kwargs):
         derivatives_folder.parent_object_ = ds
         derivatives_folder.name = "derivatives"
         ds.derivatives = derivatives_folder
+    path = convert_to_relative(ds, path)
+    target_folder, _ = resolve_segments(derivatives_folder, path, create_if_missing=True)
     derivative = schema.DerivativeFolder(**kwargs)
-    derivative.parent_object_ = derivatives_folder
-    derivatives_folder.folders.append(derivative)
+    derivative.parent_object_ = target_folder
+    target_folder.folders.append(derivative)
 
     derivative.dataset_description = schema.DerivativeDatasetDescriptionFile()
     derivative.dataset_description.parent_object_ = derivative
@@ -137,6 +139,8 @@ def create_dataset(schema, **kwargs):
 
 def get_file(folder, file_name):
     folder, file_name = resolve_segments(folder, file_name, True)
+    if not folder:
+        return None
     schema = folder.get_schema()
     direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File))
     file = next(filter(lambda f: f.name == file_name, direct_files), None)

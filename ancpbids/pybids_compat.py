@@ -7,7 +7,7 @@ import ancpbids
 from ancpbids import CustomOpExpr, EntityExpr, AllExpr, ValidationPlugin
 from . import load_dataset, LOGGER
 from .query import query, query_entities, FnMatchExpr, AnyExpr
-from .utils import deepupdate
+from .utils import deepupdate, resolve_segments, convert_to_relative
 
 
 class BIDSLayout:
@@ -191,15 +191,8 @@ class BIDSLayout:
         return self.dataset
 
     def add_derivatives(self, path):
-        # TODO: properly add to graph
-        if not hasattr(self, 'derivatives'):
-            self.derivatives = dict()
-        if not isinstance(path, list):
-            path = [path]
-        for p in path:
-            tmp_layout = BIDSLayout(p)
-            self.derivatives[tmp_layout.dataset.name] = tmp_layout
-            del tmp_layout
+        path = convert_to_relative(self.dataset, path)
+        self.dataset.create_derivative(path=path)
 
     def write_derivative(self, derivative):
         """Writes the provided derivative folder to the dataset.
@@ -275,7 +268,11 @@ class BIDSLayout:
         :obj:`bids.layout.BIDSFile` or None
             File found, or None if no match was found.
         """
-        return self.dataset.get_file(filename)
+        context = self.dataset
+        filename = convert_to_relative(self.dataset, filename)
+        if scope not in ['all', 'raw', 'self']:
+            context, _ = resolve_segments(context, scope)
+        return context.get_file(filename)
 
     @property
     def description(self):

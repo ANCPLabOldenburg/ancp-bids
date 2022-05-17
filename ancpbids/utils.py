@@ -194,13 +194,29 @@ def fetch_dataset(dataset_id: str, output_dir='~/.ancp-bids/datasets'):
     return output_path
 
 
-def resolve_segments(root_folder, path_, last_seg_file=False):
+def resolve_segments(root_folder, path_, last_seg_file=False, create_if_missing=False):
     normalized_path = os.path.normpath(path_)
     path_segments = normalized_path.split(os.sep)
+    path_segments = list(filter(lambda s: s != '', path_segments))
     if last_seg_file:
         path_ = path_segments[-1]
         path_segments = path_segments[:-1]
     context = root_folder
     for seg in path_segments:
         context = context.get_folder(seg)
+        if not context:
+            if create_if_missing:
+                context.create_folder(seg)
+            else:
+                break
     return context, path_
+
+
+def convert_to_relative(dataset, path):
+    if path and path.startswith(dataset.base_dir_):
+        path = os.path.normpath(path)
+        path = path[len(dataset.base_dir_):]
+        path_segments = path.split(os.sep)
+        path_segments = list(filter(lambda s: s != '', path_segments))
+        path = os.path.join(*path_segments)
+    return path

@@ -17,7 +17,7 @@ class StaticStructureValidationPlugin(ValidationPlugin):
                 val = getattr(obj, name)
                 use = member['use']
                 if (lb > 0 or use == 'required') and not val:
-                    report.error(f"Missing required field {name} at {top_path}.",
+                    report.error(f"Missing required node {name} at {top_path}.",
                                  obj)
                 if use == 'recommended' and not val:
                     report.warn(f"Missing recommended field {name} at {top_path}.",

@@ -95,10 +95,10 @@ class ValidationPlugin(Plugin):
             bool
                 whether this report contains errors
             """
-            for m in self.messages:
-                if m['severity'] == 'error':
-                    return True
-            return False
+            return len(self.get_errors()) > 0
+
+        def get_errors(self):
+            return list(filter(lambda m: m['severity'] == 'error', self.messages))
 
     def execute(self, dataset, report: ValidationReport):
         raise NotImplementedError()
