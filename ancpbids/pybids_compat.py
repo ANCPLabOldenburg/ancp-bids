@@ -6,8 +6,8 @@ from typing import List, Union, Dict
 import ancpbids
 from ancpbids import CustomOpExpr, EntityExpr, AllExpr, ValidationPlugin
 from . import load_dataset, LOGGER
-from .plugins.plugin_query import FnMatchExpr, AnyExpr
-from .utils import deepupdate
+from .query import query, query_entities, FnMatchExpr, AnyExpr
+from .utils import deepupdate, resolve_segments, convert_to_relative
 
 
 class BIDSLayout:
@@ -28,71 +28,55 @@ class BIDSLayout:
         self.dataset = load_dataset(ds_dir)
         self.schema = self.dataset.get_schema()
 
-    def _to_any_expr(self, value, ctor):
-        # if the value is a list, then wrap it in an AnyExpr
-        if isinstance(value, list):
-            ops = []
-            for v in value:
-                ops.append(ctor(v))
-            return AnyExpr(*ops)
-        # else just return using the constructor function
-        return ctor(value)
+    def __getattr__(self, key):
+        # replace arbitrary get functions with calls to get
+        if key.startswith("get_"):
+            return partial(self.get, "id", key[4:])
 
-    def __getattr__(self, key, **kwargs):
-        k = key if not key.startswith("get_") else key[4:]
-        return partial(self.get, return_type='id', target=k, **kwargs)
+        # give up if the above don't work
+        raise AttributeError(key)
 
-    def get_metadata(self, *args, **kwargs) -> dict:
-        """Returns a dictionary of metadata matching the provided criteria (see :meth:`ancpbids.BIDSLayout.get`).
-
-        Also takes the BIDS inheritance principle into account, i.e. any metadata defined at dataset level
-        may be overridden by a more specific metadata entry at a lower level such as the subject level.
-
-        As of the BIDS specification, metadata is kept in JSON files,
-        i.e. only JSON files will be assumed to contain metadata.
-        """
-        qry_result = filter(lambda a: isinstance(a, self.schema.MetadataFile), self.get(*args, **kwargs))
-        # build lists of ancestors + the leaf (metadata file)
-        ancestors = list(map(lambda e: (list(reversed(list(e.iterancestors()))), e), qry_result))
-        # sort by number of ancestors
-        # TODO must sort by the items within the list not just by length of list
-        # example: [xyz,abc] would be treated the same when it should be [abc, xyz]
-        ancestors.sort(key=lambda e: len(e[0]))
-
-        metadata = {}
-        if ancestors:
-            # start with first metadata file
-            deepupdate(metadata, ancestors[0][1].contents)
-            if len(ancestors) > 1:
-                for i in range(1, len(ancestors)):
-                    # FIXME ancestors handling is unstable, disable it for now
-                    if False:
-                        a0 = ancestors[i - 1][0]
-                        a1 = ancestors[i][0]
-                        # remove the ancestors from a0 and make sure it is empty, i.e. both nodes have same ancestors
-                        remaining_ancestors = set(a0).difference(*a1)
-                        if remaining_ancestors:
-                            # if remaining ancestors list is not empty,
-                            # this is interpreted as having the leaves from different branches
-                            # for example, metadata from func/sub-01/...json must not be mixed with func/sub-02/...json
-                            LOGGER.warn("Query returned metadata files from incompatible sources.")
-                    deepupdate(metadata, ancestors[i][1].contents)
-
-        return metadata
-
-    def _require_artifact(self, expr) -> AllExpr:
-        """Wraps the provided expression in an expression that makes sure the context of evaluation is an Artifact.
+    def get_metadata(self, path, include_entities=False, scope='all'):
+        """Return metadata found in JSON sidecars for the specified file.
 
         Parameters
         ----------
-        expr :
-            the expression to wrap
+        path : str
+            Path to the file to get metadata for.
+        include_entities : bool, optional
+            If True, all available entities extracted
+            from the filename (rather than JSON sidecars) are included in
+            the returned metadata dictionary.
+        scope : str or list, optional
+            The scope of the search space. Each element must
+            be one of 'all', 'raw', 'self', 'derivatives', or a
+            BIDS-Derivatives pipeline name. Defaults to searching all
+            available datasets.
 
         Returns
         -------
-            a wrapping expression to make sure that the provided object is an instance of Artifact
+        dict
+            A dictionary of key/value pairs extracted from all of the
+            target file's associated JSON sidecars.
+
+        Notes
+        -----
+        A dictionary containing metadata extracted from all matching .json
+        files is returned. In cases where the same key is found in multiple
+        files, the values in files closer to the input filename will take
+        precedence, per the inheritance rules in the BIDS specification.
+
         """
-        return AllExpr(CustomOpExpr(lambda m: isinstance(m, self.schema.Artifact)), expr)
+        path = os.path.normpath(path)
+        # make relative to dataset root, i.e., remove base path
+        if path.startswith(self.dataset.base_dir_):
+            path = path[len(self.dataset.base_dir_):].strip(os.sep)
+        file = self.dataset.get_file(path)
+        md = file.get_metadata()
+        if md and include_entities:
+            schema_entities = {e.entity_: e.literal_ for e in list(self.schema.EntityEnum)}
+            md.update({schema_entities[e.key]: e.value for e in file.entities})
+        return md
 
     def get(self, return_type: str = 'object', target: str = None, scope: str = None,
             extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None,
@@ -139,68 +123,12 @@ class BIDSLayout:
             depending on the return_type value either paths to files that matched the filtering criteria
             or Artifact objects for further processing by the caller
         """
-        if scope is None:
-            scope = 'all'
-        if return_type == 'id':
-            if not target:
-                raise ValueError("return_type=id requires the target parameter to be set")
+        folder = self.dataset
+        return query(folder, return_type, target, scope, extension, suffix, **entities)
 
-        context = self.dataset
-        ops = []
-        target_type = self.schema.File
-        if scope.startswith("derivatives"):
-            context = self.dataset.derivatives
-            # we already consumed the first path segment
-            segments = os.path.normpath(scope).split(os.sep)[1:]
-            for segment in segments:
-                context = context.get_folder(segment)
-            # derivatives may contain non-artifacts which should also be considered
-            target_type = self.schema.File
-
-        select = context.select(target_type)
-
-        if scope == 'raw':
-            # the raw scope does not consider derivatives folder but everything else
-            select.subtree(CustomOpExpr(lambda m: not isinstance(m, self.schema.DerivativeFolder)))
-
-        result_extractor = None
-        if target:
-            if target in 'suffixes':
-                suffix = '*'
-                result_extractor = lambda artifacts: [a.suffix for a in artifacts]
-            elif target in 'extensions':
-                extension = '*'
-                result_extractor = lambda artifacts: [a.extension for a in artifacts]
-            else:
-                target = self.schema.fuzzy_match_entity_key(target)
-                entities = {**entities, target: '*'}
-                result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
-                                                      filter(lambda e: e.key == target, a.entities)]
-
-        for k, v in entities.items():
-            entity_key = self.schema.fuzzy_match_entity(k)
-            v = self.schema.process_entity_value(k, v)
-            ops.append(
-                self._require_artifact(self._to_any_expr(v, lambda val: EntityExpr(self.schema, entity_key, val))))
-
-        if extension:
-            ops.append(self._require_artifact(
-                self._to_any_expr(extension, lambda ext: FnMatchExpr(self.schema.Artifact.extension, ext))))
-
-        if suffix:
-            ops.append(
-                self._require_artifact(
-                    self._to_any_expr(suffix, lambda suf: FnMatchExpr(self.schema.Artifact.suffix, suf))))
-
-        select.where(AllExpr(*ops))
-
-        if return_type and return_type.startswith("file"):
-            return list(select.get_file_paths_absolute())
-        else:
-            artifacts = select.objects()
-            if result_extractor:
-                return sorted(set(result_extractor(artifacts)))
-            return list(artifacts)
+    @property
+    def entities(self):
+        return self.get_entities()
 
     def get_entities(self, scope: str = None, sort: bool = False) -> dict:
         """Returns a unique set of entities found within the dataset as a dict.
@@ -226,23 +154,33 @@ class BIDSLayout:
         dict
             a unique set of entities found within the dataset as a dict
         """
-        artifacts = filter(lambda m: isinstance(m, self.schema.Artifact), self.get(scope=scope))
-        result = OrderedDict()
-        for e in [e for a in artifacts for e in a.entities]:
-            if e.key not in result:
-                result[e.key] = set()
-            result[e.key].add(e.value)
-        if sort:
-            result = {k: sorted(v) for k, v in sorted(result.items())}
-        return result
+        return query_entities(self.dataset, scope, sort)
 
-    def get_dataset_description(self) -> dict:
-        """
+    def get_dataset_description(self, scope='self', all_=False) -> Union[List[Dict], Dict]:
+        """Return contents of dataset_description.json.
+
+        Parameters
+        ----------
+        scope : str
+            The scope of the search space. Only descriptions of
+            BIDSLayouts that match the specified scope will be returned.
+            See :obj:`bids.layout.BIDSLayout.get` docstring for valid values.
+            Defaults to 'self' --i.e., returns the dataset_description.json
+            file for only the directly-called BIDSLayout.
+        all_ : bool
+            If True, returns a list containing descriptions for
+            all matching layouts. If False (default), returns for only the
+            first matching layout.
+
         Returns
         -------
-            the dataset's dataset_description.json as a dictionary or None if not provided
+        dict or list of dict
+            a dictionary or list of dictionaries (depending on all_).
         """
-        return self.dataset.dataset_description
+        all_descriptions = self.dataset.select(self.schema.DatasetDescriptionFile).objects(as_list=True)
+        if all_:
+            return all_descriptions
+        return all_descriptions[0] if all_descriptions else None
 
     def get_dataset(self) -> object:
         """
@@ -251,6 +189,10 @@ class BIDSLayout:
             the in-memory representation of this layout/dataset
         """
         return self.dataset
+
+    def add_derivatives(self, path):
+        path = convert_to_relative(self.dataset, path)
+        self.dataset.create_derivative(path=path)
 
     def write_derivative(self, derivative):
         """Writes the provided derivative folder to the dataset.
@@ -283,3 +225,69 @@ class BIDSLayout:
             a report object containing any detected validation errors or warning
         """
         return ancpbids.validate_dataset(self.dataset)
+
+    @property
+    def files(self):
+        return self.get_files()
+
+    def get_files(self, scope='all'):
+        """Get BIDSFiles for all layouts in the specified scope.
+
+        Parameters
+        ----------
+        scope : str
+            The scope of the search space. Indicates which
+            BIDSLayouts' entities to extract.
+            See :obj:`bids.layout.BIDSLayout.get` docstring for valid values.
+
+
+        Returns:
+            A dict, where keys are file paths and values
+            are :obj:`bids.layout.BIDSFile` instances.
+
+        """
+        all_files = self.get(return_type="object", scope=scope)
+        files = {file.get_absolute_path(): file for file in all_files}
+        return files
+
+    def get_file(self, filename, scope='all'):
+        """Return the BIDSFile object with the specified path.
+
+        Parameters
+        ----------
+        filename : str
+            The path of the file to retrieve. Must be either an absolute path,
+            or relative to the root of this BIDSLayout.
+        scope : str or list, optional
+            Scope of the search space. If passed, only BIDSLayouts that match
+            the specified scope will be searched. See :obj:`BIDSLayout.get`
+            docstring for valid values. Default is 'all'.
+
+        Returns
+        -------
+        :obj:`bids.layout.BIDSFile` or None
+            File found, or None if no match was found.
+        """
+        context = self.dataset
+        filename = convert_to_relative(self.dataset, filename)
+        if scope not in ['all', 'raw', 'self']:
+            context, _ = resolve_segments(context, scope)
+        return context.get_file(filename)
+
+    @property
+    def description(self):
+        return self.get_dataset_description()
+
+    @property
+    def root(self):
+        return self.dataset.base_dir_
+
+    def __repr__(self):
+        """Provide a tidy summary of key properties."""
+        ents = self.get_entities()
+        n_subjects = len(set(ents['sub'])) if 'sub' in ents else 0
+        n_sessions = len(set(ents['ses'])) if 'ses' in ents else 0
+        n_runs = len(set(ents['run'])) if 'run' in ents else 0
+        s = ("BIDS Layout: ...{} | Subjects: {} | Sessions: {} | "
+             "Runs: {}".format(self.dataset.base_dir_, n_subjects, n_sessions, n_runs))
+        return s

@@ -6,7 +6,7 @@ from . import plugins
 from . import utils
 from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin, \
     FileHandlerPlugin
-from .plugins.plugin_query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
+from .query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
     EntityExpr
 
 LOGGER = logging.getLogger("ancpbids")
@@ -33,6 +33,8 @@ def load_dataset(base_dir: str):
     str
         an object instance of type :py:class:`ancpbids.model.Dataset` which represents the dataset as an in-memory graph
     """
+    if not os.path.isdir(base_dir):
+        raise ValueError("Invalid Directory")
     schema = load_schema(base_dir)
     ds = schema.Dataset()
     ds.name = os.path.basename(base_dir)

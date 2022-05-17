@@ -17,9 +17,11 @@ class StaticStructureValidationPlugin(ValidationPlugin):
                 val = getattr(obj, name)
                 use = member['use']
                 if (lb > 0 or use == 'required') and not val:
-                    report.error(f"Missing required field {name} at {top_path}.")
+                    report.error(f"Missing required node {name} at {top_path}.",
+                                 obj)
                 if use == 'recommended' and not val:
-                    report.warn(f"Missing recommended field {name} at {top_path}.")
+                    report.warn(f"Missing recommended field {name} at {top_path}.",
+                                obj)
 
 
 class DatatypesValidationPlugin(ValidationPlugin):
@@ -32,7 +34,8 @@ class DatatypesValidationPlugin(ValidationPlugin):
                 invalid.extend([f for f in session.datatypes if f.name not in valid_datatypes])
 
         for folder in invalid:
-            report.error("Unsupported datatype folder '%s'" % folder.get_relative_path())
+            report.error("Unsupported datatype folder '%s'" % folder.get_relative_path(),
+                         folder)
 
 
 class EntitiesValidationPlugin(ValidationPlugin):
@@ -48,7 +51,7 @@ class EntitiesValidationPlugin(ValidationPlugin):
             for ref in entity_refs:
                 if ref.key not in entities:
                     report.error(
-                        "Invalid entity '%s' in artifact '%s'" % (ref.key, artifact.get_relative_path()))
+                        "Invalid entity '%s' in artifact '%s'" % (ref.key, artifact.get_relative_path()), artifact)
                     found_invalid_key = True
             if found_invalid_key:
                 # we cannot check the order of entities if invalid entity found
@@ -61,7 +64,7 @@ class EntitiesValidationPlugin(ValidationPlugin):
                     expected = tuple(map(lambda k: expected_order_key[k], sorted(actual_keys_order)))
                     report.error(
                         "Invalid entities order: expected=%s, found=%s, artifact=%s" % (
-                            expected, tuple(keys), artifact.get_relative_path()))
+                            expected, tuple(keys), artifact.get_relative_path()), artifact)
                     break
 
 

@@ -10,13 +10,6 @@ class RegressionsTestCase(BaseTestCase):
         # but ordinary files (if type model.File)
         self.assertEqual(16, len(all_derivative_files))
 
-    def test_get_metadata_no_params(self):
-        layout = ancpbids.BIDSLayout(DS005_DIR)
-        md = layout.get_metadata()
-        expected_md = {'RepetitionTime': 2.0, 'TaskName': 'mixed-gambles task',
-                       'SliceTiming': [0.0, 0.0571, 0.1143, 0.1714, 0.2286, 0.2857], 'run': 1}
-        self.assertEqual(md, expected_md)
-
     def test_report_errors(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
         report = layout.validate()

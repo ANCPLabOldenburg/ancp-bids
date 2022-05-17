@@ -1,9 +1,13 @@
 import fnmatch
 import inspect
+import math
 import os
+import sys
 from difflib import SequenceMatcher
 
 from ancpbids.plugin import SchemaPlugin
+from ancpbids.query import Select, query, query_entities
+from ancpbids.utils import resolve_segments, convert_to_relative
 
 
 def has_entity(artifact, entity_):
@@ -100,7 +104,7 @@ def create_folder(folder, type_=None, **kwargs):
     return sub_folder
 
 
-def create_derivative(ds, **kwargs):
+def create_derivative(ds, path=None, **kwargs):
     schema = ds.get_schema()
     derivatives_folder = ds.derivatives
     if not ds.derivatives:
@@ -108,9 +112,11 @@ def create_derivative(ds, **kwargs):
         derivatives_folder.parent_object_ = ds
         derivatives_folder.name = "derivatives"
         ds.derivatives = derivatives_folder
+    path = convert_to_relative(ds, path)
+    target_folder, _ = resolve_segments(derivatives_folder, path, create_if_missing=True)
     derivative = schema.DerivativeFolder(**kwargs)
-    derivative.parent_object_ = derivatives_folder
-    derivatives_folder.folders.append(derivative)
+    derivative.parent_object_ = target_folder
+    target_folder.folders.append(derivative)
 
     derivative.dataset_description = schema.DerivativeDatasetDescriptionFile()
     derivative.dataset_description.parent_object_ = derivative
@@ -121,6 +127,7 @@ def create_derivative(ds, **kwargs):
 
     return derivative
 
+
 def create_dataset(schema, **kwargs):
     ds = schema.Dataset()
     ds.update(**kwargs)
@@ -130,16 +137,20 @@ def create_dataset(schema, **kwargs):
     return ds
 
 
-def get_file(folder, file_name, from_meta=True):
-    file = next(filter(lambda file: file.name == file_name, folder.files), None)
-    if not file and from_meta:
-        # search in metadatafiles
-        file = next(filter(lambda file: file.name == file_name, folder.metadatafiles), None)
+def get_file(folder, file_name):
+    folder, file_name = resolve_segments(folder, file_name, True)
+    if not folder:
+        return None
+    schema = folder.get_schema()
+    direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File))
+    file = next(filter(lambda f: f.name == file_name, direct_files), None)
     return file
 
 
 def get_files(folder, name_pattern):
-    return list(filter(lambda file: fnmatch.fnmatch(file.name, name_pattern), folder.files))
+    schema = folder.get_schema()
+    direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File))
+    return list(filter(lambda file: fnmatch.fnmatch(file.name, name_pattern), direct_files))
 
 
 def remove_folder(folder, folder_name):
@@ -147,7 +158,9 @@ def remove_folder(folder, folder_name):
 
 
 def get_folder(folder, folder_name):
-    return next(filter(lambda f: f.name == folder_name, folder.folders), None)
+    schema = folder.get_schema()
+    direct_folders = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.Folder))
+    return next(filter(lambda f: f.name == folder_name, direct_folders), None)
 
 
 def get_files_sorted(folder):
@@ -158,20 +171,23 @@ def get_folders_sorted(folder):
     return sorted(folder.folders, key=lambda f: f.name)
 
 
-def to_generator(source, depth_first=False, filter_=None):
-    schema = source.get_schema()
+def to_generator(source, depth_first=False, filter_=None, depth=1000):
+    if depth < 0:
+        return
+
     if not depth_first:
         if filter_ and not filter_(source):
             return
         yield source
 
+    schema = source.get_schema()
     for key, value in source.items():
         if isinstance(value, schema.Model):
-            yield from to_generator(value, depth_first, filter_)
+            yield from to_generator(value, depth_first, filter_, depth - 1)
         elif isinstance(value, list):
             for item in value:
                 if isinstance(item, schema.Model):
-                    yield from to_generator(item, depth_first, filter_)
+                    yield from to_generator(item, depth_first, filter_, depth - 1)
 
     if depth_first:
         if filter_ and not filter_(source):
@@ -274,8 +290,23 @@ def fuzzy_match_entity(schema, user_key):
     return ratios[-1][0]
 
 
+def get_parent(file_or_folder):
+    if hasattr(file_or_folder, 'parent_object_'):
+        return file_or_folder.parent_object_
+    return None
+
+
+def select(context, target_type):
+    return Select(context, target_type)
+
+
 class PatchingSchemaPlugin(SchemaPlugin):
     def execute(self, schema):
+        schema.Folder.select = select
+        schema.Folder.query = query
+        schema.Artifact.query_entities = query_entities
+        schema.File.get_parent = get_parent
+        schema.Folder.get_parent = get_parent
         schema.Artifact.has_entity = has_entity
         schema.Artifact.get_entity = get_entity
         schema.Artifact.add_entity = add_entity

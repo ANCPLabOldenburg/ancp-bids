@@ -7,7 +7,8 @@ from ..base_test_case import *
 
 class BasicTestCase(BaseTestCase):
     def test_naming_scheme(self):
-        valid_names = ["sub-11_task-mixedgamblestask_run-02_events.tsv", "sub-11_dwi.nii.gz", "x-01_y-02_z-03_xyz.abc", "sub-01_task-mixedgamblestask_run-01_bold.nii.gz"]
+        valid_names = ["sub-11_task-mixedgamblestask_run-02_events.tsv", "sub-11_dwi.nii.gz", "x-01_y-02_z-03_xyz.abc",
+                       "sub-01_task-mixedgamblestask_run-01_bold.nii.gz"]
         for name in valid_names:
             self.assertTrue(parse_bids_name(name) is not None)
 
@@ -22,7 +23,6 @@ class BasicTestCase(BaseTestCase):
         self.assertEqual(['11', 'mixedgamblestask', '02'], list(bids_obj['entities'].values()))
         self.assertEqual('bold', bids_obj['suffix'])
         self.assertEqual('.nii.gz', bids_obj['extension'])
-
 
     def test_ds005_basic_structure(self):
         ds005 = load_dataset(DS005_DIR)
@@ -110,6 +110,24 @@ class BasicTestCase(BaseTestCase):
         self.assertEqual("run", entity.key)
         self.assertEqual("1", entity.value)
 
+    def test_to_generator(self):
+        ds005 = load_dataset(DS005_DIR)
+        schema = ds005.get_schema()
+
+        all_direct_files = list(
+            ds005.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File)))
+        self.assertEqual(8, len(all_direct_files))
+
+    def test_get_files_and_folders(self):
+        ds005 = load_dataset(DS005_DIR)
+
+        file = ds005.get_file("dataset_description.json")
+        self.assertIsNotNone(file)
+        self.assertEqual("dataset_description.json", file.name)
+
+        file = ds005.get_file("sub-01/func/sub-01_task-mixedgamblestask_run-01_bold.nii.gz")
+        self.assertIsNotNone(file)
+        self.assertEqual("sub-01_task-mixedgamblestask_run-01_bold.nii.gz", file.name)
 
 if __name__ == '__main__':
     unittest.main()

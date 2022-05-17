@@ -58,7 +58,7 @@ class ValidationPlugin(Plugin):
         def __init__(self):
             self.messages = []
 
-        def error(self, message):
+        def error(self, message, offender=None):
             """Adds a new error message to the report.
 
             Parameters
@@ -69,10 +69,11 @@ class ValidationPlugin(Plugin):
             """
             self.messages.append({
                 'severity': 'error',
+                'offender': offender,
                 'message': message
             })
 
-        def warn(self, message):
+        def warn(self, message, offender=None):
             """Adds a new warning message to the report.
 
             Parameters
@@ -83,6 +84,7 @@ class ValidationPlugin(Plugin):
             """
             self.messages.append({
                 'severity': 'warn',
+                'offender': offender,
                 'message': message
             })
 
@@ -93,10 +95,10 @@ class ValidationPlugin(Plugin):
             bool
                 whether this report contains errors
             """
-            for m in self.messages:
-                if m['severity'] == 'error':
-                    return True
-            return False
+            return len(self.get_errors()) > 0
+
+        def get_errors(self):
+            return list(filter(lambda m: m['severity'] == 'error', self.messages))
 
     def execute(self, dataset, report: ValidationReport):
         raise NotImplementedError()
