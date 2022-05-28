@@ -235,7 +235,10 @@ def get_members(schema, element_type, include_superclass=True):
         superclass = element_type
         while True:
             try:
-                superclass = inspect.getmro(superclass)[1]
+                mro = inspect.getmro(superclass)
+                if len(mro) < 2:
+                    break
+                superclass = mro[1]
                 if not superclass or superclass == schema.Model:
                     break
                 super_members = super_members + _get_element_members(schema, superclass)
@@ -266,6 +269,8 @@ def _trim_int(value):
 def process_entity_value(schema, key, value):
     if not value:
         return value
+    if isinstance(key, schema.EntityEnum):
+        key = key.literal_
     for sc_entity in filter(lambda e: e.literal_ == key, schema.EntityEnum.__members__.values()):
         if sc_entity.format_ == 'index':
             if isinstance(value, list):

@@ -20,6 +20,19 @@ class DerivativesTestCase(BaseTestCase):
         self.assertEqual("xyz", container.Tag)
         self.assertEqual("test:abc/xyz", container.URI)
 
+    def test_derivative_dataset_description(self):
+        test_ds = load_dataset(DS005_SMALL2_DIR)
+        schema = test_ds.get_schema()
+        dd_files = test_ds.select(schema.DatasetDescriptionFile).objects(as_list=True)
+        self.assertEqual(2, len(dd_files))
+        names = {'Mixed-gambles task', 'Mixed-gambles task -- dummy derivative'}
+        dd_names = [d['Name'] for d in dd_files]
+        self.assertTrue(set(dd_names) == names)
+
+        dd = dd_files[1]
+        # PipelineDescription is not part of BIDS spec but available in the generic contents object
+        self.assertEqual('events', dd.contents['PipelineDescription']['Name'])
+
 
 if __name__ == '__main__':
     unittest.main()

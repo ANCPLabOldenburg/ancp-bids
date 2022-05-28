@@ -173,7 +173,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _map_object(self, model_type, json_object):
         target = model_type()
-        members = self.schema.get_members(model_type, False)
+        members = self.schema.get_members(model_type, True)
         actual_props = json_object.keys()
         direct_props = list(map(lambda m: (m['name'], m), members))
         for prop_name, prop in direct_props:

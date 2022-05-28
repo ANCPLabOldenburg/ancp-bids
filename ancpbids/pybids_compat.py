@@ -1,4 +1,5 @@
 import os.path
+import warnings
 from collections import OrderedDict
 from functools import partial
 from typing import List, Union, Dict
@@ -9,6 +10,8 @@ from . import load_dataset, LOGGER
 from .query import query, query_entities, FnMatchExpr, AnyExpr
 from .utils import deepupdate, resolve_segments, convert_to_relative
 
+
+warnings.warn('Development of the BIDSLayout interface will continue in the pybids project.')
 
 class BIDSLayout:
     """A convenience class to provide access to an in-memory representation of a BIDS dataset.
@@ -126,10 +129,6 @@ class BIDSLayout:
         folder = self.dataset
         return query(folder, return_type, target, scope, extension, suffix, **entities)
 
-    @property
-    def entities(self):
-        return self.get_entities()
-
     def get_entities(self, scope: str = None, sort: bool = False) -> dict:
         """Returns a unique set of entities found within the dataset as a dict.
         Each key of the resulting dict contains a list of values (with at least one element).
@@ -190,10 +189,6 @@ class BIDSLayout:
         """
         return self.dataset
 
-    def add_derivatives(self, path):
-        path = convert_to_relative(self.dataset, path)
-        self.dataset.create_derivative(path=path)
-
     def write_derivative(self, derivative):
         """Writes the provided derivative folder to the dataset.
         Note that a 'derivatives' folder will be created if not present.
@@ -225,10 +220,6 @@ class BIDSLayout:
             a report object containing any detected validation errors or warning
         """
         return ancpbids.validate_dataset(self.dataset)
-
-    @property
-    def files(self):
-        return self.get_files()
 
     def get_files(self, scope='all'):
         """Get BIDSFiles for all layouts in the specified scope.
@@ -274,20 +265,3 @@ class BIDSLayout:
             context, _ = resolve_segments(context, scope)
         return context.get_file(filename)
 
-    @property
-    def description(self):
-        return self.get_dataset_description()
-
-    @property
-    def root(self):
-        return self.dataset.base_dir_
-
-    def __repr__(self):
-        """Provide a tidy summary of key properties."""
-        ents = self.get_entities()
-        n_subjects = len(set(ents['sub'])) if 'sub' in ents else 0
-        n_sessions = len(set(ents['ses'])) if 'ses' in ents else 0
-        n_runs = len(set(ents['run'])) if 'run' in ents else 0
-        s = ("BIDS Layout: ...{} | Subjects: {} | Sessions: {} | "
-             "Runs: {}".format(self.dataset.base_dir_, n_subjects, n_sessions, n_runs))
-        return s

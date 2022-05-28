@@ -7,11 +7,18 @@ from typing import Union, List
 from ancpbids.utils import resolve_segments
 
 
-class BoolExpr:
+class Expr:
+    def convert_value(self, value):
+        if hasattr(self, 'value_converter'):
+            value = self.value_converter(value)
+        return value
+
+
+class BoolExpr(Expr):
     pass
 
 
-class CompExpr:
+class CompExpr(Expr):
     pass
 
 
@@ -50,6 +57,7 @@ class EqExpr(CompExpr):
 
     def eval(self, context) -> bool:
         value = self.attr.fget(context)
+        value = self.convert_value(value)
         return self.value == value
 
 
@@ -60,8 +68,9 @@ class ReExpr(CompExpr):
 
     def eval(self, context) -> bool:
         value = self.attr.fget(context)
+        value = self.convert_value(value)
         value = str(value)
-        return self.regex_pattern.match(value)
+        return self.regex_pattern.search(value)
 
 
 class CustomOpExpr(CompExpr):
@@ -79,12 +88,20 @@ class FnMatchExpr(CompExpr):
 
     def eval(self, context) -> bool:
         value = self.attr.fget(context)
+        value = self.convert_value(value)
+        value = str(value)
         return value is not None and fnmatch(value, self.pattern)
 
 
 class EntityExpr(CompExpr):
     def __init__(self, schema, key, value, op=FnMatchExpr):
         self.schema = schema
+        value = schema.process_entity_value(key, value)
+        if isinstance(value, list):
+            value = list(map(lambda v: str(v), value))
+        else:
+            value = str(value)
+        self.value_converter = lambda v: schema.process_entity_value(key, v)
         self.op = AllExpr(EqExpr(schema.EntityRef.key, key.entity_), op(schema.EntityRef.value, value))
 
     def eval(self, context) -> bool:
@@ -131,15 +148,15 @@ class Select:
         return result
 
 
-def _to_any_expr(value, ctor):
+def _to_any_expr(value, ctor, converter=lambda v: v):
     # if the value is a list, then wrap it in an AnyExpr
     if isinstance(value, list):
         ops = []
         for v in value:
-            ops.append(ctor(v))
+            ops.append(ctor(converter(v)))
         return AnyExpr(*ops)
     # else just return using the constructor function
-    return ctor(value)
+    return ctor(converter(value))
 
 
 def _require_artifact(schema, expr) -> AllExpr:
@@ -159,6 +176,7 @@ def _require_artifact(schema, expr) -> AllExpr:
 
 def query(folder, return_type: str = 'object', target: str = None, scope: str = None,
           extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None,
+          regex_search=False,
           **entities) -> Union[List[str], List[object]]:
     """Depending on the return_type value returns either paths to files that matched the filtering criteria
     or :class:`Artifact <ancpbids.model_v1_7_0.Artifact>` objects for further processing by the caller.
@@ -217,6 +235,9 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
     if scope not in ['all', 'raw', 'self']:
         context, _ = resolve_segments(folder, scope, False)
 
+    if not context:
+        return None
+
     select = context.select(target_type)
 
     if scope == 'raw':
@@ -237,22 +258,27 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
             result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
                                                   filter(lambda e: e.key == target, a.entities)]
 
+    search_operator = FnMatchExpr
+    if regex_search:
+        search_operator = ReExpr
+
     for k, v in entities.items():
         entity_key = schema.fuzzy_match_entity(k)
-        v = schema.process_entity_value(k, v)
+        v = schema.process_entity_value(entity_key, v)
         ops.append(
-            _require_artifact(schema, _to_any_expr(v, lambda val: EntityExpr(schema, entity_key, val))))
+            _require_artifact(schema,
+                              _to_any_expr(v, lambda val: EntityExpr(schema, entity_key, val, op=search_operator))))
 
     if extension:
-        if extension != "*" and not extension.startswith("."):
-            extension = "." + extension
-        ops.append(_require_artifact(schema,
-                                     _to_any_expr(extension, lambda ext: FnMatchExpr(schema.Artifact.extension, ext))))
+        converter = lambda v: "." + v if v != "*" and not v.startswith(".") else v
+        any_expr = _to_any_expr(extension, lambda ext: search_operator(schema.Artifact.extension, ext), converter)
+        require_expr = _require_artifact(schema, any_expr)
+        ops.append(require_expr)
 
     if suffix:
         ops.append(
             _require_artifact(schema,
-                              _to_any_expr(suffix, lambda suf: FnMatchExpr(schema.Artifact.suffix, suf))))
+                              _to_any_expr(suffix, lambda suf: search_operator(schema.Artifact.suffix, suf))))
 
     select.where(AllExpr(*ops))
 
