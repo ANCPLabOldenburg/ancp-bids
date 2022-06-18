@@ -274,7 +274,7 @@ def process_entity_value(schema, key, value):
     for sc_entity in filter(lambda e: e.literal_ == key, schema.EntityEnum.__members__.values()):
         if sc_entity.format_ == 'index':
             if isinstance(value, list):
-                return list(map(lambda v: _trim_int(v), value))
+                return list(map(lambda v: _trim_int(v) if v is not None else v, value))
             else:
                 return _trim_int(value)
     return value
@@ -304,16 +304,19 @@ def get_parent(file_or_folder):
 def select(context, target_type):
     return Select(context, target_type)
 
-
+def get_entities(artifact):
+    return {}
 class PatchingSchemaPlugin(SchemaPlugin):
     def execute(self, schema):
+        schema.Model.__hash__ = lambda self: hash(tuple(self))
         schema.Folder.select = select
         schema.Folder.query = query
-        schema.Artifact.query_entities = query_entities
+        schema.Folder.query_entities = query_entities
         schema.File.get_parent = get_parent
         schema.Folder.get_parent = get_parent
         schema.Artifact.has_entity = has_entity
         schema.Artifact.get_entity = get_entity
+        schema.Artifact.get_entities = get_entities
         schema.Artifact.add_entity = add_entity
         schema.Folder.load_file_contents = load_file_contents
         schema.File.load_contents = load_contents

@@ -94,21 +94,34 @@ class FnMatchExpr(CompExpr):
 
 
 class EntityExpr(CompExpr):
-    def __init__(self, schema, key, value, op=FnMatchExpr):
+    def __init__(self, schema, key, pattern, op=FnMatchExpr):
         self.schema = schema
-        value = schema.process_entity_value(key, value)
-        if isinstance(value, list):
-            value = list(map(lambda v: str(v), value))
-        else:
-            value = str(value)
-        self.value_converter = lambda v: schema.process_entity_value(key, v)
-        self.op = AllExpr(EqExpr(schema.EntityRef.key, key.entity_), op(schema.EntityRef.value, value))
+        if pattern is not None:
+            pattern = schema.process_entity_value(key, pattern)
+            if isinstance(pattern, list):
+                pattern = list(map(lambda v: str(v), pattern))
+            else:
+                pattern = str(pattern)
+        self.key = key
+        self.pattern = pattern
+        self.op = op(schema.EntityRef.value, pattern)
+        self.op.value_converter = lambda v: schema.process_entity_value(key, v)
 
     def eval(self, context) -> bool:
         if not isinstance(context, self.schema.Artifact):
             # for non-Artifacts, for example File, just return false
             return False
-        return any([self.op.eval(e) for e in context.entities])
+        ents = list(filter(lambda e: e.key == self.key.entity_, context.entities))
+        if not ents:
+            # the entity must not exist
+            if self.pattern is None:
+                return True
+            return False
+        if self.pattern is None:
+            # the entity must not exist, but we found one
+            return False
+        target_key = ents[0]
+        return self.op.eval(target_key)
 
 
 class Select:
@@ -282,13 +295,17 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
 
     select.where(AllExpr(*ops))
 
-    if return_type and return_type.startswith("file"):
-        return list(select.get_file_paths_absolute())
-    else:
-        artifacts = select.objects()
-        if result_extractor:
-            return sorted(set(result_extractor(artifacts)))
-        return list(artifacts)
+    if return_type:
+        if return_type.startswith("file"):
+            return list(select.get_file_paths_absolute())
+        elif return_type == 'dir':
+            result = filter(lambda o: isinstance(o, schema.File), select.objects())
+            return set(map(lambda a: a.get_parent().get_relative_path(), result))
+
+    artifacts = select.objects()
+    if result_extractor:
+        return sorted(set(result_extractor(artifacts)))
+    return list(artifacts)
 
 
 def query_entities(folder, scope: str = None, sort: bool = False) -> dict:
