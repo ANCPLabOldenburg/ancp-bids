@@ -108,7 +108,7 @@ class BasicTestCase(BaseTestCase):
 
         entity = entities[2]
         self.assertEqual("run", entity.key)
-        self.assertEqual("1", entity.value)
+        self.assertEqual(1, entity.value)
 
     def test_to_generator(self):
         ds005 = load_dataset(DS005_DIR)

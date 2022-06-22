@@ -261,7 +261,8 @@ def _to_type(schema, model_type_name: str):
 def _trim_int(value):
     try:
         # remove paddings/fillers in index values: 001 -> 1, 000230 -> 230
-        return str(int(value))
+        # TODO return PaddedInt as done by PyBIDS
+        return int(value)
     except ValueError:
         return value
 
@@ -305,7 +306,8 @@ def select(context, target_type):
     return Select(context, target_type)
 
 def get_entities(artifact):
-    return {}
+    return {e['key']: e['value'] for e in artifact.entities}
+
 class PatchingSchemaPlugin(SchemaPlugin):
     def execute(self, schema):
         schema.Model.__hash__ = lambda self: hash(tuple(self))
