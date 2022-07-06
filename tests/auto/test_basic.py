@@ -80,9 +80,14 @@ class BasicTestCase(BaseTestCase):
     def test_tsv_file_contents(self):
         ds005 = load_dataset(DS005_DIR)
         participants = ds005.load_file_contents("participants.tsv")
-        self.assertTrue(isinstance(participants, numpy.ndarray), "Expected a numpy.ndarray")
+        self.assertListEqual(['participant_id', 'sex', 'age'], list(participants[0].keys()))
+        self.assertEqual(16, len(participants))
+        participants = ds005.load_file_contents("participants.tsv", return_type="ndarray")
         self.assertListEqual(['participant_id', 'sex', 'age'], list(participants.dtype.names))
-        self.assertEqual(16, participants.shape[0])
+        self.assertEqual(16, len(participants))
+        participants = ds005.load_file_contents("participants.tsv", return_type="dataframe")
+        self.assertListEqual(['participant_id', 'sex', 'age'], list(participants.columns))
+        self.assertEqual(16, len(participants))
 
     def test_parse_entities_in_filenames(self):
         ds005 = load_dataset(DS005_DIR)
