@@ -32,10 +32,10 @@ def add_entity(artifact, key, value):
     artifact.entities.append(eref)
 
 
-def load_file_contents(folder, file_name):
+def load_file_contents(folder, file_name, return_type: str = None):
     from ancpbids import utils
     file_path = get_absolute_path(folder, file_name)
-    contents = utils.load_contents(file_path)
+    contents = utils.load_contents(file_path, return_type)
     return contents
 
 
@@ -305,8 +305,10 @@ def get_parent(file_or_folder):
 def select(context, target_type):
     return Select(context, target_type)
 
+
 def get_entities(artifact):
     return {e['key']: e['value'] for e in artifact.entities}
+
 
 class PatchingSchemaPlugin(SchemaPlugin):
     def execute(self, schema):
