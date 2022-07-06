@@ -59,13 +59,18 @@ def parse_bids_name(name: str):
     }
 
 
-def load_contents(file_path):
+def load_contents(file_path, return_type: str = None):
     """Loads the contents of the provided file path.
 
     Parameters
     ----------
     file_path :
         the file path to load contents from
+    return_type:
+        A hint to consider when deciding how to load the contents of the provided file.
+        For example, to load a TSV file as a pandas DataFrame the return_type should be 'dataframe',
+        to load a numpy ndarray, the return_type should be 'ndarray'.
+        It is up to the registered file handlers to correctly interpret the return_type.
 
     Returns
     -------
@@ -87,7 +92,7 @@ def load_contents(file_path):
         reader = FILE_READERS['txt']
     if reader is None:
         raise ValueError('No file reader registered to load file %s' % file_path)
-    return reader(file_path)
+    return reader(file_path, return_type=return_type)
 
 
 def write_contents(file_path: str, contents):
