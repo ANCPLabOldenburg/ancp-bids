@@ -308,7 +308,7 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
     return list(artifacts)
 
 
-def query_entities(folder, scope: str = None, sort: bool = False, long_form=True) -> dict:
+def query_entities(folder, scope: str = None, sort: bool = False) -> dict:
     """Returns a unique set of entities found within the dataset as a dict.
     Each key of the resulting dict contains a list of values (with at least one element).
 
@@ -335,16 +335,12 @@ def query_entities(folder, scope: str = None, sort: bool = False, long_form=True
         a unique set of entities found within the dataset as a dict
     """
     schema = folder.get_schema()
-    known_entities = {e.entity_: e.literal_ for e in list(schema.EntityEnum)}
     artifacts = filter(lambda m: isinstance(m, schema.Artifact), query(folder, scope=scope))
-    result = {}
+    result = OrderedDict()
     for e in [e for a in artifacts for e in a.entities]:
-        key = e.key
-        if key not in result:
-            result[key] = set()
-        result[key].add(e.value)
-    if long_form:
-        result = {known_entities[k] if k in known_entities else k: v for k, v in result.items()}
+        if e.key not in result:
+            result[e.key] = set()
+        result[e.key].add(e.value)
     if sort:
         result = {k: sorted(v) for k, v in sorted(result.items())}
     return result
