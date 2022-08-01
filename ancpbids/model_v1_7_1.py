@@ -12,6 +12,11 @@ class Model(dict):
 
     def get_schema(self):
         return self._schema
+
+    def __repr__(self):
+        return str({key: f"{str(value)[:32]}[...]" if len(str(value)) > 38 else value
+                    for key, value in self.items()
+                    if value is not None and not isinstance(value, (dict, list))})
         
 class MetadataFieldDefinition(Model):
     def __init__(self, name: 'str' = None, description: 'str' = None, type: 'Dict' = None):
