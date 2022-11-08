@@ -308,7 +308,7 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
     return list(artifacts)
 
 
-def query_entities(folder, scope: str = None, sort: bool = False, long_form=True) -> dict:
+def query_entities(folder, scope: str = None, sort: bool = False, long_form=False) -> dict:
     """Returns a unique set of entities found within the dataset as a dict.
     Each key of the resulting dict contains a list of values (with at least one element).
 
