@@ -33,6 +33,16 @@ class DerivativesTestCase(BaseTestCase):
         # PipelineDescription is not part of BIDS spec but available in the generic contents object
         self.assertEqual('events', dd.contents['PipelineDescription']['Name'])
 
+    def test_create_artifact_with_raw(self):
+        test_ds = load_dataset(DS005_SMALL2_DIR)
+        sub01_json = test_ds.query(sub='01', suffix='bold', extension='.json')[0]
+        derivative_folder = test_ds.create_derivative(name="unit-test")
+        deriv_artifact = derivative_folder.create_artifact(raw=sub01_json)
+        deriv_artifact.add_entities(desc='unittest')
+        self.assertEqual("01", deriv_artifact.get_entity("sub"))
+        self.assertEqual("mixedgamblestask", deriv_artifact.get_entity("task"))
+        self.assertEqual(1, deriv_artifact.get_entity("run"))
+        self.assertEqual("unittest", deriv_artifact.get_entity("desc"))
 
 if __name__ == '__main__':
     unittest.main()

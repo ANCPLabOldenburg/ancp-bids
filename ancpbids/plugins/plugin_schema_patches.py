@@ -32,6 +32,11 @@ def add_entity(artifact, key, value):
     artifact.entities.append(eref)
 
 
+def add_entities(artifact, **kwargs):
+    for k, v in kwargs.items():
+        add_entity(artifact, k, v)
+
+
 def load_file_contents(folder, file_name, return_type: str = None):
     from ancpbids import utils
     file_path = get_absolute_path(folder, file_name)
@@ -87,9 +92,11 @@ def remove_file(folder, file_name, from_meta=True):
         folder.metadatafiles = list(filter(lambda file: file.name != file_name, folder.metadatafiles))
 
 
-def create_artifact(folder):
+def create_artifact(folder, raw=None):
     schema = folder.get_schema()
     artifact = schema.Artifact()
+    if isinstance(raw, schema.Artifact):
+        artifact.entities.extend(raw.entities)
     artifact.parent_object_ = folder
     folder.files.append(artifact)
     return artifact
@@ -290,7 +297,7 @@ def fuzzy_match_entity(schema, user_key):
         map(lambda item: (
             item,
             1.0 if item.name.startswith(user_key) else SequenceMatcher(None, user_key,
-                                                                           item.name).quick_ratio()),
+                                                                       item.name).quick_ratio()),
             list(schema.EntityEnum)))
     ratios = sorted(ratios, key=lambda t: t[1])
     return ratios[-1][0]
@@ -322,6 +329,7 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.Artifact.get_entity = get_entity
         schema.Artifact.get_entities = get_entities
         schema.Artifact.add_entity = add_entity
+        schema.Artifact.add_entities = add_entities
         schema.Folder.load_file_contents = load_file_contents
         schema.File.load_contents = load_contents
         schema.File.get_absolute_path = get_absolute_path_by_file
