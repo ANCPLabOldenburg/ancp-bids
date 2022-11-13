@@ -26,11 +26,13 @@ class WritingTestCase(BaseTestCase):
 
         for sub_label in layout.get_subjects():
             subject = derivative.create_folder(name='sub-' + sub_label)
+            # create an additional folder level to increase complexity of generation
+            session = subject.create_folder(name='ses-01')
 
             # do some complex task
             # ... doing complex task ...
             # ... done
-            txt_artifact = subject.create_artifact()
+            txt_artifact = session.create_artifact()
             txt_artifact.add_entity("desc", "mypipeline")
             txt_artifact.suffix = 'textual'
             txt_artifact.extension = ".txt"
@@ -38,13 +40,13 @@ class WritingTestCase(BaseTestCase):
 
             # create some random data
             df = pd.DataFrame(np.random.randint(0, 100, size=(100, 4)), columns=list('ABCD'))
-            ev_artifact = subject.create_artifact()
+            ev_artifact = session.create_artifact()
             ev_artifact.add_entity("desc", "mypipeline")
             ev_artifact.suffix = 'events'
             ev_artifact.extension = ".tsv"
             # at this point, the file path is not known and will be provided
             # to lambda when the derivative is written to disk
-            ev_artifact.content = lambda file_path: df.to_csv(file_path, index=None)
+            ev_artifact.content = lambda file_path, df=df: df.to_csv(file_path, index=None)
 
         layout.write_derivative(derivative)
         return DS005_DIR, pipeline_name

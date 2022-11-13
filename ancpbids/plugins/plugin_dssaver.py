@@ -1,5 +1,4 @@
 import inspect
-import json
 import os
 
 import ancpbids
@@ -48,7 +47,7 @@ class DatasetWritingPlugin(WritingPlugin):
         new_dir = os.path.join(target_dir, folder.get_relative_path())
         # the new directory may exist because model Artifacts/Folders are processed first
         if not os.path.exists(new_dir):
-            os.mkdir(new_dir)
+            os.makedirs(new_dir)
 
         if traverse_children:
             for child_folder in folder.folders:
