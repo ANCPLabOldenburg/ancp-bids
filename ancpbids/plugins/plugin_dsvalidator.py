@@ -42,7 +42,7 @@ class EntitiesValidationPlugin(ValidationPlugin):
     def execute(self, dataset, report: ValidationPlugin.ValidationReport):
         schema = dataset.get_schema()
         artifacts = dataset.select(schema.Artifact).get_artifacts()
-        entities = list(map(lambda e: e.entity_, list(schema.EntityEnum)))
+        entities = list(map(lambda e: e.literal_, list(schema.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(entities)}
         expected_order_key = {i: k for i, k in enumerate(entities)}
         for artifact in artifacts:

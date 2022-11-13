@@ -60,7 +60,7 @@ class DatasetWritingPlugin(WritingPlugin):
         schema = artifact.get_schema()
         entity_refs = artifact.entities
 
-        schema_entities = list(map(lambda e: e.entity_, list(schema.EntityEnum)))
+        schema_entities = list(map(lambda e: e.literal_, list(schema.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(schema_entities)}
         expected_order_key = {i: k for i, k in enumerate(schema_entities)}
 

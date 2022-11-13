@@ -139,7 +139,8 @@ class BasicTestCase(BaseTestCase):
         self.assertEqual("{'name': 'ds005'}", str(ds005))
         self.assertEqual("{'name': 'derivatives'}", str(ds005.derivatives))
         self.assertEqual("{'name': 'README'}", str(ds005.README))
-        self.assertEqual("{'name': 'dataset_description.json', 'Name': 'Mixed-gambles task', 'BIDSVersion': '1.0.0rc2', 'License': 'This dataset is made available u[...]'}", str(ds005.dataset_description))
+        expected = "{'name': 'dataset_description.json', 'Name': 'Mixed-gambles task', 'BIDSVersion': '1.0.0rc2', 'License': 'This dataset is made available u[...]'}"
+        self.assertEqual(expected, str(ds005.dataset_description))
 
 
 if __name__ == '__main__':

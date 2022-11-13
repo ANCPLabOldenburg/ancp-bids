@@ -176,27 +176,27 @@ class Model(dict):
         self.append("    }")
         self.append("\n")
 
-    def generate_enum(self, yaml_path, name, *additional_fields, dict_transformer=None):
+    def generate_enum(self, yaml_path, class_name, *additional_fields, dict_transformer=None, field_discriminator=None):
         dt_docs = generator.read_yaml(yaml_path)
         datatypes = [doc for doc in dt_docs]
         datatypes = {name: schema for doc in datatypes for name, schema in doc.items()}
         if dict_transformer:
             datatypes = dict_transformer(datatypes)
-        generator.append(f"class {name}(Enum):")
+        generator.append(f"class {class_name}(Enum):")
         for name, schema in datatypes.items():
-            fields = [f"r\"{schema['name']}\""]
+            field_name = schema[field_discriminator] if field_discriminator is not None else name
+            fields = [f"r\"{field_name}\""]
             if additional_fields:
                 fields += list(map(lambda f: f"r\"{schema[f] if f in schema else ''}\"", additional_fields))
-            fields_str = ', '.join([f'\'{name}\'']+fields)
-            generator.append(f"    _{name} = {fields_str}")
+            fields_str = ', '.join(fields)
+            generator.append(f"    {name} = {fields_str}")
             if 'description' in schema and schema['description'] and schema['description'].strip():
                 generator.append(f"    r\"\"\"{schema['description'].strip()}\"\"\"")
         generator.append()
 
         fields = list(map(lambda f: f"{f}_", additional_fields))
-        generator.append(f"    def __init__(self, literal, value, {', '.join(fields)}):")
+        generator.append(f"    def __init__(self, literal, {', '.join(fields)}):")
         generator.append(f"        self.literal_ = literal")
-        generator.append(f"        self.value_ = value")
         for field in fields:
             generator.append(f"        self.{field} = {field}")
         generator.append()
@@ -204,14 +204,18 @@ class Model(dict):
 
 if __name__ == '__main__':
     # extractor = MetadataExtractor("./test.yaml")
-    version_tag = 'v1.7.1'
+    version_tag = 'v1.8.0'
     module_version_tag = version_tag.replace('.', '_')
     generator = ClassGenerator("../ancpbids/data/bids_graph_schema.yaml")
     generator.generate(version_tag)
 
-    generator.generate_enum("../../bids-specification/src/schema/objects/datatypes.yaml", "DatatypeEnum")
-    generator.generate_enum("../../bids-specification/src/schema/objects/modalities.yaml", "ModalityEnum")
-    generator.generate_enum("../../bids-specification/src/schema/objects/suffixes.yaml", "SuffixEnum", "unit")
+    generator.generate_enum("../../bids-specification/src/schema/objects/datatypes.yaml", "DatatypeEnum",
+                            "display_name",
+                            field_discriminator="value")
+    generator.generate_enum("../../bids-specification/src/schema/objects/modalities.yaml", "ModalityEnum",
+                            "display_name")
+    generator.generate_enum("../../bids-specification/src/schema/objects/suffixes.yaml", "SuffixEnum", "display_name",
+                            "unit", field_discriminator="value")
 
 
     def transformer(entities):
@@ -222,7 +226,7 @@ if __name__ == '__main__':
 
 
     generator.generate_enum("../../bids-specification/src/schema/objects/entities.yaml", "EntityEnum",
-                            "entity", "type", "format", dict_transformer=transformer)
+                            "display_name", "type", "format", dict_transformer=transformer, field_discriminator="name")
 
     generator.output.flush()
     generator.output.seek(0)

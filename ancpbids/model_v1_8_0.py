@@ -3,7 +3,7 @@ from typing import List, Union, Dict, Any
 from math import inf
 import sys
 
-VERSION = 'v1.7.1'
+VERSION = 'v1.8.0'
 SCHEMA = sys.modules[__name__]
 
 class Model(dict):
@@ -12,9 +12,9 @@ class Model(dict):
 
     def get_schema(self):
         return self._schema
-
+        
     def __repr__(self):
-        return str({key: f"{str(value)[:32]}[...]" if len(str(value)) > 38 else value
+        return str({key: (str(value)[:32] + '[...]') if len(str(value)) > 32 else value
                     for key, value in self.items()
                     if value is not None and not isinstance(value, (dict, list))})
         
@@ -848,79 +848,83 @@ class Dataset(Folder):
 
 
 class DatatypeEnum(Enum):
-    _anat = 'anat', r"Anatomical Magnetic Resonance Imaging"
+    anat = r"anat", r"Anatomical Magnetic Resonance Imaging"
     r"""Magnetic resonance imaging sequences designed to characterize static, anatomical features."""
-    _beh = 'beh', r"Behavioral Data"
+    beh = r"beh", r"Behavioral Data"
     r"""Behavioral data."""
-    _dwi = 'dwi', r"Diffusion-Weighted Imaging"
+    dwi = r"dwi", r"Diffusion-Weighted Imaging"
     r"""Diffusion-weighted imaging (DWI)."""
-    _eeg = 'eeg', r"Electroencephalography"
+    eeg = r"eeg", r"Electroencephalography"
     r"""Electroencephalography"""
-    _fmap = 'fmap', r"Field maps"
+    fmap = r"fmap", r"Field maps"
     r"""MRI scans for estimating B0 inhomogeneity-induced distortions."""
-    _func = 'func', r"Task-Based Magnetic Resonance Imaging"
+    func = r"func", r"Task-Based Magnetic Resonance Imaging"
     r"""Task (including resting state) imaging data"""
-    _ieeg = 'ieeg', r"Intracranial electroencephalography"
+    ieeg = r"ieeg", r"Intracranial electroencephalography"
     r"""Intracranial electroencephalography (iEEG) or electrocorticography (ECoG) data"""
-    _meg = 'meg', r"Magnetoencephalography"
+    meg = r"meg", r"Magnetoencephalography"
     r"""Magnetoencephalography"""
-    _micr = 'micr', r"Microscopy"
+    micr = r"micr", r"Microscopy"
     r"""Microscopy"""
-    _perf = 'perf', r"Perfusion imaging"
+    perf = r"perf", r"Perfusion imaging"
     r"""Blood perfusion imaging data, including arterial spin labeling (ASL)"""
-    _pet = 'pet', r"Positron Emission Tomography"
+    pet = r"pet", r"Positron Emission Tomography"
     r"""Positron emission tomography data"""
+    nirs = r"nirs", r"Near-Infrared Spectroscopy"
+    r"""Near-Infrared Spectroscopy data organized around the SNIRF format"""
 
-    def __init__(self, literal, value, ):
+    def __init__(self, literal, display_name_):
         self.literal_ = literal
-        self.value_ = value
+        self.display_name_ = display_name_
 
 class ModalityEnum(Enum):
-    _mri = 'mri', r"Magnetic Resonance Imaging"
+    mri = r"mri", r"Magnetic Resonance Imaging"
     r"""Data acquired with an MRI scanner."""
-    _eeg = 'eeg', r"Electroencephalography"
+    eeg = r"eeg", r"Electroencephalography"
     r"""Data acquired with EEG."""
-    _ieeg = 'ieeg', r"Intracranial Electroencephalography"
+    ieeg = r"ieeg", r"Intracranial Electroencephalography"
     r"""Data acquired with iEEG."""
-    _meg = 'meg', r"Magnetoencephalography"
+    meg = r"meg", r"Magnetoencephalography"
     r"""Data acquired with an MEG scanner."""
-    _beh = 'beh', r"Behavioral experiments"
+    beh = r"beh", r"Behavioral experiments"
     r"""Behavioral data acquired without accompanying neuroimaging data."""
-    _pet = 'pet', r"Positron Emission Tomography"
+    pet = r"pet", r"Positron Emission Tomography"
     r"""Data acquired with PET."""
-    _micr = 'micr', r"Microscopy"
+    micr = r"micr", r"Microscopy"
     r"""Data acquired with a microscope."""
+    nirs = r"nirs", r"Near-Infrared Spectroscopy"
+    r"""Data acquired with NIRS."""
 
-    def __init__(self, literal, value, ):
+    def __init__(self, literal, display_name_):
         self.literal_ = literal
-        self.value_ = value
+        self.display_name_ = display_name_
 
 class SuffixEnum(Enum):
-    _2PE = '2PE', r"2-photon excitation microscopy", r""
+    TwoPE = r"2PE", r"2-photon excitation microscopy", r""
     r"""2-photon excitation microscopy imaging data"""
-    _BF = 'BF', r"Bright-field microscopy", r""
+    BF = r"BF", r"Bright-field microscopy", r""
     r"""Bright-field microscopy imaging data"""
-    _Chimap = 'Chimap', r"Quantitative susceptibility map (QSM)", r"ppm"
+    Chimap = r"Chimap", r"Quantitative susceptibility map (QSM)", r"ppm"
     r"""In parts per million (ppm).
 QSM allows for determining the underlying magnetic susceptibility of tissue
 (Chi)
-([Wang & Liu, 2014](https://onlinelibrary.wiley.com/doi/10.1002/mrm.25358)).
+([Wang & Liu, 2014](https://doi.org/10.1002/mrm.25358)).
 Chi maps are REQUIRED to use this suffix regardless of the method used to
 generate them."""
-    _CARS = 'CARS', r"Coherent anti-Stokes Raman spectroscopy", r""
+    CARS = r"CARS", r"Coherent anti-Stokes Raman spectroscopy", r""
     r"""Coherent anti-Stokes Raman spectroscopy imaging data"""
-    _CONF = 'CONF', r"Confocal microscopy", r""
+    CONF = r"CONF", r"Confocal microscopy", r""
     r"""Confocal microscopy imaging data"""
-    _DIC = 'DIC', r"Differential interference contrast microscopy", r""
+    DIC = r"DIC", r"Differential interference contrast microscopy", r""
     r"""Differential interference contrast microscopy imaging data"""
-    _DF = 'DF', r"Dark-field microscopy", r""
+    DF = r"DF", r"Dark-field microscopy", r""
     r"""Dark-field microscopy imaging data"""
-    _FLAIR = 'FLAIR', r"Fluid attenuated inversion recovery image", r"arbitrary"
+    FLAIR = r"FLAIR", r"Fluid attenuated inversion recovery image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 Structural images with predominant T2 contribution (also known as T2-FLAIR),
 in which signal from fluids (for example, CSF) is nulled out by adjusting
 inversion time, coupled with notably long repetition and echo times."""
-    _FLASH = 'FLASH', r"Fast-Low-Angle-Shot image", r""
+    FLASH = r"FLASH", r"Fast-Low-Angle-Shot image", r""
     r"""FLASH (Fast-Low-Angle-Shot) is a vendor-specific implementation for spoiled
 gradient echo acquisition.
 It is commonly used for rapid anatomical imaging and also for many different
@@ -930,35 +934,35 @@ image contrast.
 When used in a file collection, it may result in conflicts across filenames of
 different applications.
 **Change:** Removed from suffixes."""
-    _FLUO = 'FLUO', r"Fluorescence microscopy", r""
+    FLUO = r"FLUO", r"Fluorescence microscopy", r""
     r"""Fluorescence microscopy imaging data"""
-    _IRT1 = 'IRT1', r"Inversion recovery T1 mapping", r""
+    IRT1 = r"IRT1", r"Inversion recovery T1 mapping", r""
     r"""The IRT1 method involves multiple inversion recovery spin-echo images
 acquired at different inversion times
 ([Barral et al. 2010](https://doi.org/10.1002/mrm.22497))."""
-    _M0map = 'M0map', r"Equilibrium magnetization (M0) map", r"arbitrary"
+    M0map = r"M0map", r"Equilibrium magnetization (M0) map", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 A common quantitative MRI (qMRI) fitting variable that represents the amount
 of magnetization at thermal equilibrium.
 M0 maps are RECOMMENDED to use this suffix if generated by qMRI applications
 (for example, variable flip angle T1 mapping)."""
-    _MEGRE = 'MEGRE', r"Multi-echo Gradient Recalled Echo", r""
+    MEGRE = r"MEGRE", r"Multi-echo Gradient Recalled Echo", r""
     r"""Anatomical gradient echo images acquired at different echo times.
 Please note that this suffix is not intended for the logical grouping of
 images acquired using an Echo Planar Imaging (EPI) readout."""
-    _MESE = 'MESE', r"Multi-echo Spin Echo", r""
+    MESE = r"MESE", r"Multi-echo Spin Echo", r""
     r"""The MESE method involves multiple spin echo images acquired at different echo
 times and is primarily used for T2 mapping.
 Please note that this suffix is not intended for the logical grouping of
 images acquired using an Echo Planar Imaging (EPI) readout."""
-    _MP2RAGE = 'MP2RAGE', r"Magnetization Prepared Two Gradient Echoes", r""
+    MP2RAGE = r"MP2RAGE", r"Magnetization Prepared Two Gradient Echoes", r""
     r"""The MP2RAGE method is a special protocol that collects several images at
 different flip angles and inversion times to create a parametric T1map by
 combining the magnitude and phase images
 ([Marques et al. 2010](https://doi.org/10.1016/j.neuroimage.2009.10.002))."""
-    _MPE = 'MPE', r"Multi-photon excitation microscopy", r""
+    MPE = r"MPE", r"Multi-photon excitation microscopy", r""
     r"""Multi-photon excitation microscopy imaging data"""
-    _MPM = 'MPM', r"Multi-parametric Mapping", r""
+    MPM = r"MPM", r"Multi-parametric Mapping", r""
     r"""The MPM approaches (a.k.a hMRI) involves the acquisition of highly-similar
 anatomical images that differ in terms of application of a magnetization
 transfer RF pulse (MTon or MToff), flip angle and (optionally) echo time and
@@ -966,58 +970,58 @@ magnitue/phase parts
 ([Weiskopf et al. 2013](https://doi.org/10.3389/fnins.2013.00095)).
 See [here](https://owncloud.gwdg.de/index.php/s/iv2TOQwGy4FGDDZ) for
 suggested MPM acquisition protocols."""
-    _MTR = 'MTR', r"Magnetization Transfer Ratio", r""
+    MTR = r"MTR", r"Magnetization Transfer Ratio", r""
     r"""This method is to calculate a semi-quantitative magnetization transfer ratio
 map."""
-    _MTRmap = 'MTRmap', r"Magnetization transfer ratio image", r"arbitrary"
+    MTRmap = r"MTRmap", r"Magnetization transfer ratio image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 MTR maps are REQUIRED to use this suffix regardless of the method used to
 generate them.
 MTRmap intensity values are RECOMMENDED to be represented in percentage in
 the range of 0-100%."""
-    _MTS = 'MTS', r"Magnetization transfer saturation", r""
+    MTS = r"MTS", r"Magnetization transfer saturation", r""
     r"""This method is to calculate a semi-quantitative magnetization transfer
 saturation index map.
 The MTS method involves three sets of anatomical images that differ in terms
 of application of a magnetization transfer RF pulse (MTon or MToff) and flip
 angle ([Helms et al. 2008](https://doi.org/10.1002/mrm.21732))."""
-    _MTVmap = 'MTVmap', r"Macromolecular tissue volume (MTV) image", r"arbitrary"
+    MTVmap = r"MTVmap", r"Macromolecular tissue volume (MTV) image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 MTV maps are REQUIRED to use this suffix regardless of the method used to
 generate them."""
-    _MTsat = 'MTsat', r"Magnetization transfer saturation image", r"arbitrary"
+    MTsat = r"MTsat", r"Magnetization transfer saturation image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 MTsat maps are REQUIRED to use this suffix regardless of the method used to
 generate them."""
-    _MWFmap = 'MWFmap', r"Myelin water fraction image", r"arbitrary"
+    MWFmap = r"MWFmap", r"Myelin water fraction image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 MWF maps are REQUIRED to use this suffix regardless of the method used to
 generate them.
 MWF intensity values are RECOMMENDED to be represented in percentage in the
 range of 0-100%."""
-    _NLO = 'NLO', r"Nonlinear optical microscopy", r""
+    NLO = r"NLO", r"Nonlinear optical microscopy", r""
     r"""Nonlinear optical microscopy imaging data"""
-    _OCT = 'OCT', r"Optical coherence tomography", r""
+    OCT = r"OCT", r"Optical coherence tomography", r""
     r"""Optical coherence tomography imaging data"""
-    _PC = 'PC', r"Phase-contrast microscopy", r""
+    PC = r"PC", r"Phase-contrast microscopy", r""
     r"""Phase-contrast microscopy imaging data"""
-    _PD = 'PD', r"Proton density image", r"arbitrary"
+    PD = r"PD", r"Proton density image", r"arbitrary"
     r"""Ambiguous, may refer to a parametric image or to a conventional image.
 **Change:** Replaced by `PDw` or `PDmap`."""
-    _PDT2 = 'PDT2', r"PD and T2 weighted image", r"arbitrary"
+    PDT2 = r"PDT2", r"PD and T2 weighted image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 PDw and T2w images acquired using a dual echo FSE sequence through view
 sharing process
 ([Johnson et al. 1994](https://pubmed.ncbi.nlm.nih.gov/8010268/))."""
-    _PDT2map = 'PDT2map', r"Combined PD/T2 image", r"arbitrary"
+    PDT2map = r"PDT2map", r"Combined PD/T2 image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 Combined PD/T2 maps are REQUIRED to use this suffix regardless of the method
 used to generate them."""
-    _PDmap = 'PDmap', r"Proton density image", r"arbitrary"
+    PDmap = r"PDmap", r"Proton density image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 PD maps are REQUIRED to use this suffix regardless of the method used to
 generate them."""
-    _PDw = 'PDw', r"Proton density (PD) weighted image", r"arbitrary"
+    PDw = r"PDw", r"Proton density (PD) weighted image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 The contrast of these images is mainly determined by spatial variations in
 the spin density (1H) of the imaged specimen.
@@ -1025,33 +1029,33 @@ In spin-echo sequences this contrast is achieved at short repetition and long
 echo times.
 In a gradient-echo acquisition, PD weighting dominates the contrast at long
 repetition and short echo times, and at small flip angles."""
-    _PLI = 'PLI', r"Polarized-light microscopy", r""
+    PLI = r"PLI", r"Polarized-light microscopy", r""
     r"""Polarized-light microscopy imaging data"""
-    _R1map = 'R1map', r"Longitudinal relaxation rate image", r"1/s"
+    R1map = r"R1map", r"Longitudinal relaxation rate image", r"1/s"
     r"""In seconds<sup>-1</sup> (1/s).
 R1 maps (R1 = 1/T1) are REQUIRED to use this suffix regardless of the method
 used to generate them."""
-    _R2map = 'R2map', r"True transverse relaxation rate image", r"1/s"
+    R2map = r"R2map", r"True transverse relaxation rate image", r"1/s"
     r"""In seconds<sup>-1</sup> (1/s).
 R2 maps (R2 = 1/T2) are REQUIRED to use this suffix regardless of the method
 used to generate them."""
-    _R2starmap = 'R2starmap', r"Observed transverse relaxation rate image", r"1/s"
+    R2starmap = r"R2starmap", r"Observed transverse relaxation rate image", r"1/s"
     r"""In seconds<sup>-1</sup> (1/s).
 R2-star maps (R2star = 1/T2star) are REQUIRED to use this suffix regardless
 of the method used to generate them."""
-    _RB1COR = 'RB1COR', r"RB1COR", r""
+    RB1COR = r"RB1COR", r"RB1COR", r""
     r"""Low resolution images acquired by the body coil
 (in the gantry of the scanner) and the head coil using identical acquisition
 parameters to generate a combined sensitivity map as described in
 [Papp et al. (2016)](https://doi.org/10.1002/mrm.26058)."""
-    _RB1map = 'RB1map', r"RF receive sensitivity map", r"arbitrary"
+    RB1map = r"RB1map", r"RF receive sensitivity map", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 Radio frequency (RF) receive (B1-) sensitivity maps are REQUIRED to use this
 suffix regardless of the method used to generate them.
 RB1map intensity values are RECOMMENDED to be represented as percent
 multiplicative factors such that Amplitude<sub>effective</sub> =
 B1-<sub>intensity</sub>\*Amplitude<sub>ideal</sub>."""
-    _S0map = 'S0map', r"Observed signal amplitude (S0) image", r""
+    S0map = r"S0map", r"Observed signal amplitude (S0) image", r""
     r"""In arbitrary units (arbitrary).
 For a multi-echo (typically fMRI) sequence, S0 maps index the baseline signal
 before exponential (T2-star) signal decay.
@@ -1060,23 +1064,23 @@ across log-transformed echos. For more information, please see, for example,
 [the tedana documentation](https://tedana.readthedocs.io/en/latest/\
 approach.html#monoexponential-decay-model-fit).
 S0 maps are RECOMMENDED to use this suffix if derived from an ME-FMRI dataset."""
-    _SEM = 'SEM', r"Scanning electron microscopy", r""
+    SEM = r"SEM", r"Scanning electron microscopy", r""
     r"""Scanning electron microscopy imaging data"""
-    _SPIM = 'SPIM', r"Selective plane illumination microscopy", r""
+    SPIM = r"SPIM", r"Selective plane illumination microscopy", r""
     r"""Selective plane illumination microscopy imaging data"""
-    _SR = 'SR', r"Super-resolution microscopy", r""
+    SR = r"SR", r"Super-resolution microscopy", r""
     r"""Super-resolution microscopy imaging data"""
-    _T1map = 'T1map', r"Longitudinal relaxation time image", r"s"
+    T1map = r"T1map", r"Longitudinal relaxation time image", r"s"
     r"""In seconds (s).
 T1 maps are REQUIRED to use this suffix regardless of the method used to
 generate them.
 See [this interactive book on T1 mapping](https://qmrlab.org/t1_book/intro)
 for further reading on T1-mapping."""
-    _T1rho = 'T1rho', r"T1 in rotating frame (T1 rho) image", r"s"
+    T1rho = r"T1rho", r"T1 in rotating frame (T1 rho) image", r"s"
     r"""In seconds (s).
 T1-rho maps are REQUIRED to use this suffix regardless of the method used to
 generate them."""
-    _T1w = 'T1w', r"T1-weighted image", r"arbitrary"
+    T1w = r"T1w", r"T1-weighted image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 The contrast of these images is mainly determined by spatial variations in
 the longitudinal relaxation time of the imaged specimen.
@@ -1087,18 +1091,18 @@ and echo times are selected; however, at relatively large flip angles.
 Another common approach to increase T1 weighting in gradient-echo images is
 to add an inversion preparation block to the beginning of the imaging
 sequence (for example, `TurboFLASH` or `MP-RAGE`)."""
-    _T2map = 'T2map', r"True transverse relaxation time image", r"s"
+    T2map = r"T2map", r"True transverse relaxation time image", r"s"
     r"""In seconds (s).
 T2 maps are REQUIRED to use this suffix regardless of the method used to
 generate them."""
-    _T2star = 'T2star', r"T2\* image", r""
+    T2star = r"T2star", r"T2\* image", r""
     r"""Ambiguous, may refer to a parametric image or to a conventional image.
 **Change:** Replaced by `T2starw` or `T2starmap`."""
-    _T2starmap = 'T2starmap', r"Observed transverse relaxation time image", r"s"
+    T2starmap = r"T2starmap", r"Observed transverse relaxation time image", r"s"
     r"""In seconds (s).
 T2-star maps are REQUIRED to use this suffix regardless of the method used to
 generate them."""
-    _T2starw = 'T2starw', r"T2star weighted image", r"arbitrary"
+    T2starw = r"T2starw", r"T2star weighted image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 The contrast of these images is mainly determined by spatial variations in
 the (observed) transverse relaxation time of the imaged specimen.
@@ -1108,7 +1112,7 @@ The contrast of gradient-echo images natively depends on T2-star effects.
 However, for T2-star variation to dominate the image contrast,
 gradient-echo acquisitions are carried out at long repetition and echo times,
 and at small flip angles."""
-    _T2w = 'T2w', r"T2-weighted image", r"arbitrary"
+    T2w = r"T2w", r"T2-weighted image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 The contrast of these images is mainly determined by spatial variations in
 the (true) transverse relaxation time of the imaged specimen.
@@ -1117,29 +1121,29 @@ repetition and echo times.
 Generally, gradient echo sequences are not the most suitable option for
 achieving T2 weighting, as their contrast natively depends on T2-star rather
 than on T2."""
-    _TB1AFI = 'TB1AFI', r"TB1AFI", r""
+    TB1AFI = r"TB1AFI", r"TB1AFI", r""
     r"""This method ([Yarnykh 2007](https://doi.org/10.1002/mrm.21120))
 calculates a B1<sup>+</sup> map from two images acquired at interleaved (two)
 TRs with identical RF pulses using a steady-state sequence."""
-    _TB1DAM = 'TB1DAM', r"TB1DAM", r""
+    TB1DAM = r"TB1DAM", r"TB1DAM", r""
     r"""The double-angle B1<sup>+</sup> method
 ([Insko and Bolinger 1993](https://doi.org/10.1006/jmra.1993.1133)) is based
 on the calculation of the actual angles from signal ratios,
 collected by two acquisitions at different nominal excitation flip angles.
 Common sequence types for this application include spin echo and echo planar
 imaging."""
-    _TB1EPI = 'TB1EPI', r"TB1EPI", r""
+    TB1EPI = r"TB1EPI", r"TB1EPI", r""
     r"""This B1<sup>+</sup> mapping method
 ([Jiru and Klose 2006](https://doi.org/10.1002/mrm.21083)) is based on two
 EPI readouts to acquire spin echo (SE) and stimulated echo (STE) images at
 multiple flip angles in one sequence, used in the calculation of deviations
 from the nominal flip angle."""
-    _TB1RFM = 'TB1RFM', r"TB1RFM", r""
+    TB1RFM = r"TB1RFM", r"TB1RFM", r""
     r"""The result of a Siemens `rf_map` product sequence.
 This sequence produces two images.
 The first image appears like an anatomical image and the second output is a
 scaled flip angle map."""
-    _TB1SRGE = 'TB1SRGE', r"TB1SRGE", r""
+    TB1SRGE = r"TB1SRGE", r"TB1SRGE", r""
     r"""Saturation-prepared with 2 rapid gradient echoes (SA2RAGE) uses a ratio of
 two saturation recovery images with different time delays,
 and a simulated look-up table to estimate B1+
@@ -1147,21 +1151,21 @@ and a simulated look-up table to estimate B1+
 This sequence can also be used in conjunction with MP2RAGE T1 mapping to
 iteratively improve B1+ and T1 map estimation
 ([Marques & Gruetter 2013](https://doi.org/10.1371/journal.pone.0069294))."""
-    _TB1TFL = 'TB1TFL', r"TB1TFL", r""
+    TB1TFL = r"TB1TFL", r"TB1TFL", r""
     r"""The result of a Siemens `tfl_b1_map` product sequence.
 This sequence produces two images.
 The first image appears like an anatomical image and the second output is a
 scaled flip angle map."""
-    _TB1map = 'TB1map', r"RF transmit field image", r"arbitrary"
+    TB1map = r"TB1map", r"RF transmit field image", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 Radio frequency (RF) transmit (B1+) field maps are REQUIRED to use this
 suffix regardless of the method used to generate them.
 TB1map intensity values are RECOMMENDED to be represented as percent
 multiplicative factors such that FlipAngle<sub>effective</sub> =
 B1+<sub>intensity</sub>\*FlipAngle<sub>nominal</sub> ."""
-    _TEM = 'TEM', r"Transmission electron microscopy", r""
+    TEM = r"TEM", r"Transmission electron microscopy", r""
     r"""Transmission electron microscopy imaging data"""
-    _UNIT1 = 'UNIT1', r"Homogeneous (flat) T1-weighted MP2RAGE image", r""
+    UNIT1 = r"UNIT1", r"Homogeneous (flat) T1-weighted MP2RAGE image", r""
     r"""In arbitrary units (arbitrary).
 UNIT1 images are REQUIRED to use this suffix regardless of the method used to
 generate them.
@@ -1169,126 +1173,143 @@ Note that although this image is T1-weighted, regions without MR signal will
 contain white salt-and-pepper noise that most segmentation algorithms will
 fail on.
 Therefore, it is important to dissociate it from `T1w`.
-Please see [`MP2RAGE` specific notes](/99-appendices/11-qmri.html#unit1-images)
+Please see [`MP2RAGE` specific notes](SPEC_ROOT/appendices/qmri.md#unit1-images)
 in the qMRI appendix for further information."""
-    _VFA = 'VFA', r"Variable flip angle", r""
+    VFA = r"VFA", r"Variable flip angle", r""
     r"""The VFA method involves at least two spoiled gradient echo (SPGR) of
 steady-state free precession (SSFP) images acquired at different flip angles.
 Depending on the provided metadata fields and the sequence type,
 data may be eligible for DESPOT1, DESPOT2 and their variants
 ([Deoni et al. 2005](https://doi.org/10.1002/mrm.20314))."""
-    _angio = 'angio', r"Angiogram", r""
+    angio = r"angio", r"Angiogram", r""
     r"""Magnetic resonance angiography sequences focus on enhancing the contrast of
 blood vessels (generally arteries, but sometimes veins) against other tissue
 types."""
-    _asl = 'asl', r"Arterial Spin Labeling", r""
+    asl = r"asl", r"Arterial Spin Labeling", r""
     r"""The complete ASL time series stored as a 4D NIfTI file in the original
 acquisition order, with possible volume types including: control, label,
 m0scan, deltam, cbf."""
-    _aslcontext = 'aslcontext', r"Arterial Spin Labeling Context", r""
+    aslcontext = r"aslcontext", r"Arterial Spin Labeling Context", r""
     r"""A TSV file defining the image types for volumes in an associated ASL file."""
-    _asllabeling = 'asllabeling', r"ASL Labeling Screenshot", r""
+    asllabeling = r"asllabeling", r"ASL Labeling Screenshot", r""
     r"""An anonymized screenshot of the planning of the labeling slab/plane with
 respect to the imaging slab or slices `*_asllabeling.jpg`.
 Based on DICOM macro C.8.13.5.14."""
-    _beh = 'beh', r"Behavioral recording", r""
+    beh = r"beh", r"Behavioral recording", r""
     r"""Behavioral recordings from tasks.
 These files are similar to events files, but do not include the `"onset"` and
 `"duration"` columns that are mandatory for events files."""
-    _blood = 'blood', r"Blood recording data", r""
+    blood = r"blood", r"Blood recording data", r""
     r"""Blood measurements of radioactivity stored in
-[tabular files](/02-common-principles.html#tabular-files)
+[tabular files](SPEC_ROOT/common-principles.md#tabular-files)
 and located in the `pet/` directory along with the corresponding PET data."""
-    _bold = 'bold', r"Blood-Oxygen-Level Dependent image", r""
+    bold = r"bold", r"Blood-Oxygen-Level Dependent image", r""
     r"""Blood-Oxygen-Level Dependent contrast (specialized T2\* weighting)"""
-    _cbv = 'cbv', r"Cerebral blood volume image", r""
+    cbv = r"cbv", r"Cerebral blood volume image", r""
     r"""Cerebral Blood Volume contrast (specialized T2\* weighting or difference between T1 weighted images)"""
-    _channels = 'channels', r"Channels File", r""
+    channels = r"channels", r"Channels File", r""
     r"""Channel information."""
-    _coordsystem = 'coordsystem', r"Coordinate System File", r""
+    coordsystem = r"coordsystem", r"Coordinate System File", r""
     r"""A JSON document specifying the coordinate system(s) used for the MEG, EEG,
 head localization coils, and anatomical landmarks."""
-    _defacemask = 'defacemask', r"Defacing Mask", r""
+    defacemask = r"defacemask", r"Defacing Mask", r""
     r"""A binary mask that was used to remove facial features from an anatomical MRI
 image."""
-    _dwi = 'dwi', r"Diffusion-weighted image", r""
+    dseg = r"dseg", r"Discrete Segmentation", r""
+    r"""A discrete segmentation.
+
+This suffix may only be used in derivative datasets."""
+    dwi = r"dwi", r"Diffusion-weighted image", r""
     r"""Diffusion-weighted imaging contrast (specialized T2 weighting)."""
-    _eeg = 'eeg', r"Electroencephalography", r""
+    eeg = r"eeg", r"Electroencephalography", r""
     r"""Electroencephalography recording data."""
-    _electrodes = 'electrodes', r"Electrodes", r""
+    electrodes = r"electrodes", r"Electrodes", r""
     r"""File that gives the location of (i)EEG electrodes."""
-    _epi = 'epi', r"EPI", r""
+    epi = r"epi", r"EPI", r""
     r"""The phase-encoding polarity (PEpolar) technique combines two or more Spin Echo
 EPI scans with different phase encoding directions to estimate the underlying
 inhomogeneity/deformation map."""
-    _events = 'events', r"Events", r""
+    events = r"events", r"Events", r""
     r"""Event timing information from a behavioral task."""
-    _fieldmap = 'fieldmap', r"Fieldmap", r""
+    fieldmap = r"fieldmap", r"Fieldmap", r""
     r"""Some MR schemes such as spiral-echo imaging (SEI) sequences are able to
 directly provide maps of the *B<sub>0</sub>* field inhomogeneity."""
-    _headshape = 'headshape', r"Headshape File", r""
+    headshape = r"headshape", r"Headshape File", r""
     r"""The 3-D locations of points that describe the head shape and/or electrode
 locations can be digitized and stored in separate files."""
-    _ieeg = 'ieeg', r"Intracranial Electroencephalography", r""
+    ieeg = r"ieeg", r"Intracranial Electroencephalography", r""
     r"""Intracranial electroencephalography recording data."""
-    _inplaneT1 = 'inplaneT1', r"Inplane T1", r"arbitrary"
+    inplaneT1 = r"inplaneT1", r"Inplane T1", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 T1 weighted structural image matched to a functional (task) image."""
-    _inplaneT2 = 'inplaneT2', r"Inplane T2", r"arbitrary"
+    inplaneT2 = r"inplaneT2", r"Inplane T2", r"arbitrary"
     r"""In arbitrary units (arbitrary).
 T2 weighted structural image matched to a functional (task) image."""
-    _m0scan = 'm0scan', r"M0 image", r""
+    m0scan = r"m0scan", r"M0 image", r""
     r"""The M0 image is a calibration image, used to estimate the equilibrium
 magnetization of blood."""
-    _magnitude = 'magnitude', r"Magnitude", r""
+    magnitude = r"magnitude", r"Magnitude", r""
     r"""Field-mapping MR schemes such as gradient-recalled echo (GRE) generate a
 Magnitude image to be used for anatomical reference.
 Requires the existence of Phase, Phase-difference or Fieldmap maps."""
-    _magnitude1 = 'magnitude1', r"Magnitude", r""
+    magnitude1 = r"magnitude1", r"Magnitude", r""
     r"""Magnitude map generated by GRE or similar schemes, associated with the first
 echo in the sequence."""
-    _magnitude2 = 'magnitude2', r"Magnitude", r""
+    magnitude2 = r"magnitude2", r"Magnitude", r""
     r"""Magnitude map generated by GRE or similar schemes, associated with the second
 echo in the sequence."""
-    _markers = 'markers', r"MEG Sensor Coil Positions", r""
+    markers = r"markers", r"MEG Sensor Coil Positions", r""
     r"""Another manufacturer-specific detail pertains to the KIT/Yokogawa/Ricoh
 system, which saves the MEG sensor coil positions in a separate file with two
 possible filename extensions  (`.sqd`, `.mrk`).
 For these files, the `markers` suffix MUST be used.
 For example: `sub-01_task-nback_markers.sqd`"""
-    _meg = 'meg', r"Magnetoencephalography", r""
+    mask = r"mask", r"Binary Mask", r""
+    r"""A binary mask that functions as a discrete "label" for a single structure.
+
+This suffix may only be used in derivative datasets."""
+    meg = r"meg", r"Magnetoencephalography", r""
     r"""Unprocessed MEG data stored in the native file format of the MEG instrument
 with which the data was collected."""
-    _pet = 'pet', r"Positron Emission Tomography", r""
+    nirs = r"nirs", r"Near Infrared Spectroscopy", r""
+    r"""Data associated with a Shared Near Infrared Spectroscopy Format file."""
+    optodes = r"optodes", r"Optodes", r""
+    r"""Either a light emitting device, sometimes called a transmitter, or a photoelectric transducer, sometimes called a
+receiver."""
+    pet = r"pet", r"Positron Emission Tomography", r""
     r"""PET imaging data SHOULD be stored in 4D
 (or 3D, if only one volume was acquired) NIfTI files with the `_pet` suffix.
 Volumes MUST be stored in chronological order
 (the order they were acquired in)."""
-    _phase = 'phase', r"Phase image", r""
-    r"""[DEPRECATED](/02-common-principles.html#definitions).
+    phase = r"phase", r"Phase image", r""
+    r"""[DEPRECATED](SPEC_ROOT/common-principles.md#definitions).
 Phase information associated with magnitude information stored in BOLD
 contrast.
 This suffix should be replaced by the
-[`part-phase`](/99-appendices/09-entities.html#part)
+[`part-phase`](SPEC_ROOT/appendices/entities.md#part)
 in conjunction with the `bold` suffix."""
-    _phase1 = 'phase1', r"Phase", r""
+    phase1 = r"phase1", r"Phase", r""
     r"""Phase map generated by GRE or similar schemes, associated with the first
 echo in the sequence."""
-    _phase2 = 'phase2', r"Phase", r""
+    phase2 = r"phase2", r"Phase", r""
     r"""Phase map generated by GRE or similar schemes, associated with the second
 echo in the sequence."""
-    _phasediff = 'phasediff', r"Phase-difference", r""
+    phasediff = r"phasediff", r"Phase-difference", r""
     r"""Some scanners subtract the `phase1` from the `phase2` map and generate a
 unique `phasediff` file.
 For instance, this is a common output for the built-in fieldmap sequence of
 Siemens scanners."""
-    _photo = 'photo', r"Photo File", r""
+    photo = r"photo", r"Photo File", r""
     r"""Photos of the anatomical landmarks, head localization coils or tissue sample."""
-    _physio = 'physio', r"Physiological recording", r""
+    physio = r"physio", r"Physiological recording", r""
     r"""Physiological recordings such as cardiac and respiratory signals."""
-    _sbref = 'sbref', r"Single-band reference image", r""
+    probseg = r"probseg", r"Probabilistic Segmentation", r""
+    r"""A probabilistic segmentation.
+
+This suffix may only be used in derivative datasets."""
+    sbref = r"sbref", r"Single-band reference image", r""
     r"""Single-band reference for one or more multi-band `dwi` images."""
-    _scans = 'scans', r"Scans file", r""
+    scans = r"scans", r"Scans file", r""
     r"""The purpose of this file is to describe timing and other properties of each imaging acquisition
 sequence (each run file) within one session.
 Each neural recording file SHOULD be described by exactly one row. Some recordings consist of
@@ -1304,31 +1325,29 @@ Additional fields can include external behavioral measures relevant to the scan.
 For example vigilance questionnaire score administered after a resting state scan.
 All such included additional fields SHOULD be documented in an accompanying _scans.json file
 that describes these fields in detail (see Tabular files)."""
-    _sessions = 'sessions', r"Sessions file", r""
+    sessions = r"sessions", r"Sessions file", r""
     r"""In case of multiple sessions there is an option of adding additional sessions.tsv files
 describing variables changing between sessions.
 In such case one file per participant SHOULD be added.
 These files MUST include a session_id column and describe each session by one and only one row.
 Column names in sessions.tsv files MUST be different from group level participant key column
 names in the participants.tsv file."""
-    _stim = 'stim', r"Continuous recording", r""
+    stim = r"stim", r"Continuous recording", r""
     r"""Continuous measures, such as parameters of a film or audio stimulus."""
-    _uCT = 'uCT', r"Micro-CT", r""
+    uCT = r"uCT", r"Micro-CT", r""
     r"""Micro-CT imaging data"""
 
-    def __init__(self, literal, value, unit_):
+    def __init__(self, literal, display_name_, unit_):
         self.literal_ = literal
-        self.value_ = value
+        self.display_name_ = display_name_
         self.unit_ = unit_
 
 class EntityEnum(Enum):
-    _subject = 'subject', r"Subject", r"sub", r"string", r"label"
+    subject = r"sub", r"Subject", r"string", r"label"
     r"""A person or animal participating in the study."""
-    _session = 'session', r"Session", r"ses", r"string", r"label"
-    r"""A logical grouping of neuroimaging and behavioral data consistent across
-subjects.
-Session can (but doesn't have to) be synonymous to a visit in a
-longitudinal study.
+    session = r"ses", r"Session", r"string", r"label"
+    r"""A logical grouping of neuroimaging and behavioral data consistent across subjects.
+Session can (but doesn't have to) be synonymous to a visit in a longitudinal study.
 In general, subjects will stay in the scanner during one session.
 However, for example, if a subject has to leave the scanner room and then
 be re-positioned on the scanner bed, the set of MRI acquisitions will still
@@ -1336,113 +1355,152 @@ be considered as a session and match sessions acquired in other subjects.
 Similarly, in situations where different data types are obtained over
 several visits (for example fMRI on one day followed by DWI the day after)
 those can be grouped in one session.
+
 Defining multiple sessions is appropriate when several identical or similar
 data acquisitions are planned and performed on all -or most- subjects,
 often in the case of some intervention between sessions
 (for example, training)."""
-    _sample = 'sample', r"Sample", r"sample", r"string", r"label"
-    r"""A sample pertaining to a subject such as tissue, primary cell
-or cell-free sample.
-The `sample-<label>` key/value pair is used to distinguish between different
-samples from the same subject.
-The label MUST be unique per subject and is RECOMMENDED to be unique
-throughout the dataset."""
-    _task = 'task', r"Task", r"task", r"string", r"label"
-    r"""Each task has a unique label that MUST only consist of letters and/or
-numbers (other characters, including spaces and underscores, are not
-allowed).
-Those labels MUST be consistent across subjects and sessions."""
-    _acquisition = 'acquisition', r"Acquisition", r"acq", r"string", r"label"
-    r"""The `acq-<label>` key/value pair corresponds to a custom label the
-user MAY use to distinguish a different set of parameters used for
-acquiring the same modality.
-For example this should be used when a study includes two T1w images - one
-full brain low resolution and one restricted field of view but high
-resolution.
+    sample = r"sample", r"Sample", r"string", r"label"
+    r"""A sample pertaining to a subject such as tissue, primary cell or cell-free sample.
+The `sample-<label>` entity is used to distinguish between different samples from the same subject.
+The label MUST be unique per subject and is RECOMMENDED to be unique throughout the dataset."""
+    task = r"task", r"Task", r"string", r"label"
+    r"""A set of structured activities performed by the participant.
+Tasks are usually accompanied by stimuli and responses, and can greatly vary in complexity.
+
+In the context of brain scanning, a task is always tied to one data acquisition.
+Therefore, even if during one acquisition the subject performed multiple conceptually different behaviors
+(with different sets of instructions) they will be considered one (combined) task.
+
+While tasks may be repeated across multiple acquisitions,
+a given task may have different sets of stimuli (for example, randomized order) and participant responses
+across subjects, sessions, and runs.
+
+The `task-<label>` MUST be consistent across subjects and sessions.
+
+Files with the `task-<label>` entity SHOULD have an associated
+[events file](SPEC_ROOT/modality-specific-files/task-events.md#task-events),
+as well as certain metadata fields in the associated JSON file.
+
+For the purpose of this specification we consider the so-called "resting state" a task,
+although events files are not expected for resting state data.
+Additionally, a common convention in the specification is to include the word "rest" in
+the `task` label for resting state files (for example, `task-rest`)."""
+    acquisition = r"acq", r"Acquisition", r"string", r"label"
+    r"""The `acq-<label>` entity corresponds to a custom label the user MAY use to distinguish
+a different set of parameters used for acquiring the same modality.
+
+For example, this should be used when a study includes two T1w images -
+one full brain low resolution and one restricted field of view but high resolution.
 In such case two files could have the following names:
-`sub-01_acq-highres_T1w.nii.gz` and `sub-01_acq-lowres_T1w.nii.gz`, however
-the user is free to choose any other label than `highres` and `lowres` as long
+`sub-01_acq-highres_T1w.nii.gz` and `sub-01_acq-lowres_T1w.nii.gz`;
+however, the user is free to choose any other label than `highres` and `lowres` as long
 as they are consistent across subjects and sessions.
+
 In case different sequences are used to record the same modality
 (for example, `RARE` and `FLASH` for T1w)
 this field can also be used to make that distinction.
-At what level of detail to make the distinction (for example,
-just between `RARE` and `FLASH`, or between `RARE`, `FLASH`, and `FLASHsubsampled`)
+The level of detail at which the distinction is made
+(for example, just between `RARE` and `FLASH`, or between `RARE`, `FLASH`, and `FLASHsubsampled`)
 remains at the discretion of the researcher."""
-    _ceagent = 'ceagent', r"Contrast Enhancing Agent", r"ce", r"string", r"label"
-    r"""The `ce-<label>` key/value can be used to distinguish
-sequences using different contrast enhanced images.
+    ceagent = r"ce", r"Contrast Enhancing Agent", r"string", r"label"
+    r"""The `ce-<label>` entity can be used to distinguish sequences using different contrast enhanced images.
 The label is the name of the contrast agent.
-The key `"ContrastBolusIngredient"` MAY also be added in the JSON file,
-with the same label."""
-    _tracer = 'tracer', r"Tracer", r"trc", r"string", r"label"
-    r"""The `trc-<label>` key/value can be used to distinguish
-sequences using different tracers.
-The key `"TracerName"` MUST also be included in the associated JSON file,
-although the label may be different."""
-    _stain = 'stain', r"Stain", r"stain", r"string", r"label"
+
+This entity represents the `"ContrastBolusIngredient"` metadata field.
+Therefore, if the `ce-<label>` entity is present in a filename,
+`"ContrastBolusIngredient"` MAY also be added in the JSON file, with the same label."""
+    tracer = r"trc", r"Tracer", r"string", r"label"
+    r"""The `trc-<label>` entity can be used to distinguish sequences using different tracers.
+
+This entity represents the `"TracerName"` metadata field.
+Therefore, if the `trc-<label>` entity is present in a filename,
+`"TracerName"` MUST be defined in the associated metadata.
+Please note that the `<label>` does not need to match the actual value of the field."""
+    stain = r"stain", r"Stain", r"string", r"label"
     r"""The `stain-<label>` key/pair values can be used to distinguish image files
 from the same sample using different stains or antibodies for contrast enhancement.
-Stains SHOULD be indicated in the `"SampleStaining"` key in the sidecar JSON file,
+
+This entity represents the `"SampleStaining"` metadata field.
+Therefore, if the `stain-<label>` entity is present in a filename,
+`"SampleStaining"` SHOULD be defined in the associated metadata,
 although the label may be different.
-Description of antibodies SHOULD also be indicated in `"SamplePrimaryAntibodies"`
-and/or `"SampleSecondaryAntobodies"` as appropriate."""
-    _reconstruction = 'reconstruction', r"Reconstruction", r"rec", r"string", r"label"
-    r"""The `rec-<label>` key/value can be used to distinguish
-different reconstruction algorithms (for example `MoCo` for the ones using motion
-correction)."""
-    _direction = 'direction', r"Phase-Encoding Direction", r"dir", r"string", r"label"
-    r"""The `dir-<label>` key/value can be set to an arbitrary alphanumeric label
-(for example, `dir-LR` or `dir-AP`) to distinguish different phase-encoding
-directions."""
-    _run = 'run', r"Run", r"run", r"string", r"index"
-    r"""If several scans with the same acquisition parameters are acquired in the same session,
-they MUST be indexed with the [`run-<index>`](../99-appendices/09-entities.md#run) entity:
-`_run-1`, `_run-2`, `_run-3`, and so on (only nonnegative integers are allowed as
-run labels).
+
+Descriptions of antibodies SHOULD also be indicated in the `"SamplePrimaryAntibodies"`
+and/or `"SampleSecondaryAntobodies"` metadata fields, as appropriate."""
+    reconstruction = r"rec", r"Reconstruction", r"string", r"label"
+    r"""The `rec-<label>` entity can be used to distinguish different reconstruction algorithms
+(for example, `MoCo` for the ones using motion correction)."""
+    direction = r"dir", r"Phase-Encoding Direction", r"string", r"label"
+    r"""The `dir-<label>` entity can be set to an arbitrary alphanumeric label
+(for example, `dir-LR` or `dir-AP`)
+to distinguish different phase-encoding directions.
+
+This entity represents the `"PhaseEncodingDirection"` metadata field.
+Therefore, if the `dir-<label>` entity is present in a filename,
+`"PhaseEncodingDirection"` MUST be defined in the associated metadata.
+Please note that the `<label>` does not need to match the actual value of the field."""
+    run = r"run", r"Run", r"string", r"index"
+    r"""The `run-<index>` entity is used to distinguish separate data acquisitions with the same acquisition parameters
+and (other) entities.
+
+If several data acquisitions (for example, MRI scans or EEG recordings)
+with the same acquisition parameters are acquired in the same session,
+they MUST be indexed with the [`run-<index>`](SPEC_ROOT/appendices/entities.md#run) entity:
+`_run-1`, `_run-2`, `_run-3`, and so on
+(only nonnegative integers are allowed as run indices).
 
 If different entities apply,
-such as a different session indicated by [`ses-<label>`](../99-appendices/09-entities.md#ses),
+such as a different session indicated by [`ses-<label>`][SPEC_ROOT/appendices/entities.md#ses),
 or different acquisition parameters indicated by
-[`acq-<label>`](../99-appendices/09-entities.md#acq),
+[`acq-<label>`](SPEC_ROOT/appendices/entities.md#acq),
 then `run` is not needed to distinguish the scans and MAY be omitted."""
-    _modality = 'modality', r"Corresponding Modality", r"mod", r"string", r"label"
-    r"""The `mod-<label>` key/value pair corresponds to modality label for defacing
+    modality = r"mod", r"Corresponding Modality", r"string", r"label"
+    r"""The `mod-<label>` entity corresponds to modality label for defacing
 masks, for example, T1w, inplaneT1, referenced by a defacemask image.
 For example, `sub-01_mod-T1w_defacemask.nii.gz`."""
-    _echo = 'echo', r"Echo", r"echo", r"string", r"index"
+    echo = r"echo", r"Echo", r"string", r"index"
     r"""If files belonging to an entity-linked file collection are acquired at different
-echo times, the `_echo-<index>` key/value pair MUST be used to distinguish
+echo times, the `echo-<index>` entity MUST be used to distinguish individual files.
+
+This entity represents the `"EchoTime"` metadata field.
+Therefore, if the `echo-<index>` entity is present in a filename,
+`"EchoTime"` MUST be defined in the associated metadata.
+Please note that the `<index>` denotes the number/index (in the form of a nonnegative integer),
+not the `"EchoTime"` value of the separate JSON file."""
+    flip = r"flip", r"Flip Angle", r"string", r"index"
+    r"""If files belonging to an entity-linked file collection are acquired at different
+flip angles, the `_flip-<index>` entity pair MUST be used to distinguish
 individual files.
-This entity represents the `"EchoTime"` metadata field. Please note that the `<index>`
-denotes the number/index (in the form of a nonnegative integer), not the
-`"EchoTime"` value which needs to be stored in the field `"EchoTime"` of the separate
-JSON file."""
-    _flip = 'flip', r"Flip Angle", r"flip", r"string", r"index"
+
+This entity represents the `"FlipAngle"` metadata field.
+Therefore, if the `flip-<index>` entity is present in a filename,
+`"FlipAngle"` MUST be defined in the associated metadata.
+Please note that the `<index>` denotes the number/index (in the form of a nonnegative integer),
+not the `"FlipAngle"` value of the separate JSON file."""
+    inversion = r"inv", r"Inversion Time", r"string", r"index"
+    r"""If files belonging to an entity-linked file collection are acquired at different inversion times,
+the `inv-<index>` entity MUST be used to distinguish individual files.
+
+This entity represents the `"InversionTime` metadata field.
+Therefore, if the `inv-<index>` entity is present in a filename,
+`"InversionTime"` MUST be defined in the associated metadata.
+Please note that the `<index>` denotes the number/index (in the form of a nonnegative integer),
+not the `"InversionTime"` value of the separate JSON file."""
+    mtransfer = r"mt", r"Magnetization Transfer", r"string", r"label"
     r"""If files belonging to an entity-linked file collection are acquired at different
-flip angles, the `_flip-<index>` key/value pair MUST be used to distinguish
-individual files.
-This entity represents the `"FlipAngle"` metadata field. Please note that the `<index>`
-denotes the number/index (in the form of a nonnegative integer), not the `"FlipAngle"`
-value which needs to be stored in the field `"FlipAngle"` of the separate JSON file."""
-    _inversion = 'inversion', r"Inversion Time", r"inv", r"string", r"index"
-    r"""If files belonging to an entity-linked file collection are acquired at different
-inversion times, the `_inv-<index>` key/value pair MUST be used to distinguish
-individual files.
-This entity represents the `"InversionTime` metadata field. Please note that the `<index>`
-denotes the number/index (in the form of a nonnegative integer), not the `"InversionTime"`
-value which needs to be stored in the field `"InversionTime"` of the separate JSON file."""
-    _mtransfer = 'mtransfer', r"Magnetization Transfer", r"mt", r"string", r""
-    r"""If files belonging to an entity-linked file collection are acquired at different
-magnetization transfer (MT) states, the `_mt-<label>` key/value pair MUST be used to
+magnetization transfer (MT) states, the `_mt-<label>` entity MUST be used to
 distinguish individual files.
-This entity represents the `"MTState"` metadata field. Allowed label values for this
-entity are `on` and `off`, for images acquired in presence and absence of an MT pulse,
-respectively."""
-    _part = 'part', r"Part", r"part", r"string", r""
+
+This entity represents the `"MTState"` metadata field.
+Therefore, if the `mt-<label>` entity is present in a filename,
+`"MTState"` MUST be defined in the associated metadata.
+Allowed label values for this entity are `on` and `off`,
+for images acquired in presence and absence of an MT pulse, respectively."""
+    part = r"part", r"Part", r"string", r"label"
     r"""This entity is used to indicate which component of the complex
 representation of the MRI signal is represented in voxel data.
-The `part-<label>` key/value pair is associated with the DICOM Tag
+The `part-<label>` entity is associated with the DICOM Tag
 `0008, 9208`.
 Allowed label values for this entity are `phase`, `mag`, `real` and `imag`,
 which are typically used in `part-mag`/`part-phase` or
@@ -1452,9 +1510,9 @@ Phase images MAY be in radians or in arbitrary units.
 The sidecar JSON file MUST include the units of the `phase` image.
 The possible options are `"rad"` or `"arbitrary"`.
 
-When there is only a magnitude image of a given type, the `part` key MAY be
+When there is only a magnitude image of a given type, the `part` entity MAY be
 omitted."""
-    _processing = 'processing', r"Processed (on device)", r"proc", r"string", r"label"
+    processing = r"proc", r"Processed (on device)", r"string", r"label"
     r"""The proc label is analogous to rec for MR and denotes a variant of
 a file that was a result of particular processing performed on the device.
 
@@ -1463,82 +1521,83 @@ This is useful for files produced in particular by Elekta's MaxFilter
 which some installations impose to be run on raw data because of active
 shielding software corrections before the MEG data can actually be
 exploited."""
-    _hemisphere = 'hemisphere', r"Hemisphere", r"hemi", r"string", r"label"
+    hemisphere = r"hemi", r"Hemisphere", r"string", r"label"
     r"""The `hemi-<label>` entity indicates which hemibrain is described by the file.
 Allowed label values for this entity are `L` and `R`, for the left and right
 hemibrains, respectively."""
-    _space = 'space', r"Space", r"space", r"string", r"label"
-    r"""The space entity can be used to indicate
-the way in which electrode positions are interpreted
-(for EEG/MEG/iEEG data) or
-the spatial reference to which a file has been aligned (for MRI data).
-The space `<label>` MUST be taken from one of the modality specific lists in
-[Appendix VIII](../99-appendices/08-coordinate-systems.md).
-For example for iEEG data, the restricted keywords listed under
-[iEEG Specific Coordinate Systems](../99-appendices/08-coordinate-systems.md#ieeg-specific-coordinate-systems)
+    space = r"space", r"Space", r"string", r"label"
+    r"""The `space-<label>` entity can be used to indicate the way in which electrode positions are interpreted
+(for EEG/MEG/iEEG data)
+or the spatial reference to which a file has been aligned (for MRI data).
+The `<label>` MUST be taken from one of the modality specific lists in the
+[Coordinate Systems Appendix](SPEC_ROOT/appendices/coordinate-systems.md).
+For example, for iEEG data, the restricted keywords listed under
+[iEEG Specific Coordinate Systems](SPEC_ROOT/appendices/coordinate-systems.md#ieeg-specific-coordinate-systems)
 are acceptable for `<label>`.
 
-For EEG/MEG/iEEG data, this entity can be applied to raw data, but
-for other data types, it is restricted to derivative data."""
-    _split = 'split', r"Split", r"split", r"string", r"index"
-    r"""In the case of long data recordings that exceed a file size of 2Gb, the
-.fif files are conventionally split into multiple parts.
+For EEG/MEG/iEEG data, this entity can be applied to raw data,
+but for other data types, it is restricted to derivative data."""
+    split = r"split", r"Split", r"string", r"index"
+    r"""In the case of long data recordings that exceed a file size of 2Gb,
+`.fif` files are conventionally split into multiple parts.
 Each of these files has an internal pointer to the next file.
-This is important when renaming these split recordings to the BIDS
-convention.
+This is important when renaming these split recordings to the BIDS convention.
 
 Instead of a simple renaming, files should be read in and saved under their
 new names with dedicated tools like [MNE-Python](https://mne.tools/),
-which will ensure that not only the file names, but also the internal file
-pointers will be updated.
-It is RECOMMENDED that .fif files with multiple parts use the
-`split-<index>` entity to indicate each part.
+which will ensure that not only the file names, but also the internal file pointers, will be updated.
+
+It is RECOMMENDED that `.fif` files with multiple parts use the `split-<index>` entity to indicate each part.
 If there are multiple parts of a recording and the optional `scans.tsv` is provided,
-remember to list all files separately in `scans.tsv` and that the entries for the
-`acq_time` column in `scans.tsv` MUST all be identical, as described in
-[Scans file](../03-modality-agnostic-files.md#scans-file)."""
-    _recording = 'recording', r"Recording", r"recording", r"string", r"label"
-    r"""More than one continuous recording file can be included (with different
-sampling frequencies).
-In such case use different labels.
-For example: `_recording-contrast`, `_recording-saturation`."""
-    _chunk = 'chunk', r"Chunk", r"chunk", r"string", r"index"
-    r"""The `chunk-<index>` key/value pair is used to distinguish between different
-regions, 2D images or 3D volumes files, of the same physical sample with
-different fields of view acquired in the same imaging experiment."""
-    _atlas = 'atlas', r"Atlas", r"atlas", r"string", r"label"
+all files MUST be listed separately in `scans.tsv` and
+the entries for the `acq_time` column in `scans.tsv` MUST all be identical,
+as described in [Scans file](SPEC_ROOT/modality-agnostic-files.md#scans-file)."""
+    recording = r"recording", r"Recording", r"string", r"label"
+    r"""The `recording-<label>` entity can be used to distinguish continuous recording files.
+
+This entity is commonly applied when continuous recordings have different sampling frequencies or start times.
+For example, physiological recordings with different sampling frequencies may be distinguished using
+labels like `recording-100Hz` and `recording-500Hz`."""
+    chunk = r"chunk", r"Chunk", r"string", r"index"
+    r"""The `chunk-<index>` key/value pair is used to distinguish between different regions,
+2D images or 3D volumes files,
+of the same physical sample with different fields of view acquired in the same imaging experiment."""
+    atlas = r"atlas", r"Atlas", r"string", r"label"
     r"""The `atlas-<label>` key/value pair corresponds to a custom label the user
 MAY use to distinguish a different atlas used for similar type of data.
 
 This entity is only applicable to derivative data."""
-    _resolution = 'resolution', r"Resolution", r"res", r"string", r"label"
+    resolution = r"res", r"Resolution", r"string", r"label"
     r"""Resolution of regularly sampled N-dimensional data.
-MUST have a corresponding `"Resolution"` metadata field to provide
-interpretation.
+
+This entity represents the `"Resolution"` metadata field.
+Therefore, if the `res-<label>` entity is present in a filename,
+`"Resolution"` MUST also be added in the JSON file, to provide interpretation.
 
 This entity is only applicable to derivative data."""
-    _density = 'density', r"Density", r"den", r"string", r"label"
+    density = r"den", r"Density", r"string", r"label"
     r"""Density of non-parametric surfaces.
-MUST have a corresponding `Density` metadata field to provide
-interpretation.
+
+This entity represents the `"Density"` metadata field.
+Therefore, if the `den-<label>` entity is present in a filename,
+`"Density"` MUST also be added in the JSON file, to provide interpretation.
 
 This entity is only applicable to derivative data."""
-    _label = 'label', r"Label", r"label", r"string", r"label"
+    label = r"label", r"Label", r"string", r"label"
     r"""Tissue-type label, following a prescribed vocabulary.
 Applies to binary masks and probabilistic/partial volume segmentations
 that describe a single tissue type.
 
 This entity is only applicable to derivative data."""
-    _description = 'description', r"Description", r"desc", r"string", r"label"
+    description = r"desc", r"Description", r"string", r"label"
     r"""When necessary to distinguish two files that do not otherwise have a
-distinguishing entity, the `_desc-<label>` keyword-value SHOULD be used.
+distinguishing entity, the `desc-<label>` entity SHOULD be used.
 
 This entity is only applicable to derivative data."""
 
-    def __init__(self, literal, value, entity_, type_, format_):
+    def __init__(self, literal, display_name_, type_, format_):
         self.literal_ = literal
-        self.value_ = value
-        self.entity_ = entity_
+        self.display_name_ = display_name_
         self.type_ = type_
         self.format_ = format_
 

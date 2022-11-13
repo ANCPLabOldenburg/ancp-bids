@@ -100,7 +100,7 @@ class QueryTestCase(BaseTestCase):
         schema = ds.get_schema()
         file_paths = ds.select(schema.Artifact) \
             .where(all_of(eq(schema.Artifact.suffix, 'bold'),
-                          entity(schema, schema.EntityEnum._subject, '02'))) \
+                          entity(schema, schema.EntityEnum.subject, '02'))) \
             .get_file_paths()
         file_paths = list(file_paths)
         self.assertEqual(3, len(file_paths))

@@ -73,9 +73,8 @@ def load_schema(base_dir):
             if schema_name in sys.modules:
                 schema = sys.modules[schema_name]
                 return schema
-    # assume using the earliest supported schema
-    from . import model_v1_7_0
-    return model_v1_7_0
+    # assume using the latest supported schema
+    return model_latest
 
 
 def save_dataset(ds: object, target_dir: str, context_folder=None):
@@ -153,10 +152,11 @@ def write_derivative(ds, derivative):
 load_plugins_by_package(plugins, ranking=0, system=True)
 
 # execute all SchemaPlugins, these plugins may monkey-patch the schema
-from ancpbids import model_v1_7_0, model_v1_7_1
+from ancpbids import model_v1_8_0
+from ancpbids import model_v1_8_0 as model_latest
 
 for pl in get_plugins(SchemaPlugin):
-    for model in [model_v1_7_0, model_v1_7_1]:
+    for model in [model_latest]:
         pl.execute(model)
 
 # load file handler plugins

@@ -111,7 +111,7 @@ class EntityExpr(CompExpr):
         if not isinstance(context, self.schema.Artifact):
             # for non-Artifacts, for example File, just return false
             return False
-        ents = list(filter(lambda e: e.key == self.key.entity_, context.entities))
+        ents = list(filter(lambda e: e.key == self.key.literal_, context.entities))
         if not ents:
             # the entity must not exist
             if self.pattern is None:
@@ -335,7 +335,7 @@ def query_entities(folder, scope: str = None, sort: bool = False, long_form=Fals
         a unique set of entities found within the dataset as a dict
     """
     schema = folder.get_schema()
-    known_entities = {e.entity_: e.literal_ for e in list(schema.EntityEnum)}
+    known_entities = {e.name: e.literal_ for e in list(schema.EntityEnum)}
     artifacts = filter(lambda m: isinstance(m, schema.Artifact), query(folder, scope=scope))
     result = {}
     for e in [e for a in artifacts for e in a.entities]:

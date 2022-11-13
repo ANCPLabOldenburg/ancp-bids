@@ -76,7 +76,7 @@ class WritingTestCase(BaseTestCase):
         self.assertEqual(derivative_folder.dataset_description.GeneratedBy.Name, "My Test Pipeline")
 
     def test_create_new_dataset(self):
-        from ancpbids import model_v1_7_0 as schema
+        from ancpbids import model_latest as schema
         dataset = schema.create_dataset(name='my-test-ds')
         dataset.dataset_description.Name = 'a programmatically created dataset'
         dataset.dataset_description.BIDSVersion = schema.VERSION
