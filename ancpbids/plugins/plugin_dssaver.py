@@ -83,7 +83,7 @@ class DatasetWritingPlugin(WritingPlugin):
         # sort according order defined in schema
         ordered_keys = self._get_ordered_entity_keys(artifact)
         for ok in ordered_keys:
-            seg = '-'.join([ok, artifact.get_entity(ok)])
+            seg = '-'.join([ok, str(artifact.get_entity(ok))])
             segments.append(seg)
         segments.append(artifact.suffix)
         new_file_name = '_'.join(segments) + artifact.extension

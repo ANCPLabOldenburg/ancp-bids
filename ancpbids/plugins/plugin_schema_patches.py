@@ -28,8 +28,13 @@ def add_entity(artifact, key, value):
     schema = artifact.get_schema()
     if isinstance(key, schema.EntityEnum):
         key = key.entity_
-    eref = schema.EntityRef(key, value)
-    artifact.entities.append(eref)
+
+    found = list(filter(lambda er: er.key == key, artifact.entities))
+    if found:
+        found[0].value = value
+    else:
+        eref = schema.EntityRef(key, value)
+        artifact.entities.append(eref)
 
 
 def add_entities(artifact, **kwargs):

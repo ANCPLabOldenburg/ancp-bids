@@ -33,7 +33,7 @@ class WritingTestCase(BaseTestCase):
             # ... doing complex task ...
             # ... done
             txt_artifact = session.create_artifact()
-            txt_artifact.add_entity("desc", "mypipeline")
+            txt_artifact.add_entities(desc="mypipeline", run=1, sub=sub_label)
             txt_artifact.suffix = 'textual'
             txt_artifact.extension = ".txt"
             txt_artifact.content = "Subject %s participated in task %s" % (sub_label, task_label)
@@ -41,7 +41,7 @@ class WritingTestCase(BaseTestCase):
             # create some random data
             df = pd.DataFrame(np.random.randint(0, 100, size=(100, 4)), columns=list('ABCD'))
             ev_artifact = session.create_artifact()
-            ev_artifact.add_entity("desc", "mypipeline")
+            ev_artifact.add_entities(desc="mypipeline", run=1, sub=sub_label)
             ev_artifact.suffix = 'events'
             ev_artifact.extension = ".tsv"
             # at this point, the file path is not known and will be provided
@@ -68,11 +68,20 @@ class WritingTestCase(BaseTestCase):
         self.assertEqual(16, len(subjects))
 
         for i, subject in enumerate(subjects):
-            exptected_sub_name = "sub-%02d" % (i + 1)
-            self.assertEqual(exptected_sub_name, subject.name)
-            for artifact in subject.files:
-                # check if 'sub' entity has been automatically added as it is inferrable from its parent directory
-                self.assertEqual(exptected_sub_name, "sub-%s" % artifact.get_entity('sub'))
+            sub_label = "%02d" % (i + 1)
+            expected_sub_name = "sub-%s" % sub_label
+            self.assertEqual(expected_sub_name, subject.name)
+
+            expected_ses_name = "ses-01"
+            self.assertEqual(expected_ses_name, subject.folders[0].name)
+
+            ses_folder = subject.folders[0]
+            for artifact in ses_folder.files:
+                ents = artifact.get_entities()
+                self.assertEqual(
+                    "{'sub': '%s', 'ses': '01', 'run': 1, 'desc': 'mypipeline'}" % (sub_label),
+                    str(ents))
+                self.assertTrue(artifact.name.startswith('sub-%s_ses-01_run-1_desc-mypipeline_' % sub_label))
 
         self.assertTrue(isinstance(derivative_folder.dataset_description, schema.DerivativeDatasetDescriptionFile))
         self.assertEqual(derivative_folder.dataset_description.GeneratedBy.Name, "My Test Pipeline")
