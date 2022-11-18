@@ -1,20 +1,20 @@
 import os.path
 import warnings
-from collections import OrderedDict
 from functools import partial
 from typing import List, Union, Dict
 
 import ancpbids
-from ancpbids import CustomOpExpr, EntityExpr, AllExpr, ValidationPlugin
-from . import load_dataset, LOGGER
-from .query import query, query_entities, FnMatchExpr, AnyExpr
-from .utils import deepupdate, resolve_segments, convert_to_relative
-
+from ancpbids import ValidationPlugin
+from . import load_dataset
+from .query import query, query_entities
+from .utils import resolve_segments, convert_to_relative
 
 warnings.warn('Development of the BIDSLayout interface will continue in the pybids project.')
 
 class BIDSLayout:
-    """A convenience class to provide access to an in-memory representation of a BIDS dataset.
+    """WARNING: Development of this class will continue in the pybids project.
+
+    A convenience class to provide access to an in-memory representation of a BIDS dataset.
 
     .. code-block::
 
@@ -77,7 +77,7 @@ class BIDSLayout:
         file = self.dataset.get_file(path)
         md = file.get_metadata()
         if md and include_entities:
-            schema_entities = {e.entity_: e.literal_ for e in list(self.schema.EntityEnum)}
+            schema_entities = {e.literal_: e.name for e in list(self.schema.EntityEnum)}
             md.update({schema_entities[e.key]: e.value for e in file.entities})
         return md
 

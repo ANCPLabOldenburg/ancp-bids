@@ -89,11 +89,14 @@ class QueryTestCase(BaseTestCase):
 
     def test_bidslayout_get_metadata(self):
         layout = ancpbids.BIDSLayout(DS005_DIR)
-        metadata = layout.get_metadata("sub-01/func/sub-01_task-mixedgamblestask_run-01_bold.nii.gz")
+        metadata = layout.get_metadata("sub-01/func/sub-01_task-mixedgamblestask_run-01_bold.nii.gz", include_entities=True)
         self.assertTrue(isinstance(metadata, dict))
         self.assertEqual(2.0, metadata['RepetitionTime'])
         self.assertEqual('mixed-gambles task', metadata['TaskName'])
         self.assertListEqual([0.0, 0.0571, 0.1143, 0.1714, 0.2286, 0.2857], metadata['SliceTiming'])
+        self.assertEqual('01', metadata['subject'])
+        self.assertEqual('mixedgamblestask', metadata['task'])
+        self.assertEqual(1, metadata['run'])
 
     def test_query_language(self):
         ds = ancpbids.load_dataset(DS005_DIR)

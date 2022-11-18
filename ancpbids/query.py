@@ -335,7 +335,6 @@ def query_entities(folder, scope: str = None, sort: bool = False, long_form=Fals
         a unique set of entities found within the dataset as a dict
     """
     schema = folder.get_schema()
-    known_entities = {e.name: e.literal_ for e in list(schema.EntityEnum)}
     artifacts = filter(lambda m: isinstance(m, schema.Artifact), query(folder, scope=scope))
     result = {}
     for e in [e for a in artifacts for e in a.entities]:
@@ -344,6 +343,7 @@ def query_entities(folder, scope: str = None, sort: bool = False, long_form=Fals
             result[key] = set()
         result[key].add(e.value)
     if long_form:
+        known_entities = {e.literal_: e.name for e in list(schema.EntityEnum)}
         result = {known_entities[k] if k in known_entities else k: v for k, v in result.items()}
     if sort:
         result = {k: sorted(v) for k, v in sorted(result.items())}
