@@ -85,6 +85,7 @@ class WritingTestCase(BaseTestCase):
 
         self.assertTrue(isinstance(derivative_folder.dataset_description, schema.DerivativeDatasetDescriptionFile))
         self.assertEqual(derivative_folder.dataset_description.GeneratedBy.Name, "My Test Pipeline")
+        shutil.rmtree(derivative_folder.get_absolute_path())
 
     def test_create_new_dataset(self):
         from ancpbids import model_latest as schema

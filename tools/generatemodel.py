@@ -44,7 +44,7 @@ class Model(dict):
         return self._schema
         
     def __repr__(self):
-        return str({{key: (str(value)[:32] + ' [...]') if len(str(value)) > 32 else value
+        return str({{key: (str(value)[:32] + '[...]') if len(str(value)) > 32 else value
                     for key, value in self.items()
                     if value is not None and not isinstance(value, (dict, list))}})
         """)

@@ -130,7 +130,7 @@ class BasicTestCase(BaseTestCase):
 
         all_direct_files = list(
             ds005.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File)))
-        self.assertEqual(8, len(all_direct_files))
+        self.assertEqual(9, len(all_direct_files))
 
     def test_get_files_and_folders(self):
         ds005 = load_dataset(DS005_DIR)

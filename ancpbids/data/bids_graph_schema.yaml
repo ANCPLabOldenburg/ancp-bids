@@ -100,7 +100,7 @@ MetadataFile:
     type: dict
 
 TSVFile:
-  .extends: File
+  .extends: Artifact
   delimiter:
     type: str
   contents:

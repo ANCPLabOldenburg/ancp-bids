@@ -261,15 +261,15 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
     if target:
         if target in 'suffixes':
             suffix = '*'
-            result_extractor = lambda artifacts: [a.suffix for a in artifacts]
+            result_extractor = lambda artifacts: [a.suffix for a in artifacts if a.suffix]
         elif target in 'extensions':
             extension = '*'
-            result_extractor = lambda artifacts: [a.extension for a in artifacts]
+            result_extractor = lambda artifacts: [a.extension for a in artifacts if a.extension]
         else:
             target = schema.fuzzy_match_entity_key(target)
             entities = {**entities, target: '*'}
             result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
-                                                  filter(lambda e: e.key == target, a.entities)]
+                                                  filter(lambda e: e.key == target, a.entities) if a.entities]
 
     search_operator = FnMatchExpr
     if regex_search:

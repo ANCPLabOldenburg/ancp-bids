@@ -14,7 +14,7 @@ class Model(dict):
         return self._schema
         
     def __repr__(self):
-        return str({key: (str(value)[:32] + ' [...]') if len(str(value)) > 32 else value
+        return str({key: (str(value)[:32] + '[...]') if len(str(value)) > 32 else value
                     for key, value in self.items()
                     if value is not None and not isinstance(value, (dict, list))})
         
@@ -255,9 +255,9 @@ class MetadataFile(Artifact):
     }
 
 
-class TSVFile(File):
-    def __init__(self, delimiter: 'str' = None, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(TSVFile, self).__init__(name or None, extension or None, uri or None)
+class TSVFile(Artifact):
+    def __init__(self, delimiter: 'str' = None, contents: 'Dict' = None, suffix: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(TSVFile, self).__init__(suffix or None, entities or [], name or None, extension or None, uri or None)
         self['delimiter'] = delimiter or None
         self['contents'] = contents or None
 
