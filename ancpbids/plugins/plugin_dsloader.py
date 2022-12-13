@@ -145,6 +145,34 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 setattr(parent, member['name'], mdfile)
                 parent.remove_file(file.name, from_meta=False)
 
+    def _type_handler_TSVFile(self, parent, member):
+        if not isinstance(parent, self.schema.Folder):
+            return
+        if member['max'] > 1:
+            files = parent.get_files(member['meta']['name_pattern'])
+            for file in files:
+                tsvfile = self.schema.TSVFile()
+                tsvfile.parent_object_ = parent
+                tsvfile.update(file)
+                tsvfile.contents = tsvfile.load_contents()
+                getattr(parent, member['name']).append(tsvfile)
+                parent.remove_file(file.name, from_meta=False)
+        else:
+            file = parent.get_file(member['name'])
+            if file is None:
+                files_by_pattern = parent.get_files(member['meta']['name_pattern'])
+                if files_by_pattern:
+                    file = files_by_pattern[0]
+            if file is not None:
+                if not isinstance(file, self.schema.TSVFile):
+                    tsvfile = self.schema.TSVFile()
+                    tsvfile.parent_object_ = parent
+                    tsvfile.update(file)
+                    tsvfile.contents = tsvfile.load_contents()
+                    file = tsvfile
+                setattr(parent, member['name'], file)
+                parent.remove_file(file.name, from_meta=False)
+
     def _type_handler_Artifact(self, parent, member):
         if not isinstance(parent, self.schema.Folder):
             return

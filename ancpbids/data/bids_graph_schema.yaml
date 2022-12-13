@@ -20,9 +20,13 @@ Dataset:
   samples:
     type: JsonFile
   participants_tsv:
-    type: File
+    type: TSVFile
+    meta:
+      name_pattern: participants.tsv
   participants_json:
     type: JsonFile
+    meta:
+      name_pattern: participants.json
   code:
     type: Folder
   derivatives:
@@ -95,6 +99,13 @@ MetadataFile:
   contents:
     type: dict
 
+TSVFile:
+  .extends: File
+  delimiter:
+    type: str
+  contents:
+    type: dict
+
 Folder:
   name:
     type: str
@@ -110,6 +121,11 @@ Folder:
     max: -1
     meta:
       name_pattern: '*.json'
+  tsvfiles:
+    type: TSVFile
+    max: -1
+    meta:
+      name_pattern: '*.tsv'
 
 EntityRef:
   key:

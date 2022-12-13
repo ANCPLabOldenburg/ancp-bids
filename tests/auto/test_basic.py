@@ -1,3 +1,5 @@
+import os.path
+
 import numpy
 
 from ancpbids import load_dataset
@@ -62,13 +64,20 @@ class BasicTestCase(BaseTestCase):
         self.assertEqual("func", func_datatype.name)
 
         artifacts = func_datatype.artifacts
-        self.assertEqual(6, len(artifacts))
+        self.assertEqual(3, len(artifacts))
         self.assertEqual("sub-01_task-mixedgamblestask_run-01_bold.nii.gz", artifacts[0].name)
-        self.assertEqual("sub-01_task-mixedgamblestask_run-03_events.tsv", artifacts[-1].name)
+        self.assertEqual("sub-01_task-mixedgamblestask_run-02_bold.nii.gz", artifacts[1].name)
+        self.assertEqual("sub-01_task-mixedgamblestask_run-03_bold.nii.gz", artifacts[2].name)
 
         metadatafiles = func_datatype.metadatafiles
         self.assertEqual(1, len(metadatafiles))
         self.assertEqual("sub-01_task-mixedgamblestask_run-01_events.json", metadatafiles[0].name)
+
+        tsvfiles = func_datatype.tsvfiles
+        self.assertEqual(3, len(tsvfiles))
+        self.assertEqual("sub-01_task-mixedgamblestask_run-01_events.tsv", tsvfiles[0].name)
+        self.assertEqual("sub-01_task-mixedgamblestask_run-02_events.tsv", tsvfiles[1].name)
+        self.assertEqual("sub-01_task-mixedgamblestask_run-03_events.tsv", tsvfiles[2].name)
 
     def test_json_file_contents(self):
         ds005 = load_dataset(DS005_DIR)
@@ -142,6 +151,18 @@ class BasicTestCase(BaseTestCase):
         expected = "{'name': 'dataset_description.json', 'Name': 'Mixed-gambles task', 'BIDSVersion': '1.0.0rc2', 'License': 'This dataset is made available u[...]'}"
         self.assertEqual(expected, str(ds005.dataset_description))
 
+    def test_participants_tsv(self):
+        ds005 = load_dataset(DS005_DIR)
+        schema = ds005.get_schema()
+        self.assertTrue(isinstance(ds005.participants_tsv, schema.TSVFile))
+        contents = ds005.participants_tsv.contents
+        self.assertTrue(contents, contents)
+        self.assertEqual(16, len(contents))
+        self.assertEqual(['participant_id', 'sex', 'age'], list(contents[0].keys()))
+        self.assertEqual(['sub-01', '0', '28'], list(contents[0].values()))
+
+        # or short form:
+        self.assertEqual({'participant_id': 'sub-01', 'sex': '0', 'age': '28'}, contents[0])
 
 if __name__ == '__main__':
     unittest.main()
