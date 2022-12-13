@@ -88,7 +88,10 @@ def _get_path(folder, file_name=None, absolute=True):
             segments.insert(0, current_folder.name)
         current_folder = current_folder.parent_object_
     _path = os.path.join(*segments) if segments else ''
-    return os.path.normpath(_path)
+    _path = os.path.normpath(_path)
+    if absolute:
+        _path = os.path.abspath(_path)
+    return _path
 
 
 def remove_file(folder, file_name, from_meta=True):

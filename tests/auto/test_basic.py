@@ -164,5 +164,11 @@ class BasicTestCase(BaseTestCase):
         # or short form:
         self.assertEqual({'participant_id': 'sub-01', 'sex': '0', 'age': '28'}, contents[0])
 
+    def test_absolute_path(self):
+        ds_path_norm = os.path.normpath(DS005_DIR)
+        ds005 = load_dataset(ds_path_norm)
+        ds_path = ds005.get_absolute_path()
+        self.assertEqual(ds_path, ds_path_norm)
+
 if __name__ == '__main__':
     unittest.main()
