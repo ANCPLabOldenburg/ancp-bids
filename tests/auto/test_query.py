@@ -6,57 +6,57 @@ from ..base_test_case import *
 
 
 class QueryTestCase(BaseTestCase):
-    def test_bidslayout_entities_formatting(self):
-        layout = ancpbids.BIDSLayout(ENTITIES_DIR)
-        files = layout.get(sub='02', run='3', return_type='filename')
+    def test_entities_formatting(self):
+        layout = ancpbids.load_dataset(ENTITIES_DIR)
+        files = layout.query(sub='02', run='3', return_type='filename')
         self.assertEqual(1, len(files))
         self.assertTrue(files[0].endswith("sub-02_task-abc_run-00003_events.tsv"))
 
-        files = layout.get(sub='02', run=['000000003'], return_type='filename')
+        files = layout.query(sub='02', run=['000000003'], return_type='filename')
         self.assertEqual(1, len(files))
         self.assertTrue(files[0].endswith("sub-02_task-abc_run-00003_events.tsv"))
 
         # should also handle invalid formats, i.e. run not as an index but a label
-        files = layout.get(sub='02', run='xyz', return_type='filename')
+        files = layout.query(sub='02', run='xyz', return_type='filename')
         self.assertEqual(1, len(files))
         self.assertTrue(files[0].endswith("sub-02_task-abc_run-xyz_events.tsv"))
 
     def test_bidslayout_entities_any(self):
-        layout = ancpbids.BIDSLayout(ENTITIES_DIR)
-        files = layout.get(sub='*', suffix='test', task='abc', return_type='filename')
+        layout = ancpbids.load_dataset(ENTITIES_DIR)
+        files = layout.query(sub='*', suffix='test', task='abc', return_type='filename')
         self.assertEqual(2, len(files))
         self.assertTrue(files[0].endswith("sub-bar_task-abc_test.txt"))
         self.assertTrue(files[1].endswith("sub-foo_task-abc_test.txt"))
 
     def test_bidslayout_subjects_filtered(self):
-        layout = ancpbids.BIDSLayout(ENTITIES_DIR)
-        subjects = layout.get_subjects(task='abc')
+        layout = ancpbids.load_dataset(ENTITIES_DIR)
+        subjects = layout.query(target="sub", task='abc')
         self.assertEqual(3, len(subjects))
         self.assertListEqual(['02', 'bar', 'foo'], subjects)
 
     def test_bidslayout(self):
-        layout = ancpbids.BIDSLayout(DS005_DIR)
+        layout = ancpbids.load_dataset(DS005_DIR)
+        ents = layout.query_entities()
 
-        subjects = layout.get_subjects()
-        subjects_expected = ['%02d' % i for i in range(1, 17)]
-        self.assertListEqual(subjects_expected, subjects)
+        subjects = ents["sub"]
+        subjects_expected = {'%02d' % i for i in range(1, 17)}
+        self.assertSetEqual(subjects_expected, subjects)
 
-        sessions = layout.get_sessions()
-        self.assertEqual(0, len(sessions))
+        self.assertNotIn("ses", ents)
 
-        tasks = layout.get_tasks()
-        self.assertListEqual(['mixedgamblestask'], tasks)
+        tasks = ents["task"]
+        self.assertSetEqual({'mixedgamblestask'}, tasks)
 
     def test_bidslayout_get(self):
-        layout = ancpbids.BIDSLayout(SYNTHETIC_DIR)
-        mask_niftis = layout.get(scope='derivatives',
-                                 return_type='filename',
-                                 suffix='mask',
-                                 extension='.nii',
-                                 sub='03',
-                                 ses='02',
-                                 task='nback',
-                                 run=["01", "02"])
+        layout = ancpbids.load_dataset(SYNTHETIC_DIR)
+        mask_niftis = layout.query(scope='derivatives',
+                                   return_type='filename',
+                                   suffix='mask',
+                                   extension='.nii',
+                                   sub='03',
+                                   ses='02',
+                                   task='nback',
+                                   run=["01", "02"])
         self.assertEqual(4, len(mask_niftis))
         expected_paths = [
             'derivatives/fmriprep/sub-03/ses-02/func/sub-03_ses-02_task-nback_run-01_space-MNI152NLin2009cAsym_desc-brain_mask.nii',
@@ -69,8 +69,8 @@ class QueryTestCase(BaseTestCase):
             self.assertTrue(list(filter(lambda p: file == p, mask_niftis)))
 
     def test_bidslayout_get_entities(self):
-        layout = ancpbids.BIDSLayout(DS005_DIR)
-        sorted_entities = layout.get_entities(scope='raw', sort=True)
+        layout = ancpbids.load_dataset(DS005_DIR)
+        sorted_entities = layout.query_entities(scope='raw', sort=True)
         # note: 'ds' and 'type' entities are contained in folder 'models' at dataset level, so considered raw data
         self.assertListEqual(['ds', 'run', 'sub', 'task', 'type'], list(sorted_entities.keys()))
         self.assertListEqual([1, 2, 3], sorted_entities['run'])
@@ -78,18 +78,19 @@ class QueryTestCase(BaseTestCase):
         self.assertListEqual(['mixedgamblestask'], sorted_entities['task'])
 
     def test_bidslayout_get_suffixes(self):
-        layout = ancpbids.BIDSLayout(DS005_DIR)
-        suffixes = layout.get_suffixes()
+        layout = ancpbids.load_dataset(DS005_DIR)
+        suffixes = layout.query(target="suffixe")
         self.assertListEqual(['T1w', 'bold', 'dwi', 'events', 'model'], suffixes)
 
     def test_bidslayout_get_extensions(self):
-        layout = ancpbids.BIDSLayout(DS005_DIR)
-        extensions = layout.get_extensions()
+        layout = ancpbids.load_dataset(DS005_DIR)
+        extensions = layout.query(target="extension")
         self.assertListEqual(['.json', '.nii.gz', '.tsv'], extensions)
 
     def test_bidslayout_get_metadata(self):
-        layout = ancpbids.BIDSLayout(DS005_DIR)
-        metadata = layout.get_metadata("sub-01/func/sub-01_task-mixedgamblestask_run-01_bold.nii.gz", include_entities=True)
+        layout = ancpbids.load_dataset(DS005_DIR)
+        metadata = layout.get_file("sub-01/func/sub-01_task-mixedgamblestask_run-01_bold.nii.gz").get_metadata(
+            include_entities=True)
         self.assertTrue(isinstance(metadata, dict))
         self.assertEqual(2.0, metadata['RepetitionTime'])
         self.assertEqual('mixed-gambles task', metadata['TaskName'])

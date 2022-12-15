@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 from collections import OrderedDict
@@ -144,11 +145,11 @@ class Select:
             if isinstance(m, self.filter_type) and self._where.eval(m):
                 yield callback(m)
 
-    def get_file_paths(self):
-        return self._exec(self.schema.File.get_relative_path)
+    def get_file_paths(self, depth=sys.maxsize):
+        return self._exec(self.schema.File.get_relative_path, depth=depth)
 
-    def get_file_paths_absolute(self):
-        return self._exec(self.schema.File.get_absolute_path)
+    def get_file_paths_absolute(self, depth=sys.maxsize):
+        return self._exec(self.schema.File.get_absolute_path, depth=depth)
 
     def get_artifacts(self):
         # TODO filter by Artifact instances
@@ -189,7 +190,7 @@ def _require_artifact(schema, expr) -> AllExpr:
 
 def query(folder, return_type: str = 'object', target: str = None, scope: str = None,
           extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None,
-          regex_search=False,
+          regex_search=False, sorter=None,
           **entities) -> Union[List[str], List[object]]:
     """Depending on the return_type value returns either paths to files that matched the filtering criteria
     or :class:`Artifact <ancpbids.model_v1_7_0.Artifact>` objects for further processing by the caller.
@@ -295,14 +296,22 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
 
     select.where(AllExpr(*ops))
 
+    search_depth = sys.maxsize
+    if scope == "self":
+        search_depth = 1
+
     if return_type:
         if return_type.startswith("file"):
             return list(select.get_file_paths_absolute())
         elif return_type == 'dir':
-            result = filter(lambda o: isinstance(o, schema.File), select.objects())
+            result = filter(lambda o: isinstance(o, schema.File), select.objects(depth=search_depth))
             return set(map(lambda a: a.get_parent().get_relative_path(), result))
 
-    artifacts = select.objects()
+    artifacts = select.objects(depth=search_depth)
+    if sorter is None:
+        sorter = lambda artifact: artifact.name
+    if callable(sorter):
+        artifacts = sorted(artifacts, key=sorter)
     if result_extractor:
         return sorted(set(result_extractor(artifacts)))
     return list(artifacts)

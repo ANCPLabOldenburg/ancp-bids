@@ -63,17 +63,17 @@ class BasicTestCase(BaseTestCase):
         func_datatype = datatypes[-1]
         self.assertEqual("func", func_datatype.name)
 
-        artifacts = func_datatype.artifacts
+        artifacts = func_datatype.query(suffix="bold", scope="self")
         self.assertEqual(3, len(artifacts))
         self.assertEqual("sub-01_task-mixedgamblestask_run-01_bold.nii.gz", artifacts[0].name)
         self.assertEqual("sub-01_task-mixedgamblestask_run-02_bold.nii.gz", artifacts[1].name)
         self.assertEqual("sub-01_task-mixedgamblestask_run-03_bold.nii.gz", artifacts[2].name)
 
-        metadatafiles = func_datatype.metadatafiles
-        self.assertEqual(1, len(metadatafiles))
-        self.assertEqual("sub-01_task-mixedgamblestask_run-01_events.json", metadatafiles[0].name)
+        eventmetafiles = func_datatype.query(suffix="events", extension=".json", scope="self")
+        self.assertEqual(1, len(eventmetafiles))
+        self.assertEqual("sub-01_task-mixedgamblestask_run-01_events.json", eventmetafiles[0].name)
 
-        tsvfiles = func_datatype.tsvfiles
+        tsvfiles = func_datatype.query(extension=".tsv", scope="self")
         self.assertEqual(3, len(tsvfiles))
         self.assertEqual("sub-01_task-mixedgamblestask_run-01_events.tsv", tsvfiles[0].name)
         self.assertEqual("sub-01_task-mixedgamblestask_run-02_events.tsv", tsvfiles[1].name)
@@ -102,7 +102,7 @@ class BasicTestCase(BaseTestCase):
         ds005 = load_dataset(DS005_DIR)
         # get first artifact in func datatype of first subject/session:
         # sub-16_task-mixedgamblesatask_run-01_bold.nii.gz
-        artifact = ds005.subjects[0].datatypes[-1].artifacts[0]
+        artifact = ds005.subjects[0].datatypes[-1].query(scope="self")[0]
         self.assertTrue(isinstance(artifact, ds005.get_schema().Artifact))
 
         self.assertEqual("bold", artifact.suffix)
@@ -130,7 +130,7 @@ class BasicTestCase(BaseTestCase):
 
         all_direct_files = list(
             ds005.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File)))
-        self.assertEqual(9, len(all_direct_files))
+        self.assertEqual(8, len(all_direct_files))
 
     def test_get_files_and_folders(self):
         ds005 = load_dataset(DS005_DIR)
@@ -156,7 +156,7 @@ class BasicTestCase(BaseTestCase):
         schema = ds005.get_schema()
         self.assertTrue(isinstance(ds005.participants_tsv, schema.TSVFile))
         contents = ds005.participants_tsv.contents
-        self.assertTrue(contents, contents)
+        self.assertTrue(contents is not None)
         self.assertEqual(16, len(contents))
         self.assertEqual(['participant_id', 'sex', 'age'], list(contents[0].keys()))
         self.assertEqual(['sub-01', '0', '28'], list(contents[0].values()))

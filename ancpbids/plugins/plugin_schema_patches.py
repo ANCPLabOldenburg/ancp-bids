@@ -94,10 +94,8 @@ def _get_path(folder, file_name=None, absolute=True):
     return _path
 
 
-def remove_file(folder, file_name, from_meta=True):
+def remove_file(folder, file_name):
     folder.files = list(filter(lambda file: file.name != file_name, folder.files))
-    if from_meta:
-        folder.metadatafiles = list(filter(lambda file: file.name != file_name, folder.metadatafiles))
 
 
 def create_artifact(folder, raw=None):

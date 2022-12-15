@@ -14,10 +14,49 @@ class DatasetPopulationPlugin(DatasetPlugin):
         self._load_folder(dataset, base_dir)
         # transform files to artifacts, i.e. files containing entities in their name
         self._convert_files_to_artifacts(dataset)
+
+        # handle special files
+        self._handle_metadata_files(dataset)
+        self._handle_tsv_files(dataset)
+
         # expand structure based on schema-files
         self._expand_members(dataset)
         # convert Folders within derivatives to DerivativeFolder
         self._convert_derivatives_folders(dataset.derivatives)
+
+    def _handle_metadata_files(self, folder):
+        if not isinstance(folder, self.schema.Folder):
+            return
+        for file in filter(lambda f: f.name.endswith(".json"), folder.files):
+            if isinstance(file, self.schema.Artifact):
+                mdfile = self.schema.MetadataArtifact()
+            else:
+                mdfile = self.schema.MetadataFile()
+            mdfile.parent_object_ = folder
+            mdfile.update(file)
+            mdfile.contents = mdfile.load_contents()
+            folder.files.remove(file)
+            folder.files.append(mdfile)
+
+        for child in folder.folders:
+            self._handle_metadata_files(child)
+
+    def _handle_tsv_files(self, folder):
+        if not isinstance(folder, self.schema.Folder):
+            return
+        for file in filter(lambda f: f.name.endswith(".tsv"), folder.files):
+            if isinstance(file, self.schema.Artifact):
+                newfile = self.schema.TSVArtifact()
+            else:
+                newfile = self.schema.TSVFile()
+            newfile.parent_object_ = folder
+            newfile.update(file)
+            newfile.contents = newfile.load_contents()
+            folder.files.remove(file)
+            folder.files.append(newfile)
+
+        for child in folder.folders:
+            self._handle_tsv_files(child)
 
     def _convert_derivatives_folders(self, parent):
         if not parent:
@@ -117,61 +156,14 @@ class DatasetPopulationPlugin(DatasetPlugin):
     def _type_handler_File(self, parent, member):
         if not isinstance(parent, self.schema.Folder):
             return
-        file = parent.get_file(member['name'])
+        file_name = member['name']
+        meta = member['meta']
+        if 'name_pattern' in meta:
+            file_name = meta['name_pattern']
+        file = parent.get_file(file_name)
         if file:
             setattr(parent, member['name'], file)
             parent.remove_file(file.name)
-
-    def _type_handler_MetadataFile(self, parent, member):
-        if not isinstance(parent, self.schema.Folder):
-            return
-        if member['max'] > 1:
-            files = parent.get_files(member['meta']['name_pattern'])
-            files = list(filter(lambda f: isinstance(f, self.schema.Artifact), files))
-            for file in files:
-                mdfile = self.schema.MetadataFile()
-                mdfile.parent_object_ = parent
-                mdfile.update(file)
-                mdfile.contents = mdfile.load_contents()
-                getattr(parent, member['name']).append(mdfile)
-                parent.remove_file(file.name, from_meta=False)
-        else:
-            file = parent.get_file(member['name'])
-            if isinstance(file, self.schema.Artifact):
-                mdfile = self.schema.MetadataFile()
-                mdfile.parent_object_ = parent
-                mdfile.update(file)
-                mdfile.contents = mdfile.load_contents()
-                setattr(parent, member['name'], mdfile)
-                parent.remove_file(file.name, from_meta=False)
-
-    def _type_handler_TSVFile(self, parent, member):
-        if not isinstance(parent, self.schema.Folder):
-            return
-        if member['max'] > 1:
-            files = parent.get_files(member['meta']['name_pattern'])
-            for file in files:
-                tsvfile = self.schema.TSVFile()
-                tsvfile.parent_object_ = parent
-                tsvfile.update(file)
-                tsvfile.contents = tsvfile.load_contents()
-                getattr(parent, member['name']).append(tsvfile)
-                parent.remove_file(file.name, from_meta=False)
-        else:
-            file = parent.get_file(member['name'])
-            if file is None:
-                files_by_pattern = parent.get_files(member['meta']['name_pattern'])
-                if files_by_pattern:
-                    file = files_by_pattern[0]
-            if file is not None:
-                if not isinstance(file, self.schema.TSVFile):
-                    tsvfile = self.schema.TSVFile()
-                    tsvfile.parent_object_ = parent
-                    tsvfile.update(file)
-                    tsvfile.contents = tsvfile.load_contents()
-                    file = tsvfile
-                setattr(parent, member['name'], file)
-                parent.remove_file(file.name, from_meta=False)
 
     def _type_handler_Artifact(self, parent, member):
         if not isinstance(parent, self.schema.Folder):

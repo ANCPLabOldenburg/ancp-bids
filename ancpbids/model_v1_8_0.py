@@ -237,9 +237,9 @@ class Artifact(File):
     }
 
 
-class MetadataFile(Artifact):
+class MetadataArtifact(Artifact):
     def __init__(self, contents: 'Dict' = None, suffix: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(MetadataFile, self).__init__(suffix or None, entities or [], name or None, extension or None, uri or None)
+        super(MetadataArtifact, self).__init__(suffix or None, entities or [], name or None, extension or None, uri or None)
         self['contents'] = contents or None
 
     @property
@@ -255,9 +255,55 @@ class MetadataFile(Artifact):
     }
 
 
-class TSVFile(Artifact):
+class MetadataFile(File):
+    def __init__(self, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(MetadataFile, self).__init__(name or None, extension or None, uri or None)
+        self['contents'] = contents or None
+
+    @property
+    def contents(self) -> 'Dict':
+        return self['contents']
+
+    @contents.setter
+    def contents(self, contents: 'Dict'):
+        self['contents'] = contents
+            
+    MEMBERS = {
+        'contents': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
+    }
+
+
+class TSVArtifact(Artifact):
     def __init__(self, delimiter: 'str' = None, contents: 'Dict' = None, suffix: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(TSVFile, self).__init__(suffix or None, entities or [], name or None, extension or None, uri or None)
+        super(TSVArtifact, self).__init__(suffix or None, entities or [], name or None, extension or None, uri or None)
+        self['delimiter'] = delimiter or None
+        self['contents'] = contents or None
+
+    @property
+    def delimiter(self) -> 'str':
+        return self['delimiter']
+
+    @delimiter.setter
+    def delimiter(self, delimiter: 'str'):
+        self['delimiter'] = delimiter
+            
+    @property
+    def contents(self) -> 'Dict':
+        return self['contents']
+
+    @contents.setter
+    def contents(self, contents: 'Dict'):
+        self['contents'] = contents
+            
+    MEMBERS = {
+        'delimiter': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
+        'contents': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
+    }
+
+
+class TSVFile(File):
+    def __init__(self, delimiter: 'str' = None, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(TSVFile, self).__init__(name or None, extension or None, uri or None)
         self['delimiter'] = delimiter or None
         self['contents'] = contents or None
 
@@ -284,13 +330,11 @@ class TSVFile(Artifact):
 
 
 class Folder(Model):
-    def __init__(self, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None, tsvfiles: 'List[TSVFile]' = None):
+    def __init__(self, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
         super(Folder, self).__init__()
         self['name'] = name or None
         self['files'] = files or []
         self['folders'] = folders or []
-        self['metadatafiles'] = metadatafiles or []
-        self['tsvfiles'] = tsvfiles or []
 
     @property
     def name(self) -> 'str':
@@ -316,28 +360,10 @@ class Folder(Model):
     def folders(self, folders: 'List[Folder]'):
         self['folders'] = folders
             
-    @property
-    def metadatafiles(self) -> 'List[MetadataFile]':
-        return self['metadatafiles']
-
-    @metadatafiles.setter
-    def metadatafiles(self, metadatafiles: 'List[MetadataFile]'):
-        self['metadatafiles'] = metadatafiles
-            
-    @property
-    def tsvfiles(self) -> 'List[TSVFile]':
-        return self['tsvfiles']
-
-    @tsvfiles.setter
-    def tsvfiles(self, tsvfiles: 'List[TSVFile]'):
-        self['tsvfiles'] = tsvfiles
-            
     MEMBERS = {
         'name': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
         'files': {'type': 'File', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
         'folders': {'type': 'Folder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-        'metadatafiles': {'type': 'MetadataFile', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': '*.json'}},
-        'tsvfiles': {'type': 'TSVFile', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': '*.tsv'}},
     }
 
 
@@ -531,8 +557,8 @@ class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
 
 
 class DerivativeFolder(Folder):
-    def __init__(self, dataset_description: 'DerivativeDatasetDescriptionFile' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None, tsvfiles: 'List[TSVFile]' = None):
-        super(DerivativeFolder, self).__init__(name or None, files or [], folders or [], metadatafiles or [], tsvfiles or [])
+    def __init__(self, dataset_description: 'DerivativeDatasetDescriptionFile' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
+        super(DerivativeFolder, self).__init__(name or None, files or [], folders or [])
         self['dataset_description'] = dataset_description or None
 
     @property
@@ -549,8 +575,8 @@ class DerivativeFolder(Folder):
 
 
 class Session(Folder):
-    def __init__(self, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None, tsvfiles: 'List[TSVFile]' = None):
-        super(Session, self).__init__(name or None, files or [], folders or [], metadatafiles or [], tsvfiles or [])
+    def __init__(self, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
+        super(Session, self).__init__(name or None, files or [], folders or [])
         self['datatypes'] = datatypes or []
 
     @property
@@ -567,26 +593,16 @@ class Session(Folder):
 
 
 class DatatypeFolder(Folder):
-    def __init__(self, artifacts: 'List[Artifact]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None, tsvfiles: 'List[TSVFile]' = None):
-        super(DatatypeFolder, self).__init__(name or None, files or [], folders or [], metadatafiles or [], tsvfiles or [])
-        self['artifacts'] = artifacts or []
+    def __init__(self, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
+        super(DatatypeFolder, self).__init__(name or None, files or [], folders or [])
 
-    @property
-    def artifacts(self) -> 'List[Artifact]':
-        return self['artifacts']
-
-    @artifacts.setter
-    def artifacts(self, artifacts: 'List[Artifact]'):
-        self['artifacts'] = artifacts
-            
     MEMBERS = {
-        'artifacts': {'type': 'Artifact', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
     }
 
 
 class Subject(Folder):
-    def __init__(self, sessions: 'List[Session]' = None, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None, tsvfiles: 'List[TSVFile]' = None):
-        super(Subject, self).__init__(name or None, files or [], folders or [], metadatafiles or [], tsvfiles or [])
+    def __init__(self, sessions: 'List[Session]' = None, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
+        super(Subject, self).__init__(name or None, files or [], folders or [])
         self['sessions'] = sessions or []
         self['datatypes'] = datatypes or []
 
@@ -748,8 +764,8 @@ class GeneratedByContainer(Model):
 
 class Dataset(Folder):
     r"""The entry point of an in-memory graph representation of a BIDS dataset."""
-    def __init__(self, subjects: 'List[Subject]' = None, dataset_description: 'DatasetDescriptionFile' = None, README: 'File' = None, CHANGES: 'File' = None, LICENSE: 'File' = None, genetic_info: 'JsonFile' = None, samples: 'JsonFile' = None, participants_tsv: 'TSVFile' = None, participants_json: 'JsonFile' = None, code: 'Folder' = None, derivatives: 'Folder' = None, sourcedata: 'Folder' = None, stimuli: 'Folder' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None, metadatafiles: 'List[MetadataFile]' = None, tsvfiles: 'List[TSVFile]' = None):
-        super(Dataset, self).__init__(name or None, files or [], folders or [], metadatafiles or [], tsvfiles or [])
+    def __init__(self, subjects: 'List[Subject]' = None, dataset_description: 'DatasetDescriptionFile' = None, README: 'File' = None, CHANGES: 'File' = None, LICENSE: 'File' = None, genetic_info: 'JsonFile' = None, samples: 'JsonFile' = None, participants_tsv: 'File' = None, participants_json: 'JsonFile' = None, code: 'Folder' = None, derivatives: 'Folder' = None, sourcedata: 'Folder' = None, stimuli: 'Folder' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
+        super(Dataset, self).__init__(name or None, files or [], folders or [])
         self['subjects'] = subjects or []
         self['dataset_description'] = dataset_description or None
         self['README'] = README or None
@@ -821,11 +837,11 @@ class Dataset(Folder):
         self['samples'] = samples
             
     @property
-    def participants_tsv(self) -> 'TSVFile':
+    def participants_tsv(self) -> 'File':
         return self['participants_tsv']
 
     @participants_tsv.setter
-    def participants_tsv(self, participants_tsv: 'TSVFile'):
+    def participants_tsv(self, participants_tsv: 'File'):
         self['participants_tsv'] = participants_tsv
             
     @property
@@ -876,7 +892,7 @@ class Dataset(Folder):
         'LICENSE': {'type': 'File', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
         'genetic_info': {'type': 'JsonFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
         'samples': {'type': 'JsonFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'participants_tsv': {'type': 'TSVFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {'name_pattern': 'participants.tsv'}},
+        'participants_tsv': {'type': 'File', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {'name_pattern': 'participants.tsv'}},
         'participants_json': {'type': 'JsonFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {'name_pattern': 'participants.json'}},
         'code': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
         'derivatives': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},

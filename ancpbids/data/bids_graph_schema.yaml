@@ -20,7 +20,7 @@ Dataset:
   samples:
     type: JsonFile
   participants_tsv:
-    type: TSVFile
+    type: File
     meta:
       name_pattern: participants.tsv
   participants_json:
@@ -89,18 +89,29 @@ Artifact:
     type: str
     use: required
   entities:
-    # TODO make this a map type, so no need to model EntityRef with key/value
     type: EntityRef
     min: 1
     max: -1
 
-MetadataFile:
+MetadataArtifact:
   .extends: Artifact
   contents:
     type: dict
 
-TSVFile:
+MetadataFile:
+  .extends: File
+  contents:
+    type: dict
+
+TSVArtifact:
   .extends: Artifact
+  delimiter:
+    type: str
+  contents:
+    type: dict
+
+TSVFile:
+  .extends: File
   delimiter:
     type: str
   contents:
@@ -116,16 +127,6 @@ Folder:
   folders:
     type: Folder
     max: -1
-  metadatafiles:
-    type: MetadataFile
-    max: -1
-    meta:
-      name_pattern: '*.json'
-  tsvfiles:
-    type: TSVFile
-    max: -1
-    meta:
-      name_pattern: '*.tsv'
 
 EntityRef:
   key:
@@ -200,9 +201,6 @@ Session:
 
 DatatypeFolder:
   .extends: Folder
-  artifacts:
-    type: Artifact
-    max: -1
 
 Subject:
   .extends: Folder

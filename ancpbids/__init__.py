@@ -163,8 +163,6 @@ for pl in get_plugins(SchemaPlugin):
 for pl in get_plugins(FileHandlerPlugin):
     pl.execute(utils.FILE_READERS, utils.FILE_WRITERS)
 
-from .pybids_compat import BIDSLayout
-
 select = Select
 any_of = AnyExpr
 all_of = AllExpr

@@ -17,14 +17,14 @@ from ..base_test_case import BaseTestCase, DS005_DIR
 class WritingTestCase(BaseTestCase):
 
     def write_test_derivative(self):
-        layout = ancpbids.BIDSLayout(DS005_DIR)
-        dataset = layout.get_dataset()
+        dataset = ancpbids.load_dataset(DS005_DIR)
         pipeline_name = "mypipeline-%d" % time.time()
         derivative = dataset.create_derivative(name=pipeline_name)
         derivative.dataset_description.GeneratedBy.Name = "My Test Pipeline"
-        task_label = layout.get_tasks()[0]
+        ents = dataset.query_entities()
+        task_label = list(ents['task'])[0]
 
-        for sub_label in layout.get_subjects():
+        for sub_label in ents["sub"]:
             subject = derivative.create_folder(name='sub-' + sub_label)
             # create an additional folder level to increase complexity of generation
             session = subject.create_folder(name='ses-01')
@@ -48,16 +48,15 @@ class WritingTestCase(BaseTestCase):
             # to lambda when the derivative is written to disk
             ev_artifact.content = lambda file_path, df=df: df.to_csv(file_path, index=None)
 
-        layout.write_derivative(derivative)
+        ancpbids.write_derivative(dataset, derivative)
         return DS005_DIR, pipeline_name
 
     def test_write_derivative(self):
         # create a temporary dataset with a test derivative and return its root path and the created derivative
         ds_path, pipeline_name = self.write_test_derivative()
         # pretend loading a new dataset
-        layout = ancpbids.BIDSLayout(ds_path)
+        dataset = ancpbids.load_dataset(ds_path)
         # get the underlying graph/dataset for further inspection
-        dataset = layout.get_dataset()
         derivative_folder = filter(lambda f: f.name == pipeline_name, dataset.derivatives.folders)
         self.assertIsNotNone(derivative_folder)
         derivative_folder = next(derivative_folder)
