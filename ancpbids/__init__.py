@@ -11,10 +11,11 @@ from .query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpE
 
 LOGGER = logging.getLogger("ancpbids")
 
+
 # ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)((\.[^\W_]+)+)')
 
 
-def load_dataset(base_dir: str):
+def load_dataset(base_dir: str, ignore=True):
     """Loads a dataset given its directory path on the file system.
 
     .. code-block::
@@ -27,6 +28,9 @@ def load_dataset(base_dir: str):
     ----------
     base_dir:
         the dataset path to load from
+    ignore:
+        if a .bidsignore file is available at the root, all resources (files/folders) matching the filters
+        in that file will not be added to the in-memory graph
 
     Returns
     -------
@@ -37,6 +41,9 @@ def load_dataset(base_dir: str):
         raise ValueError("Invalid Directory")
     schema = load_schema(base_dir)
     ds = schema.Dataset()
+    ds.options = {
+        'ignore': ignore
+    }
     ds.name = os.path.basename(base_dir)
     ds.base_dir_ = base_dir
     dataset_plugins = get_plugins(DatasetPlugin)

@@ -1,17 +1,23 @@
+import fnmatch
 import inspect
 import os
 import re
 
+from .plugin_files_handlers import read_plain_text
 from .. import utils
 from ..plugin import DatasetPlugin
 
 
 class DatasetPopulationPlugin(DatasetPlugin):
+
     def execute(self, dataset):
-        base_dir = dataset.base_dir_
+        base_dir = str(dataset.base_dir_)
         self.schema = dataset.get_schema()
+        self.options = dataset.options or {}
+        self._load_bidsignore(base_dir)
+
         # load file system structure
-        self._load_folder(dataset, base_dir)
+        self._load_folder(dataset, base_dir, base_dir)
         # transform files to artifacts, i.e. files containing entities in their name
         self._convert_files_to_artifacts(dataset)
 
@@ -23,6 +29,17 @@ class DatasetPopulationPlugin(DatasetPlugin):
         self._expand_members(dataset)
         # convert Folders within derivatives to DerivativeFolder
         self._convert_derivatives_folders(dataset.derivatives)
+
+    def _load_bidsignore(self, base_dir):
+        self.bidsignore = lambda relative_path: False
+        if "ignore" in self.options and self.options["ignore"]:
+            bidsignore_file = os.path.join(base_dir, ".bidsignore")
+            if os.path.exists(bidsignore_file):
+                patterns = read_plain_text(bidsignore_file)
+                patterns = list(map(lambda pattern: pattern.strip(), patterns))
+                # TODO cleanup invalid filter such as empty lines or comments
+                self.bidsignore = lambda relative_path: next(
+                    filter(lambda pattern: fnmatch.fnmatch(relative_path, pattern), patterns), False)
 
     def _handle_metadata_files(self, folder):
         if not isinstance(folder, self.schema.Folder):
@@ -127,19 +144,27 @@ class DatasetPopulationPlugin(DatasetPlugin):
         for member in members:
             self._expand_member(folder, member)
 
-    def _load_folder(self, parent, dir_path):
+    def _load_folder(self, parent, dir_path, ds_path):
         for root, directories, files in os.walk(dir_path):
+            rel_base = root[len(ds_path):]
             for directory in sorted(directories):
+                directory_ds_rel_path = '/'.join([rel_base, directory])[1:]
+                if self.bidsignore(directory_ds_rel_path):
+                    continue
                 folder = self.schema.Folder()
                 folder.parent_object_ = parent
                 folder.name = directory
                 parent.folders.append(folder)
-                self._load_folder(folder, '/'.join([root, directory]))
+                self._load_folder(folder, '/'.join([root, directory]), ds_path)
             for file in sorted(files):
+                file_ds_rel_path = '/'.join([rel_base, file])[1:]
+                if self.bidsignore(file_ds_rel_path):
+                    continue
                 model_file = self.schema.File()
                 model_file.parent_object_ = parent
                 model_file.name = file
                 parent.files.append(model_file)
+            # do not traverse into sub-dirs as they have been already processed recursively
             break
 
     def _type_handler_default(self, parent, member):
