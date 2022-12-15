@@ -240,7 +240,6 @@ SourceDatasets:
     use: required
   Version:
     type: str
-    use: required
 
 GeneratedByContainer:
   Type:

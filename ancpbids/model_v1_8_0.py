@@ -720,7 +720,7 @@ class SourceDatasets(Model):
     MEMBERS = {
         'DOI': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
         'URL': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'Version': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
+        'Version': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
     }
 
 
