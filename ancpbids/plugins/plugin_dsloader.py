@@ -32,10 +32,16 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _load_bidsignore(self, base_dir):
         self.bidsignore = lambda relative_path: False
-        if "ignore" in self.options and self.options["ignore"]:
-            bidsignore_file = os.path.join(base_dir, ".bidsignore")
-            if os.path.exists(bidsignore_file):
-                patterns = read_plain_text(bidsignore_file)
+        if "ignore" in self.options:
+            patterns = []
+            if isinstance(self.options["ignore"], bool) and self.options["ignore"]:
+                bidsignore_file = os.path.join(base_dir, ".bidsignore")
+                if os.path.exists(bidsignore_file):
+                    patterns = read_plain_text(bidsignore_file)
+            elif isinstance(self.options["ignore"], list):
+                patterns = self.options["ignore"]
+
+            if patterns:
                 patterns = list(map(lambda pattern: pattern.strip(), patterns))
                 # TODO cleanup invalid filter such as empty lines or comments
                 self.bidsignore = lambda relative_path: next(

@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from typing import Union, List
 
 from . import plugins
 from . import utils
@@ -15,7 +16,7 @@ LOGGER = logging.getLogger("ancpbids")
 # ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)((\.[^\W_]+)+)')
 
 
-def load_dataset(base_dir: str, ignore=True):
+def load_dataset(base_dir: str, ignore:Union[bool, List[str]]=True):
     """Loads a dataset given its directory path on the file system.
 
     .. code-block::
@@ -31,6 +32,7 @@ def load_dataset(base_dir: str, ignore=True):
     ignore:
         if a .bidsignore file is available at the root, all resources (files/folders) matching the filters
         in that file will not be added to the in-memory graph
+        - alternatively, a list of fnmatch patterns can be provided
 
     Returns
     -------
