@@ -11,6 +11,7 @@ DS005_SMALL2_DIR = RESOURCES_FOLDER + "/ds005-small2"
 SYNTHETIC_DIR = RESOURCES_FOLDER + "/synthetic"
 ENTITIES_DIR = RESOURCES_FOLDER + "/ds005_entities_validation"
 DS005_DIR_IGNORED_RESOURCES = RESOURCES_FOLDER + "/ds005_ignore"
+DS7t_trt_DIR = RESOURCES_FOLDER + "/7t_trt"
 
 
 class BaseTestCase(unittest.TestCase):

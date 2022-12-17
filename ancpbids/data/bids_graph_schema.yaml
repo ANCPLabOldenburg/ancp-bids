@@ -88,6 +88,8 @@ Artifact:
   suffix:
     type: str
     use: required
+  datatype:
+    type: str
   entities:
     type: EntityRef
     min: 1
@@ -193,7 +195,7 @@ DerivativeFolder:
   dataset_description:
     type: DerivativeDatasetDescriptionFile
 
-Session:
+SessionFolder:
   .extends: Folder
   datatypes:
     type: DatatypeFolder
@@ -207,13 +209,15 @@ Subject:
   # implementation detail: sessions must be positioned before datatypes,
   # else datatypes will match all session folders
   sessions:
-    type: Session
+    type: SessionFolder
     max: -1
     meta:
       name_pattern: 'ses-.*'
   datatypes:
     type: DatatypeFolder
     max: -1
+    meta:
+      name_pattern: '.*'
 
 
 GeneratedBy:

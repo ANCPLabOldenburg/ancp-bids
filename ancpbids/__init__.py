@@ -1,7 +1,8 @@
 import logging
 import os
 import sys
-from typing import Union, List
+from dataclasses import dataclass
+from typing import Union, List, Optional
 
 from . import plugins
 from . import utils
@@ -15,37 +16,51 @@ LOGGER = logging.getLogger("ancpbids")
 
 # ENTITIES_PATTERN = regex.compile(r'(([^\W_]+)-([^\W_]+)_)+([^\W_]+)((\.[^\W_]+)+)')
 
+@dataclass
+class DatasetOptions(dict):
+    """All options that can be set to influence handling of reading/writing a dataset from/to file system."""
+    infer_artifact_datatype: bool = False
+    """If True, will determine the datatype an Artifact is contained in, either directly or within a sub-directory.
+        For example, given the path "sub-02/func/sub-02_task-mixedgamblestask_run-01_bold.nii.gz", the datatype will be "func".
+        
+        By default, this option is set to False as it may have a negative performance impact.
+    """
 
-def load_dataset(base_dir: str, ignore:Union[bool, List[str]]=True):
+    ignore: Union[bool, List[str]] = False
+    """If a .bidsignore file is available at the root, all resources (files/folders) matching the filters
+        in that file will not be added to the in-memory graph. Alternatively, a list of fnmatch patterns can be provided.
+        
+        By default, this option is set to False as it may have a negative performance impact."""
+
+
+def load_dataset(base_dir: str, options: Optional[DatasetOptions] = None):
     """Loads a dataset given its directory path on the file system.
 
     .. code-block::
 
         from ancpbids import load_dataset, validate_dataset
         dataset_path = 'path/to/your/dataset'
-        dataset = load_dataset(dataset_path)
+        dataset = load_dataset(dataset_path, DatasetOptions(ignore=False, infer_artifact_datatype=True))
 
     Parameters
     ----------
     base_dir:
         the dataset path to load from
-    ignore:
-        if a .bidsignore file is available at the root, all resources (files/folders) matching the filters
-        in that file will not be added to the in-memory graph
-        - alternatively, a list of fnmatch patterns can be provided
+    options:
+        the options to use, see :py:class:`DatasetOptions` class for available options
 
     Returns
     -------
     str
-        an object instance of type :py:class:`ancpbids.model.Dataset` which represents the dataset as an in-memory graph
+        a Dataset object depending on the used schema which represents the dataset as an in-memory graph
     """
     if not os.path.isdir(base_dir):
         raise ValueError("Invalid Directory")
     schema = load_schema(base_dir)
     ds = schema.Dataset()
-    ds.options = {
-        'ignore': ignore
-    }
+    ds.options = options
+    if ds.options is None:
+        ds.options = DatasetOptions()
     ds.name = os.path.basename(base_dir)
     ds.base_dir_ = base_dir
     dataset_plugins = get_plugins(DatasetPlugin)

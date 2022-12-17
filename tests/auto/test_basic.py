@@ -2,7 +2,7 @@ import os.path
 
 import numpy
 
-from ancpbids import load_dataset
+from ancpbids import load_dataset, DatasetOptions
 from ancpbids.utils import parse_bids_name
 from ..base_test_case import *
 
@@ -169,6 +169,17 @@ class BasicTestCase(BaseTestCase):
         ds005 = load_dataset(ds_path_norm)
         ds_path = ds005.get_absolute_path()
         self.assertEqual(ds_path, ds_path_norm)
+
+    def test_datatype_of_artifact(self):
+        ds005 = load_dataset(DS005_DIR)
+        anat_files = ds005.query(scope="raw", sub="01", suffix="T1w")
+        assert len(anat_files) == 1
+        assert anat_files[0].datatype is None
+
+        ds005 = load_dataset(DS005_DIR, DatasetOptions(infer_artifact_datatype=True))
+        anat_files = ds005.query(scope="raw", sub="01", suffix="T1w")
+        assert len(anat_files) == 1
+        assert anat_files[0].datatype == "anat"
 
 if __name__ == '__main__':
     unittest.main()

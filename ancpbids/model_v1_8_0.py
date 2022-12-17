@@ -210,9 +210,10 @@ class JsonFile(File):
 
 class Artifact(File):
     r"""An artifact is a file whose name conforms to the BIDS file naming convention."""
-    def __init__(self, suffix: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+    def __init__(self, suffix: 'str' = None, datatype: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
         super(Artifact, self).__init__(name or None, extension or None, uri or None)
         self['suffix'] = suffix or None
+        self['datatype'] = datatype or None
         self['entities'] = entities or []
 
     @property
@@ -224,6 +225,14 @@ class Artifact(File):
         self['suffix'] = suffix
             
     @property
+    def datatype(self) -> 'str':
+        return self['datatype']
+
+    @datatype.setter
+    def datatype(self, datatype: 'str'):
+        self['datatype'] = datatype
+            
+    @property
     def entities(self) -> 'List[EntityRef]':
         return self['entities']
 
@@ -233,13 +242,14 @@ class Artifact(File):
             
     MEMBERS = {
         'suffix': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
+        'datatype': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
         'entities': {'type': 'EntityRef', 'min': 1, 'max': inf, 'use': 'optional', 'meta': {}},
     }
 
 
 class MetadataArtifact(Artifact):
-    def __init__(self, contents: 'Dict' = None, suffix: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(MetadataArtifact, self).__init__(suffix or None, entities or [], name or None, extension or None, uri or None)
+    def __init__(self, contents: 'Dict' = None, suffix: 'str' = None, datatype: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(MetadataArtifact, self).__init__(suffix or None, datatype or None, entities or [], name or None, extension or None, uri or None)
         self['contents'] = contents or None
 
     @property
@@ -274,8 +284,8 @@ class MetadataFile(File):
 
 
 class TSVArtifact(Artifact):
-    def __init__(self, delimiter: 'str' = None, contents: 'Dict' = None, suffix: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(TSVArtifact, self).__init__(suffix or None, entities or [], name or None, extension or None, uri or None)
+    def __init__(self, delimiter: 'str' = None, contents: 'Dict' = None, suffix: 'str' = None, datatype: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
+        super(TSVArtifact, self).__init__(suffix or None, datatype or None, entities or [], name or None, extension or None, uri or None)
         self['delimiter'] = delimiter or None
         self['contents'] = contents or None
 
@@ -574,9 +584,9 @@ class DerivativeFolder(Folder):
     }
 
 
-class Session(Folder):
+class SessionFolder(Folder):
     def __init__(self, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
-        super(Session, self).__init__(name or None, files or [], folders or [])
+        super(SessionFolder, self).__init__(name or None, files or [], folders or [])
         self['datatypes'] = datatypes or []
 
     @property
@@ -601,17 +611,17 @@ class DatatypeFolder(Folder):
 
 
 class Subject(Folder):
-    def __init__(self, sessions: 'List[Session]' = None, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
+    def __init__(self, sessions: 'List[SessionFolder]' = None, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
         super(Subject, self).__init__(name or None, files or [], folders or [])
         self['sessions'] = sessions or []
         self['datatypes'] = datatypes or []
 
     @property
-    def sessions(self) -> 'List[Session]':
+    def sessions(self) -> 'List[SessionFolder]':
         return self['sessions']
 
     @sessions.setter
-    def sessions(self, sessions: 'List[Session]'):
+    def sessions(self, sessions: 'List[SessionFolder]'):
         self['sessions'] = sessions
             
     @property
@@ -623,8 +633,8 @@ class Subject(Folder):
         self['datatypes'] = datatypes
             
     MEMBERS = {
-        'sessions': {'type': 'Session', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': 'ses-.*'}},
-        'datatypes': {'type': 'DatatypeFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
+        'sessions': {'type': 'SessionFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': 'ses-.*'}},
+        'datatypes': {'type': 'DatatypeFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': '.*'}},
     }
 
 

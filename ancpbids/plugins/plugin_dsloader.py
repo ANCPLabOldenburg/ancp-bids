@@ -12,8 +12,8 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def execute(self, dataset):
         base_dir = str(dataset.base_dir_)
+        self.options = dataset.options
         self.schema = dataset.get_schema()
-        self.options = dataset.options or {}
         self._load_bidsignore(base_dir)
 
         # load file system structure
@@ -30,16 +30,28 @@ class DatasetPopulationPlugin(DatasetPlugin):
         # convert Folders within derivatives to DerivativeFolder
         self._convert_derivatives_folders(dataset.derivatives)
 
+        # do optional stuff
+        self._determine_artifact_datatype(dataset)
+
+    def _determine_artifact_datatype(self, dataset):
+        if not self.options.infer_artifact_datatype:
+            return
+        datatype_folders = dataset.select(self.schema.DatatypeFolder).objects()
+        for folder in datatype_folders:
+            artifacts = folder.select(self.schema.Artifact).objects()
+            for artifact in artifacts:
+                artifact.datatype = folder.name
+
     def _load_bidsignore(self, base_dir):
         self.bidsignore = lambda relative_path: False
-        if "ignore" in self.options:
+        if self.options.ignore:
             patterns = []
-            if isinstance(self.options["ignore"], bool) and self.options["ignore"]:
+            if isinstance(self.options.ignore, bool):
                 bidsignore_file = os.path.join(base_dir, ".bidsignore")
                 if os.path.exists(bidsignore_file):
                     patterns = read_plain_text(bidsignore_file)
-            elif isinstance(self.options["ignore"], list):
-                patterns = self.options["ignore"]
+            elif isinstance(self.options.ignore, list):
+                patterns = self.options.ignore
 
             if patterns:
                 patterns = list(map(lambda pattern: pattern.strip(), patterns))
@@ -121,12 +133,17 @@ class DatasetPopulationPlugin(DatasetPlugin):
     def _handle_direct_folders(self, parent, member, pattern, new_type):
         if not isinstance(parent, self.schema.Folder):
             return
-        folders = list(filter(lambda f: re.match(pattern, f.name), parent.get_folders_sorted()))
+        parent_folders = parent.get_folders_sorted()
+        folders = list(filter(lambda f: re.match(pattern, f.name), parent_folders))
         for folder in folders:
             obj = new_type()
             obj.name = folder.name
             obj.files = folder.files
+            for ofile in obj.files:
+                ofile.parent_object_ = obj
             obj.folders = folder.folders
+            for ofolder in obj.folders:
+                ofolder.parent_object_ = obj
             parent.remove_folder(folder.name)
             obj.parent_object_ = parent
             if member['max'] > 1:
