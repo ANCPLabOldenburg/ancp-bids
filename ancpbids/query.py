@@ -6,6 +6,7 @@ from fnmatch import fnmatch
 from typing import Union, List
 
 from ancpbids.utils import resolve_segments
+from ancpbids.model_base import *
 
 
 class Expr:
@@ -112,7 +113,7 @@ class EntityExpr(CompExpr):
         if not isinstance(context, self.schema.Artifact):
             # for non-Artifacts, for example File, just return false
             return False
-        ents = list(filter(lambda e: e.key == self.key.literal_, context.entities))
+        ents = list(filter(lambda e: e.key == self.key.value['name'], context.entities))
         if not ents:
             # the entity must not exist
             if self.pattern is None:
@@ -245,7 +246,7 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
     schema = folder.get_schema()
     context = folder
     ops = []
-    target_type = schema.File
+    target_type = File
     if scope not in ['all', 'raw', 'self']:
         context, _ = resolve_segments(folder, scope, False)
 
@@ -256,7 +257,7 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
 
     if scope == 'raw':
         # the raw scope does not search in derivatives folder but everything else
-        select.subtree(CustomOpExpr(lambda m: not isinstance(m, schema.DerivativeFolder)))
+        select.subtree(CustomOpExpr(lambda m: not isinstance(m, DerivativeFolder)))
 
     result_extractor = None
     if target:
@@ -285,14 +286,14 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
 
     if extension:
         converter = lambda v: "." + v if v != "*" and not v.startswith(".") else v
-        any_expr = _to_any_expr(extension, lambda ext: search_operator(schema.Artifact.extension, ext), converter)
+        any_expr = _to_any_expr(extension, lambda ext: search_operator(Artifact.extension, ext), converter)
         require_expr = _require_artifact(schema, any_expr)
         ops.append(require_expr)
 
     if suffix:
         ops.append(
             _require_artifact(schema,
-                              _to_any_expr(suffix, lambda suf: search_operator(schema.Artifact.suffix, suf))))
+                              _to_any_expr(suffix, lambda suf: search_operator(Artifact.suffix, suf))))
 
     select.where(AllExpr(*ops))
 
@@ -304,7 +305,7 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
         if return_type.startswith("file"):
             return list(select.get_file_paths_absolute())
         elif return_type == 'dir':
-            result = filter(lambda o: isinstance(o, schema.File), select.objects(depth=search_depth))
+            result = filter(lambda o: isinstance(o, File), select.objects(depth=search_depth))
             return set(map(lambda a: a.get_parent().get_relative_path(), result))
 
     artifacts = select.objects(depth=search_depth)

@@ -10,7 +10,7 @@ import tempfile
 from numpy.testing import tempdir
 
 import ancpbids
-from ancpbids import model, re
+from ancpbids import model_latest, re
 from ..base_test_case import BaseTestCase, DS005_DIR
 
 

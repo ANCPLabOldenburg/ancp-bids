@@ -6,14 +6,14 @@ import re
 from .plugin_files_handlers import read_plain_text
 from .. import utils
 from ..plugin import DatasetPlugin
-
+from ..model_base import *
 
 class DatasetPopulationPlugin(DatasetPlugin):
 
-    def execute(self, dataset):
+    def execute(self, dataset, schema):
         base_dir = str(dataset.base_dir_)
+        self.schema = schema
         self.options = dataset.options
-        self.schema = dataset.get_schema()
         self._load_bidsignore(base_dir)
 
         # load file system structure
@@ -36,9 +36,9 @@ class DatasetPopulationPlugin(DatasetPlugin):
     def _determine_artifact_datatype(self, dataset):
         if not self.options.infer_artifact_datatype:
             return
-        datatype_folders = dataset.select(self.schema.DatatypeFolder).objects()
+        datatype_folders = dataset.select(DatatypeFolder).objects()
         for folder in datatype_folders:
-            artifacts = folder.select(self.schema.Artifact).objects()
+            artifacts = folder.select(Artifact).objects()
             for artifact in artifacts:
                 artifact.datatype = folder.name
 
@@ -60,13 +60,13 @@ class DatasetPopulationPlugin(DatasetPlugin):
                     filter(lambda pattern: fnmatch.fnmatch(relative_path, pattern), patterns), False)
 
     def _handle_metadata_files(self, folder):
-        if not isinstance(folder, self.schema.Folder):
+        if not isinstance(folder, Folder):
             return
         for file in filter(lambda f: f.name.endswith(".json"), folder.files):
-            if isinstance(file, self.schema.Artifact):
-                mdfile = self.schema.MetadataArtifact()
+            if isinstance(file, Artifact):
+                mdfile = MetadataArtifact()
             else:
-                mdfile = self.schema.MetadataFile()
+                mdfile = MetadataFile()
             mdfile.parent_object_ = folder
             mdfile.update(file)
             mdfile.contents = mdfile.load_contents()
@@ -77,13 +77,13 @@ class DatasetPopulationPlugin(DatasetPlugin):
             self._handle_metadata_files(child)
 
     def _handle_tsv_files(self, folder):
-        if not isinstance(folder, self.schema.Folder):
+        if not isinstance(folder, Folder):
             return
         for file in filter(lambda f: f.name.endswith(".tsv"), folder.files):
-            if isinstance(file, self.schema.Artifact):
-                newfile = self.schema.TSVArtifact()
+            if isinstance(file, Artifact):
+                newfile = TSVArtifact()
             else:
-                newfile = self.schema.TSVFile()
+                newfile = TSVFile()
             newfile.parent_object_ = folder
             newfile.update(file)
             newfile.contents = newfile.load_contents()
@@ -97,7 +97,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
         if not parent:
             return
         for i, folder in enumerate(list(parent.folders)):
-            dfolder = self.schema.DerivativeFolder()
+            dfolder = DerivativeFolder()
             dfolder.parent_object_ = parent
             dfolder.update(folder)
             parent.folders[i] = dfolder
@@ -118,10 +118,10 @@ class DatasetPopulationPlugin(DatasetPlugin):
         parts = utils.parse_bids_name(file.name)
         if not parts:
             return None
-        artifact = self.schema.Artifact()
+        artifact = Artifact()
         artifact.name = file.name
         for key, value in parts['entities'].items():
-            entity = self.schema.EntityRef()
+            entity = EntityRef()
             entity.key = key
             value = self.schema.process_entity_value(key, value)
             entity.value = value
@@ -131,7 +131,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
         return artifact
 
     def _handle_direct_folders(self, parent, member, pattern, new_type):
-        if not isinstance(parent, self.schema.Folder):
+        if not isinstance(parent, Folder):
             return
         parent_folders = parent.get_folders_sorted()
         folders = list(filter(lambda f: re.match(pattern, f.name), parent_folders))
@@ -154,7 +154,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _expand_member(self, parent, member):
         typ = member['type']
-        if not issubclass(typ, self.schema.Model):
+        if not issubclass(typ, Model):
             return
         mapper_name = '_type_handler_%s' % typ.__name__
         if mapper_name not in _TYPE_MAPPERS:
@@ -163,7 +163,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
         mapper(self, parent, member)
 
     def _expand_members(self, folder):
-        members = folder.get_schema().get_members(type(folder))
+        members = self.schema.get_members(type(folder))
         for member in members:
             self._expand_member(folder, member)
 
@@ -174,7 +174,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 directory_ds_rel_path = '/'.join([rel_base, directory])[1:]
                 if self.bidsignore(directory_ds_rel_path):
                     continue
-                folder = self.schema.Folder()
+                folder = Folder()
                 folder.parent_object_ = parent
                 folder.name = directory
                 parent.folders.append(folder)
@@ -183,7 +183,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 file_ds_rel_path = '/'.join([rel_base, file])[1:]
                 if self.bidsignore(file_ds_rel_path):
                     continue
-                model_file = self.schema.File()
+                model_file = File()
                 model_file.parent_object_ = parent
                 model_file.name = file
                 parent.files.append(model_file)
@@ -192,9 +192,9 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _type_handler_default(self, parent, member):
         typ = member['type']
-        if issubclass(typ, self.schema.JsonFile):
+        if issubclass(typ, JsonFile):
             self._type_handler_JsonFile(parent, member, True)
-        elif issubclass(typ, self.schema.Folder):
+        elif issubclass(typ, Folder):
             pattern = '.*'
             meta = member['meta']
             if 'name_pattern' in meta:
@@ -202,7 +202,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
             self._handle_direct_folders(parent, member, pattern=pattern, new_type=typ)
 
     def _type_handler_File(self, parent, member):
-        if not isinstance(parent, self.schema.Folder):
+        if not isinstance(parent, Folder):
             return
         file_name = member['name']
         meta = member['meta']
@@ -214,14 +214,14 @@ class DatasetPopulationPlugin(DatasetPlugin):
             parent.remove_file(file.name)
 
     def _type_handler_Artifact(self, parent, member):
-        if not isinstance(parent, self.schema.Folder):
+        if not isinstance(parent, Folder):
             return
         attr = getattr(parent, member['name'])
         multi = isinstance(attr, list)
         name = member['name']
         files = parent.files if multi else list(filter(lambda f: f.name == name, parent.files))
         for file in files:
-            if not isinstance(file, self.schema.Artifact):
+            if not isinstance(file, Artifact):
                 continue
             file.parent_object_ = parent
             parent.remove_file(file.name)
@@ -231,7 +231,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 setattr(parent, member['name'], file)
 
     def _type_handler_Folder(self, parent, member):
-        if not isinstance(parent, self.schema.Folder):
+        if not isinstance(parent, Folder):
             return
         name = member['name']
         folder = parent.get_folder(name)

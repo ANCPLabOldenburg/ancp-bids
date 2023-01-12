@@ -1,3 +1,4 @@
+import json
 import math
 import sys
 from io import StringIO
@@ -11,20 +12,25 @@ class ClassGenerator:
             s_str = f.read()
         return yaml.load_all(s_str, Loader=yaml.FullLoader)
 
-    def __init__(self, schema_file):
-        docs_gen = self.read_yaml(schema_file)
+    def __init__(self, base_schema_file, bids_schema_file, module_version_tag):
+        self.module_version_tag = module_version_tag
+        docs_gen = self.read_yaml(base_schema_file)
         first_doc = next(docs_gen)
         self.elements = {**first_doc}
         remaining_docs = [doc for doc in docs_gen]
         self.types = {name: schema for doc in remaining_docs for name, schema in doc.items()}
         self.visited_types = {}
-        self.output = StringIO()
+        self.base_output = StringIO()
+        self.version_output = StringIO()
         self.known_classes = {
             'Model': {
                 'fields': [],
                 'parent': None
             }
         }
+
+        with open(bids_schema_file, 'r') as stream:
+            self.bids_schema = json.load(stream)
 
     def generate(self, version='0.0.0'):
         self.append(f"""\
@@ -33,21 +39,22 @@ from typing import List, Union, Dict, Any
 from math import inf
 import sys
 
-VERSION = '{version}'
-SCHEMA = sys.modules[__name__]
-
 class Model(dict):
     def __init__(self, *args, **kwargs):
-        self._schema = SCHEMA
+        pass
 
-    def get_schema(self):
-        return self._schema
-        
     def __repr__(self):
         return str({{key: (str(value)[:32] + '[...]') if len(str(value)) > 32 else value
                     for key, value in self.items()
                     if value is not None and not isinstance(value, (dict, list))}})
         """)
+
+        self.append_ver(f"""\
+from .model_base import *
+
+VERSION = '{version}'
+SCHEMA = sys.modules[__name__]
+                """)
 
         # generate types first as they are referenced by the elements and need to be declared before usage
         for name, sub_schema in self.types.items():
@@ -58,8 +65,12 @@ class Model(dict):
             self.visit_schema(name, schema_dict)
 
     def append(self, line="", *args):
-        self.output.write(line)
-        self.output.write("\n")
+        self.base_output.write(line)
+        self.base_output.write("\n")
+
+    def append_ver(self, line="", *args):
+        self.version_output.write(line)
+        self.version_output.write("\n")
 
     def to_python_type(self, class_name, field_name, field_def):
         typ = field_def['type']
@@ -176,59 +187,44 @@ class Model(dict):
         self.append("    }")
         self.append("\n")
 
-    def generate_enum(self, yaml_path, class_name, *additional_fields, dict_transformer=None, field_discriminator=None):
-        dt_docs = generator.read_yaml(yaml_path)
-        datatypes = [doc for doc in dt_docs]
-        datatypes = {name: schema for doc in datatypes for name, schema in doc.items()}
-        if dict_transformer:
-            datatypes = dict_transformer(datatypes)
+    def generate_enum(self, class_name, literals_path, sorter=None):
         generator.append(f"class {class_name}(Enum):")
-        for name, schema in datatypes.items():
-            field_name = schema[field_discriminator] if field_discriminator is not None else name
-            fields = [f"r\"{field_name}\""]
-            if additional_fields:
-                fields += list(map(lambda f: f"r\"{schema[f] if f in schema else ''}\"", additional_fields))
-            fields_str = ', '.join(fields)
-            generator.append(f"    {name} = {fields_str}")
-            if 'description' in schema and schema['description'] and schema['description'].strip():
-                generator.append(f"    r\"\"\"{schema['description'].strip()}\"\"\"")
-        generator.append()
+        generator.append(f" pass")
 
-        fields = list(map(lambda f: f"{f}_", additional_fields))
-        generator.append(f"    def __init__(self, literal, {', '.join(fields)}):")
-        generator.append(f"        self.literal_ = literal")
-        for field in fields:
-            generator.append(f"        self.{field} = {field}")
-        generator.append()
+        generator.append_ver(f"class {class_name}({class_name}):")
+        context = self.bids_schema
+        for path in literals_path.split("/"):
+            context = context[path]
+        if callable(sorter):
+            context = sorter(context)
+        for k, v in context.items():
+            generator.append_ver(f" {k} = {v}")
 
 
 if __name__ == '__main__':
     # extractor = MetadataExtractor("./test.yaml")
     version_tag = 'v1.8.0'
     module_version_tag = version_tag.replace('.', '_')
-    generator = ClassGenerator("../ancpbids/data/bids_graph_schema.yaml")
+    generator = ClassGenerator("../schema/model_base.yaml", f"../schema/schema_{version_tag}.json", module_version_tag)
     generator.generate(version_tag)
 
-    generator.generate_enum("../../bids-specification/src/schema/objects/datatypes.yaml", "DatatypeEnum",
-                            "display_name",
-                            field_discriminator="value")
-    generator.generate_enum("../../bids-specification/src/schema/objects/modalities.yaml", "ModalityEnum",
-                            "display_name")
-    generator.generate_enum("../../bids-specification/src/schema/objects/suffixes.yaml", "SuffixEnum", "display_name",
-                            "unit", field_discriminator="value")
+    generator.generate_enum("DatatypeEnum", "objects/datatypes")
+    generator.generate_enum("ModalityEnum", "objects/modalities")
+    generator.generate_enum("SuffixEnum", "objects/suffixes")
+    #generator.generate_enum("ExtensionEnum", "objects/extensions")
 
+    def sorter(unordered_entities):
+        ordered_entities_names = generator.bids_schema["rules"]["entities"]
+        ordered_entities = {k: unordered_entities[k] for k in ordered_entities_names}
+        return ordered_entities
+    generator.generate_enum("EntityEnum", "objects/entities", sorter=sorter)
 
-    def transformer(entities):
-        order_docs = generator.read_yaml("../../bids-specification/src/schema/rules/entities.yaml")
-        order_docs = [item for doc in order_docs for item in doc]
-        new_order = {k: entities[k] for k in order_docs}
-        return new_order
+    generator.base_output.flush()
+    generator.base_output.seek(0)
+    with open("../ancpbids/model_base.py", 'w') as f:
+        f.write(generator.base_output.read())
 
-
-    generator.generate_enum("../../bids-specification/src/schema/objects/entities.yaml", "EntityEnum",
-                            "display_name", "type", "format", dict_transformer=transformer, field_discriminator="name")
-
-    generator.output.flush()
-    generator.output.seek(0)
+    generator.version_output.flush()
+    generator.version_output.seek(0)
     with open("../ancpbids/model_%s.py" % module_version_tag, 'w') as f:
-        f.write(generator.output.read())
+        f.write(generator.version_output.read())

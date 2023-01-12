@@ -27,7 +27,7 @@ class StaticStructureValidationPlugin(ValidationPlugin):
 class DatatypesValidationPlugin(ValidationPlugin):
     def execute(self, dataset, report: ValidationPlugin.ValidationReport):
         invalid = []
-        valid_datatypes = [v.literal_ for v in dataset.get_schema().DatatypeEnum.__members__.values()]
+        valid_datatypes = [v.name for v in dataset.get_schema().DatatypeEnum.__members__.values()]
         for subject in dataset.subjects:
             invalid.extend([f for f in subject.datatypes if f.name not in valid_datatypes])
             for session in subject.sessions:
@@ -42,7 +42,7 @@ class EntitiesValidationPlugin(ValidationPlugin):
     def execute(self, dataset, report: ValidationPlugin.ValidationReport):
         schema = dataset.get_schema()
         artifacts = dataset.select(schema.Artifact).get_artifacts()
-        entities = list(map(lambda e: e.literal_, list(schema.EntityEnum)))
+        entities = list(map(lambda e: e.value['name'], list(schema.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(entities)}
         expected_order_key = {i: k for i, k in enumerate(entities)}
         for artifact in artifacts:

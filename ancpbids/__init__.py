@@ -10,6 +10,8 @@ from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, Writing
     FileHandlerPlugin
 from .query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
     EntityExpr
+from . import model_v1_8_0
+from . import model_v1_8_0 as model_latest
 
 LOGGER = logging.getLogger("ancpbids")
 
@@ -58,6 +60,7 @@ def load_dataset(base_dir: str, options: Optional[DatasetOptions] = None):
         raise ValueError("Invalid Directory")
     schema = load_schema(base_dir)
     ds = schema.Dataset()
+    ds._versioned_schema = schema
     ds.options = options
     if ds.options is None:
         ds.options = DatasetOptions()
@@ -65,7 +68,7 @@ def load_dataset(base_dir: str, options: Optional[DatasetOptions] = None):
     ds.base_dir_ = base_dir
     dataset_plugins = get_plugins(DatasetPlugin)
     for dsplugin in dataset_plugins:
-        dsplugin.execute(ds)
+        dsplugin.execute(ds, schema)
     return ds
 
 
@@ -176,12 +179,9 @@ def write_derivative(ds, derivative):
 load_plugins_by_package(plugins, ranking=0, system=True)
 
 # execute all SchemaPlugins, these plugins may monkey-patch the schema
-from ancpbids import model_v1_8_0
-from ancpbids import model_v1_8_0 as model_latest
-
 for pl in get_plugins(SchemaPlugin):
-    for model in [model_latest]:
-        pl.execute(model)
+    for schema in [model_v1_8_0]:
+        pl.execute(schema)
 
 # load file handler plugins
 for pl in get_plugins(FileHandlerPlugin):

@@ -8,6 +8,7 @@ from difflib import SequenceMatcher
 from ancpbids.plugin import SchemaPlugin
 from ancpbids.query import Select, query, query_entities
 from ancpbids.utils import resolve_segments, convert_to_relative
+from ancpbids.model_base import *
 
 
 def has_entity(artifact, entity_):
@@ -24,8 +25,7 @@ def get_entity(artifact, entity_):
     return None
 
 
-def add_entity(artifact, key, value):
-    schema = artifact.get_schema()
+def add_entity(schema, artifact, key, value):
     if isinstance(key, schema.EntityEnum):
         key = key.entity_
 
@@ -33,13 +33,13 @@ def add_entity(artifact, key, value):
     if found:
         found[0].value = value
     else:
-        eref = schema.EntityRef(key, value)
+        eref = EntityRef(key, value)
         artifact.entities.append(eref)
 
 
-def add_entities(artifact, **kwargs):
+def add_entities(schema, artifact, **kwargs):
     for k, v in kwargs.items():
-        add_entity(artifact, k, v)
+        add_entity(schema, artifact, k, v)
 
 
 def load_file_contents(folder, file_name, return_type: str = None):
@@ -73,13 +73,12 @@ def _file_get_relative_path(file):
 
 
 def _get_path(folder, file_name=None, absolute=True):
-    schema = folder.get_schema()
     segments = []
     if file_name:
         segments.append(file_name)
     current_folder = folder
     while current_folder is not None:
-        if isinstance(current_folder, schema.Dataset):
+        if isinstance(current_folder, Dataset):
             if absolute:
                 segments.insert(0, current_folder.base_dir_)
             # assume we reached the highest level, maybe not good for nested datasets
@@ -99,9 +98,8 @@ def remove_file(folder, file_name):
 
 
 def create_artifact(folder, raw=None):
-    schema = folder.get_schema()
-    artifact = schema.Artifact()
-    if isinstance(raw, schema.Artifact):
+    artifact = Artifact()
+    if isinstance(raw, Artifact):
         artifact.entities.extend(raw.entities)
     artifact.parent_object_ = folder
     folder.files.append(artifact)
@@ -110,7 +108,7 @@ def create_artifact(folder, raw=None):
 
 def create_folder(folder, type_=None, **kwargs):
     if not type_:
-        type_ = folder.get_schema().Folder
+        type_ = Folder
     sub_folder = type_(**kwargs)
     sub_folder.parent_object_ = folder
     folder.folders.append(sub_folder)
@@ -118,22 +116,21 @@ def create_folder(folder, type_=None, **kwargs):
 
 
 def create_derivative(ds, path=None, **kwargs):
-    schema = ds.get_schema()
     derivatives_folder = ds.derivatives
     if not ds.derivatives:
-        derivatives_folder = schema.DerivativeFolder()
+        derivatives_folder = DerivativeFolder()
         derivatives_folder.parent_object_ = ds
         derivatives_folder.name = "derivatives"
         ds.derivatives = derivatives_folder
     path = convert_to_relative(ds, path)
     target_folder, _ = resolve_segments(derivatives_folder, path, create_if_missing=True)
-    derivative = schema.DerivativeFolder(**kwargs)
+    derivative = DerivativeFolder(**kwargs)
     derivative.parent_object_ = target_folder
     target_folder.folders.append(derivative)
 
-    derivative.dataset_description = schema.DerivativeDatasetDescriptionFile()
+    derivative.dataset_description = DerivativeDatasetDescriptionFile()
     derivative.dataset_description.parent_object_ = derivative
-    derivative.dataset_description.GeneratedBy = schema.GeneratedBy()
+    derivative.dataset_description.GeneratedBy = GeneratedBy()
 
     if ds.dataset_description:
         derivative.dataset_description.update(ds.dataset_description)
@@ -142,9 +139,10 @@ def create_derivative(ds, path=None, **kwargs):
 
 
 def create_dataset(schema, **kwargs):
-    ds = schema.Dataset()
+    ds = Dataset()
+    ds._versioned_schema = schema
     ds.update(**kwargs)
-    ds.dataset_description = schema.DatasetDescriptionFile(name="dataset_description.json")
+    ds.dataset_description = DatasetDescriptionFile(name="dataset_description.json")
     ds.dataset_description.BIDSVersion = schema.VERSION
     ds.dataset_description.parent_object_ = ds
     return ds
@@ -154,15 +152,13 @@ def get_file(folder, file_name):
     folder, file_name = resolve_segments(folder, file_name, True)
     if not folder:
         return None
-    schema = folder.get_schema()
-    direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File))
+    direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, File))
     file = next(filter(lambda f: f.name == file_name, direct_files), None)
     return file
 
 
 def get_files(folder, name_pattern):
-    schema = folder.get_schema()
-    direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File))
+    direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, File))
     return list(filter(lambda file: fnmatch.fnmatch(file.name, name_pattern), direct_files))
 
 
@@ -171,8 +167,7 @@ def remove_folder(folder, folder_name):
 
 
 def get_folder(folder, folder_name):
-    schema = folder.get_schema()
-    direct_folders = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.Folder))
+    direct_folders = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, Folder))
     return next(filter(lambda f: f.name == folder_name, direct_folders), None)
 
 
@@ -193,13 +188,12 @@ def to_generator(source, depth_first=False, filter_=None, depth=1000):
             return
         yield source
 
-    schema = source.get_schema()
     for key, value in source.items():
-        if isinstance(value, schema.Model):
+        if isinstance(value, Model):
             yield from to_generator(value, depth_first, filter_, depth - 1)
         elif isinstance(value, list):
             for item in value:
-                if isinstance(item, schema.Model):
+                if isinstance(item, Model):
                     yield from to_generator(item, depth_first, filter_, depth - 1)
 
     if depth_first:
@@ -284,9 +278,9 @@ def process_entity_value(schema, key, value):
     if not value:
         return value
     if isinstance(key, schema.EntityEnum):
-        key = key.literal_
-    for sc_entity in filter(lambda e: e.literal_ == key, schema.EntityEnum.__members__.values()):
-        if sc_entity.format_ == 'index':
+        key = key.value['name']
+    for sc_entity in filter(lambda e: e.value['name'] == key, schema.EntityEnum.__members__.values()):
+        if sc_entity.value['format'] == 'index':
             if isinstance(value, list):
                 return list(map(lambda v: _trim_int(v) if v is not None else v, value))
             else:
@@ -295,7 +289,7 @@ def process_entity_value(schema, key, value):
 
 
 def fuzzy_match_entity_key(schema, user_key):
-    return fuzzy_match_entity(schema, user_key).literal_
+    return fuzzy_match_entity(schema, user_key).value['name']
 
 
 def fuzzy_match_entity(schema, user_key):
@@ -323,8 +317,18 @@ def get_entities(artifact):
     return {e['key']: e['value'] for e in artifact.entities}
 
 
+def get_schema(model):
+    current = model
+    while current is not None:
+        if isinstance(current, Dataset):
+            return current._versioned_schema
+        current = current.parent_object_
+    return None
+
+
 class PatchingSchemaPlugin(SchemaPlugin):
     def execute(self, schema):
+        schema.Model.get_schema = get_schema
         schema.Model.__hash__ = lambda self: hash(tuple(self))
         schema.Folder.select = select
         schema.Folder.query = query
@@ -334,8 +338,8 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.Artifact.has_entity = has_entity
         schema.Artifact.get_entity = get_entity
         schema.Artifact.get_entities = get_entities
-        schema.Artifact.add_entity = add_entity
-        schema.Artifact.add_entities = add_entities
+        schema.Artifact.add_entity = lambda artifact, key, value: add_entity(schema, artifact, key, value)
+        schema.Artifact.add_entities = lambda artifact, **kwargs: add_entities(schema, artifact, **kwargs)
         schema.Folder.load_file_contents = load_file_contents
         schema.File.load_contents = load_contents
         schema.File.get_absolute_path = get_absolute_path_by_file

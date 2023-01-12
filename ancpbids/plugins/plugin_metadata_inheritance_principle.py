@@ -30,7 +30,7 @@ def _get_metadata(artifact, include_entities=False):
         deepupdate(metadata, mdf)
 
     if include_entities:
-        schema_entities = {e.literal_: e.name for e in list(schema.EntityEnum)}
+        schema_entities = {e.value['name']: e.name for e in list(schema.EntityEnum)}
         metadata.update({schema_entities[key]: value for key, value in artifact_entities.items()})
 
     return metadata
