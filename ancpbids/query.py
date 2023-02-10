@@ -353,7 +353,7 @@ def query_entities(folder, scope: str = None, sort: bool = False, long_form=Fals
             result[key] = set()
         result[key].add(e.value)
     if long_form:
-        known_entities = {e.literal_: e.name for e in list(schema.EntityEnum)}
+        known_entities = schema_entities = {e.value['name']: e.name for e in list(schema.EntityEnum)}
         result = {known_entities[k] if k in known_entities else k: v for k, v in result.items()}
     if sort:
         result = {k: sorted(v) for k, v in sorted(result.items())}
