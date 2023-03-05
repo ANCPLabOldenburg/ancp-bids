@@ -18,7 +18,7 @@ class RegressionsTestCase(BaseTestCase):
     def test_get_entitites_no_scope(self):
         dataset = ancpbids.load_dataset(DS005_DIR)
         entities = dataset.query_entities(scope=None)
-        self.assertEqual(['ds', 'type', 'sub', 'task', 'run', 'desc'], list(entities.keys()))
+        self.assertEqual(['ds', 'type', 'subject', 'task', 'run', 'description'], list(entities.keys()))
 
 
 if __name__ == '__main__':

@@ -17,7 +17,7 @@ class FetchDatasetTestCase(BaseTestCase):
             self.assertEqual('ds003483', dataset.name)
 
             entities = dataset.query_entities()
-            self.assertEqual(21, len(entities["sub"]))
+            self.assertEqual(21, len(entities["subject"]))
             suffixes = dataset.query(target="suffixes")
             self.assertEqual(['channels', 'coordsystem', 'events', 'meg', 'scans'], suffixes)
 

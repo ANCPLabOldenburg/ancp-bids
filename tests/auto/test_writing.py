@@ -24,7 +24,7 @@ class WritingTestCase(BaseTestCase):
         ents = dataset.query_entities()
         task_label = list(ents['task'])[0]
 
-        for sub_label in ents["sub"]:
+        for sub_label in ents["subject"]:
             subject = derivative.create_folder(name='sub-' + sub_label)
             # create an additional folder level to increase complexity of generation
             session = subject.create_folder(name='ses-01')

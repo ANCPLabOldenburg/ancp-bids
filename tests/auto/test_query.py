@@ -38,11 +38,11 @@ class QueryTestCase(BaseTestCase):
         layout = ancpbids.load_dataset(DS005_DIR)
         ents = layout.query_entities()
 
-        subjects = ents["sub"]
+        subjects = ents["subject"]
         subjects_expected = {'%02d' % i for i in range(1, 17)}
         self.assertSetEqual(subjects_expected, subjects)
 
-        self.assertNotIn("ses", ents)
+        self.assertNotIn("session", ents)
 
         tasks = ents["task"]
         self.assertSetEqual({'mixedgamblestask'}, tasks)
@@ -72,9 +72,9 @@ class QueryTestCase(BaseTestCase):
         layout = ancpbids.load_dataset(DS005_DIR)
         sorted_entities = layout.query_entities(scope='raw', sort=True)
         # note: 'ds' and 'type' entities are contained in folder 'models' at dataset level, so considered raw data
-        self.assertListEqual(['ds', 'run', 'sub', 'task', 'type'], list(sorted_entities.keys()))
+        self.assertListEqual(['ds', 'run', 'subject', 'task', 'type'], list(sorted_entities.keys()))
         self.assertListEqual([1, 2, 3], sorted_entities['run'])
-        self.assertEqual(['%02d' % i for i in range(1, 17)], sorted_entities['sub'])
+        self.assertEqual(['%02d' % i for i in range(1, 17)], sorted_entities['subject'])
         self.assertListEqual(['mixedgamblestask'], sorted_entities['task'])
 
     def test_bidslayout_get_suffixes(self):
