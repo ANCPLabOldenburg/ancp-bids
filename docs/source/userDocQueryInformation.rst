@@ -84,7 +84,7 @@ The query will return '[]' (empty list) if the entity does not exist in the data
 .. _entities defined in BIDS: https://bids-specification.readthedocs.io/en/stable/99-appendices/09-entities.html
 
 
-Query available entitities and metadata
+Query available entities and metadata
 ---------------------------------------
 The command layout.get_entities() returns a dictionary with all entities defined in the dataset and their values.
 
