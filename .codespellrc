@@ -1,0 +1,4 @@
+[codespell]
+skip = .git,*.pdf,*.svg,versioneer.py,_version.py,*.json
+# nin, nit - shortcoming of codespell which avoids lookup for \, so \nin matches
+ignore-words-list = nin,nit
