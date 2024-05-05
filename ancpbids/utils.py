@@ -13,7 +13,7 @@ def parse_bids_name(name: str):
     Parameters
     ----------
     name
-        The file name to parse. If a full path (with path separaters), the path segments will be ignored.
+        The file name to parse. If a full path (with path separators), the path segments will be ignored.
 
     Returns
     -------
