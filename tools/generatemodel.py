@@ -203,7 +203,7 @@ SCHEMA = sys.modules[__name__]
 
 if __name__ == '__main__':
     # extractor = MetadataExtractor("./test.yaml")
-    version_tag = 'v1.8.0'
+    version_tag = 'v1.9.0'
     module_version_tag = version_tag.replace('.', '_')
     generator = ClassGenerator("../schema/model_base.yaml", f"../schema/schema_{version_tag}.json", module_version_tag)
     generator.generate(version_tag)
