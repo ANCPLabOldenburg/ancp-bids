@@ -1,0 +1,49 @@
+name: Generate New ANCP BIDS Model for new schema version
+
+on:
+  push:
+    paths:
+      - 'schema/*.json'   # Triggers only when a new schema JSON file is added or modified
+
+jobs:
+  generate_model:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install requirements
+      run: |
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Get latest schema version
+      id: get_version
+      run: |
+        SCHEMA_FILE=$(ls schema | sort -V | tail -n 1)
+        VERSION_TAG=$(echo $SCHEMA_FILE | sed -E 's/^schema_v([0-9]+\.[0-9]+\.[0-9]+)\.json$/v.\1/')
+        echo "::set-output name=version_tag::$VERSION_TAG"
+        echo "::set-output name=schema_file::schema/$SCHEMA_FILE"
+
+    - name: Update version_tag in generatemodel.py
+      run: |
+        sed -i "s/version_tag = 'v[0-9]\+\.[0-9]\+\.[0-9]\+'/version_tag = '${{ steps.get_version.outputs.version_tag }}'/" ancpbids/generatemodel.py
+
+    - name: Run generatemodel.py
+      run: |
+        python ancpbids/generatemodel.py --schema-file ${{ steps.get_version.outputs.schema_file }} --version-tag ${{ steps.get_version.outputs.version_tag }}
+
+    - name: Commit changes
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add ancpbids/model_${{ steps.get_version.outputs.version_tag }}.py
+        git commit -m "Generated model ${{ steps.get_version.outputs.version_tag }}"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
