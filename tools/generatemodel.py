@@ -5,6 +5,54 @@ from io import StringIO
 
 import yaml
 
+import os
+import requests
+
+
+# Function to fetch the latest schema version from GitHub
+def fetch_latest_schema_version():
+    # URL to the GitHub API for the versions directory
+    url = "https://api.github.com/repos/bids-standard/bids-schema/contents/versions"
+
+    # Request to fetch the contents of the URL
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch schema versions from GitHub. Status code: {response.status_code}")
+
+    # Print the entire response for inspection
+    response_data = response.json()
+
+    version_dirs = []
+    for item in response_data:
+        # Check if the item is a directory and follows semantic versioning
+        if item['type'] == 'dir' and all(part.isdigit() for part in item['name'].split('.')):
+            version_dirs.append(item['name'])
+
+    if not version_dirs:
+        raise Exception("No valid version directories found.")
+
+    # Sort version directories to find the latest version
+    version_dirs.sort(key=lambda v: list(map(int, v.split('.'))), reverse=True)  # Sort by semantic versioning
+    latest_version = version_dirs[0]
+
+    # Construct the URL for the latest schema.json file
+    latest_schema_url = f"https://raw.githubusercontent.com/bids-standard/bids-schema/main/versions/{latest_version}/schema.json"
+
+    return latest_version, latest_schema_url
+
+
+# Function to download the schema.json file
+def download_schema(schema_url, save_path):
+    # Send a GET request to the schema URL
+    response = requests.get(schema_url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download schema. Status code: {response.status_code}")
+
+    # Save the schema to the specified path
+    with open(save_path, 'w') as schema_file:
+        schema_file.write(response.text)
+    print(f"Schema downloaded and saved to {save_path}")
+
 
 class ClassGenerator:
     def read_yaml(self, file):
@@ -202,11 +250,23 @@ SCHEMA = sys.modules[__name__]
 
 
 if __name__ == '__main__':
-    # extractor = MetadataExtractor("./test.yaml")
-    version_tag = 'v1.9.0'
-    module_version_tag = version_tag.replace('.', '_')
-    generator = ClassGenerator("../schema/model_base.yaml", f"../schema/schema_{version_tag}.json", module_version_tag)
-    generator.generate(version_tag)
+    # Fetch the latest schema version and URL
+    latest_version, latest_schema_url = fetch_latest_schema_version()
+    print(f"Latest schema version: {latest_version}")
+
+    # Download the latest schema
+    save_path = f"../schema/schema_{latest_version}.json"  # Adjust this path as needed
+
+    # Download the latest schema
+    latest_schema = download_schema(latest_schema_url, save_path)
+
+    # Initialize ClassGenerator with the latest schema file
+    module_version_tag = latest_version.replace('.', '_')
+    generator = ClassGenerator("../schema/model_base.yaml", f"../schema/schema_{latest_version}.json",
+                               module_version_tag)
+
+    # Generate classes based on the latest schema
+    generator.generate(latest_version)
 
     generator.generate_enum("DatatypeEnum", "objects/datatypes")
     generator.generate_enum("ModalityEnum", "objects/modalities")
