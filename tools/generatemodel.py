@@ -1,6 +1,7 @@
 import json
 import math
 import sys
+import argparse
 from io import StringIO
 
 import yaml
@@ -10,7 +11,12 @@ import requests
 
 
 # Function to fetch the latest schema version from GitHub
-def fetch_latest_schema_version():
+def fetch_schema_version(version_tag=None):
+    if version_tag:
+        # Construct the URL for the specified version
+        schema_url = f"https://raw.githubusercontent.com/bids-standard/bids-schema/main/versions/{version_tag}/schema.json"
+        return version_tag, schema_url
+
     # URL to the GitHub API for the versions directory
     url = "https://api.github.com/repos/bids-standard/bids-schema/contents/versions"
 
@@ -248,37 +254,45 @@ SCHEMA = sys.modules[__name__]
         for k, v in context.items():
             generator.append_ver(f" {k} = {v}")
 
-
 if __name__ == '__main__':
-    # Fetch the latest schema version and URL
-    latest_version, latest_schema_url = fetch_latest_schema_version()
-    print(f"Latest schema version: {latest_version}")
+    parser = argparse.ArgumentParser(description="Generate Python model from BIDS schema.")
+    parser.add_argument('--schema-version', type=str, help='Specify the schema version to use (default is latest).')
 
-    # Download the latest schema
-    save_path = f"../schema/schema_{latest_version}.json"  # Adjust this path as needed
+    args = parser.parse_args()
 
-    # Download the latest schema
-    latest_schema = download_schema(latest_schema_url, save_path)
+    # Use specified version if provided; otherwise, fetch the latest version
+    version_tag = args.schema_version
+    if version_tag:
+        _, schema_url = fetch_schema_version(version_tag)
+    else:
+        version_tag, schema_url = fetch_schema_version()
 
-    # Initialize ClassGenerator with the latest schema file
-    module_version_tag = latest_version.replace('.', '_')
-    generator = ClassGenerator("../schema/model_base.yaml", f"../schema/schema_{latest_version}.json",
-                               module_version_tag)
+    print(f"Using schema version: {version_tag}")
 
-    # Generate classes based on the latest schema
-    generator.generate(latest_version)
+    # Download the schema
+    save_path = f"../schema/schema.v{version_tag}.json"  # Adding 'v' before the version
+    download_schema(schema_url, save_path)
 
+    # Initialize ClassGenerator with the specified or latest schema file
+    module_version_tag = version_tag.replace('.', '_')
+    generator = ClassGenerator("../schema/model_base.yaml", save_path, module_version_tag)
+
+    # Generate classes based on the schema
+    generator.generate(version_tag)
+
+    # Generate enums based on the BIDS schema structure
     generator.generate_enum("DatatypeEnum", "objects/datatypes")
     generator.generate_enum("ModalityEnum", "objects/modalities")
     generator.generate_enum("SuffixEnum", "objects/suffixes")
-    #generator.generate_enum("ExtensionEnum", "objects/extensions")
 
     def sorter(unordered_entities):
         ordered_entities_names = generator.bids_schema["rules"]["entities"]
         ordered_entities = {k: unordered_entities[k] for k in ordered_entities_names}
         return ordered_entities
+
     generator.generate_enum("EntityEnum", "objects/entities", sorter=sorter)
 
+    # Save the generated output to the respective files
     generator.base_output.flush()
     generator.base_output.seek(0)
     with open("../ancpbids/model_base.py", 'w') as f:
@@ -286,5 +300,5 @@ if __name__ == '__main__':
 
     generator.version_output.flush()
     generator.version_output.seek(0)
-    with open("../ancpbids/model_%s.py" % module_version_tag, 'w') as f:
+    with open(f"../ancpbids/model_v{module_version_tag}.py", 'w') as f:
         f.write(generator.version_output.read())

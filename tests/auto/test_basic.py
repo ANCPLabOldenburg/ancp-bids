@@ -7,6 +7,7 @@ from ancpbids.utils import parse_bids_name
 from ..base_test_case import *
 
 
+
 class BasicTestCase(BaseTestCase):
     def test_naming_scheme(self):
         valid_names = ["sub-11_task-mixedgamblestask_run-02_events.tsv", "sub-11_dwi.nii.gz", "x-01_y-02_z-03_xyz.abc",

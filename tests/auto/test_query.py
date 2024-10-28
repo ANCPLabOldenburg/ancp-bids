@@ -2,6 +2,7 @@ import os.path
 
 import ancpbids
 from ancpbids import select, re, any_of, all_of, eq, op, entity
+# from ..base_test_case import *
 from ..base_test_case import *
 
 
