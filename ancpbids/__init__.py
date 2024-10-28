@@ -13,7 +13,8 @@ from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, Writing
 from .query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
     EntityExpr
 from . import model_v1_8_0
-from . import model_v1_8_0 as model_latest
+from . import model_v1_9_0
+from . import model_v1_9_0 as model_latest
 
 from . import model_v1_9_0
 from . import model_v1_9_0 as model_latest
