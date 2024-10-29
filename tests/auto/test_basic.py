@@ -1,7 +1,5 @@
 import os.path
 
-import numpy
-
 from ancpbids import load_dataset, DatasetOptions
 from ancpbids.utils import parse_bids_name
 from ..base_test_case import *

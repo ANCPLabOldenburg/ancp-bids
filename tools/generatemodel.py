@@ -1,9 +1,63 @@
 import json
 import math
 import sys
+import argparse
 from io import StringIO
 
 import yaml
+
+import os
+import requests
+
+
+# Function to fetch the latest schema version from GitHub
+def fetch_schema_version(version_tag=None):
+    if version_tag:
+        # Construct the URL for the specified version
+        schema_url = f"https://raw.githubusercontent.com/bids-standard/bids-schema/main/versions/{version_tag}/schema.json"
+        return version_tag, schema_url
+
+    # URL to the GitHub API for the versions directory
+    url = "https://api.github.com/repos/bids-standard/bids-schema/contents/versions"
+
+    # Request to fetch the contents of the URL
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch schema versions from GitHub. Status code: {response.status_code}")
+
+    # Print the entire response for inspection
+    response_data = response.json()
+
+    version_dirs = []
+    for item in response_data:
+        # Check if the item is a directory and follows semantic versioning
+        if item['type'] == 'dir' and all(part.isdigit() for part in item['name'].split('.')):
+            version_dirs.append(item['name'])
+
+    if not version_dirs:
+        raise Exception("No valid version directories found.")
+
+    # Sort version directories to find the latest version
+    version_dirs.sort(key=lambda v: list(map(int, v.split('.'))), reverse=True)  # Sort by semantic versioning
+    latest_version = version_dirs[0]
+
+    # Construct the URL for the latest schema.json file
+    latest_schema_url = f"https://raw.githubusercontent.com/bids-standard/bids-schema/main/versions/{latest_version}/schema.json"
+
+    return latest_version, latest_schema_url
+
+
+# Function to download the schema.json file
+def download_schema(schema_url, save_path):
+    # Send a GET request to the schema URL
+    response = requests.get(schema_url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download schema. Status code: {response.status_code}")
+
+    # Save the schema to the specified path
+    with open(save_path, 'w') as schema_file:
+        schema_file.write(response.text)
+    print(f"Schema downloaded and saved to {save_path}")
 
 
 class ClassGenerator:
@@ -200,25 +254,45 @@ SCHEMA = sys.modules[__name__]
         for k, v in context.items():
             generator.append_ver(f" {k} = {v}")
 
-
 if __name__ == '__main__':
-    # extractor = MetadataExtractor("./test.yaml")
-    version_tag = 'v1.8.0'
+    parser = argparse.ArgumentParser(description="Generate Python model from BIDS schema.")
+    parser.add_argument('--schema-version', type=str, help='Specify the schema version to use (default is latest).')
+
+    args = parser.parse_args()
+
+    # Use specified version if provided; otherwise, fetch the latest version
+    version_tag = args.schema_version
+    if version_tag:
+        _, schema_url = fetch_schema_version(version_tag)
+    else:
+        version_tag, schema_url = fetch_schema_version()
+
+    print(f"Using schema version: {version_tag}")
+
+    # Download the schema
+    save_path = f"../schema/schema.v{version_tag}.json"  # Adding 'v' before the version
+    download_schema(schema_url, save_path)
+
+    # Initialize ClassGenerator with the specified or latest schema file
     module_version_tag = version_tag.replace('.', '_')
-    generator = ClassGenerator("../schema/model_base.yaml", f"../schema/schema_{version_tag}.json", module_version_tag)
+    generator = ClassGenerator("../schema/model_base.yaml", save_path, module_version_tag)
+
+    # Generate classes based on the schema
     generator.generate(version_tag)
 
+    # Generate enums based on the BIDS schema structure
     generator.generate_enum("DatatypeEnum", "objects/datatypes")
     generator.generate_enum("ModalityEnum", "objects/modalities")
     generator.generate_enum("SuffixEnum", "objects/suffixes")
-    #generator.generate_enum("ExtensionEnum", "objects/extensions")
 
     def sorter(unordered_entities):
         ordered_entities_names = generator.bids_schema["rules"]["entities"]
         ordered_entities = {k: unordered_entities[k] for k in ordered_entities_names}
         return ordered_entities
+
     generator.generate_enum("EntityEnum", "objects/entities", sorter=sorter)
 
+    # Save the generated output to the respective files
     generator.base_output.flush()
     generator.base_output.seek(0)
     with open("../ancpbids/model_base.py", 'w') as f:
@@ -226,5 +300,5 @@ if __name__ == '__main__':
 
     generator.version_output.flush()
     generator.version_output.seek(0)
-    with open("../ancpbids/model_%s.py" % module_version_tag, 'w') as f:
+    with open(f"../ancpbids/model_v{module_version_tag}.py", 'w') as f:
         f.write(generator.version_output.read())

@@ -1,6 +1,6 @@
 from .model_base import *
 
-VERSION = 'v1.8.0'
+VERSION = '1.9.0'
 SCHEMA = sys.modules[__name__]
 
 
@@ -19,6 +19,7 @@ class DatatypeEnum(DatatypeEnum):
             'description': 'Intracranial electroencephalography (iEEG) or electrocorticography (ECoG) data\n'}
     meg = {'value': 'meg', 'display_name': 'Magnetoencephalography', 'description': 'Magnetoencephalography'}
     micr = {'value': 'micr', 'display_name': 'Microscopy', 'description': 'Microscopy'}
+    motion = {'value': 'motion', 'display_name': 'Motion', 'description': 'Motion data from a tracking system'}
     perf = {'value': 'perf', 'display_name': 'Perfusion imaging',
             'description': 'Blood perfusion imaging data, including arterial spin labeling (ASL)\n'}
     pet = {'value': 'pet', 'display_name': 'Positron Emission Tomography',
@@ -36,6 +37,7 @@ class ModalityEnum(ModalityEnum):
            'description': 'Behavioral data acquired without accompanying neuroimaging data.\n'}
     pet = {'display_name': 'Positron Emission Tomography', 'description': 'Data acquired with PET.\n'}
     micr = {'display_name': 'Microscopy', 'description': 'Data acquired with a microscope.\n'}
+    motion = {'display_name': 'Motion', 'description': 'Data acquired with Motion-Capture systems.\n'}
     nirs = {'display_name': 'Near-Infrared Spectroscopy', 'description': 'Data acquired with NIRS.'}
 
 
@@ -101,16 +103,13 @@ class SuffixEnum(SuffixEnum):
           'description': 'Ambiguous, may refer to a parametric image or to a conventional image.\n**Change:** Replaced by `PDw` or `PDmap`.\n',
           'unit': 'arbitrary'}
     PDT2 = {'value': 'PDT2', 'display_name': 'PD and T2 weighted image',
-            'description': 'In arbitrary units (arbitrary).\nPDw and T2w images acquired using a dual echo FSE sequence through view\nsharing process\n([Johnson et al. 1994](https://pubmed.ncbi.nlm.nih.gov/8010268/)).\n',
+            'description': 'In arbitrary units (arbitrary).\nA two-volume 4D image, where the volumes are, respectively, PDw and T2w\nimages acquired simultaneously.\nIf separated into 3D volumes, the `PDw` and `T2w` suffixes SHOULD be used instead,\nand an acquisition entity MAY be used to distinguish the images from others with\nthe same suffix, for example, `acq-PDT2_PDw.nii` and `acq-PDT2_T2w.nii`.\n',
             'unit': 'arbitrary'}
-    PDT2map = {'value': 'PDT2map', 'display_name': 'Combined PD/T2 image',
-               'description': 'In arbitrary units (arbitrary).\nCombined PD/T2 maps are REQUIRED to use this suffix regardless of the method\nused to generate them.\n',
-               'unit': 'arbitrary'}
     PDmap = {'value': 'PDmap', 'display_name': 'Proton density image',
              'description': 'In arbitrary units (arbitrary).\nPD maps are REQUIRED to use this suffix regardless of the method used to\ngenerate them.\n',
              'unit': 'arbitrary'}
     PDw = {'value': 'PDw', 'display_name': 'Proton density (PD) weighted image',
-           'description': 'In arbitrary units (arbitrary).\nThe contrast of these images is mainly determined by spatial variations in\nthe spin density (1H) of the imaged specimen.\nIn spin-echo sequences this contrast is achieved at short repetition and long\necho times.\nIn a gradient-echo acquisition, PD weighting dominates the contrast at long\nrepetition and short echo times, and at small flip angles.\n',
+           'description': 'In arbitrary units (arbitrary).\nThe contrast of these images is mainly determined by spatial variations in\nthe spin density (1H) of the imaged specimen.\nThis contrast is achieved at short echo times and long repetition times;\nfor gradient echo, this weighting is also possible with a short TR (TR<<T1) and a small flip angle.\n',
            'unit': 'arbitrary'}
     PLI = {'value': 'PLI', 'display_name': 'Polarized-light microscopy',
            'description': 'Polarized-light microscopy imaging data\n'}
@@ -188,11 +187,11 @@ class SuffixEnum(SuffixEnum):
     aslcontext = {'value': 'aslcontext', 'display_name': 'Arterial Spin Labeling Context',
                   'description': 'A TSV file defining the image types for volumes in an associated ASL file.\n'}
     asllabeling = {'value': 'asllabeling', 'display_name': 'ASL Labeling Screenshot',
-                   'description': 'An anonymized screenshot of the planning of the labeling slab/plane with\nrespect to the imaging slab or slices `*_asllabeling.jpg`.\nBased on DICOM macro C.8.13.5.14.\n'}
+                   'description': 'An anonymized screenshot of the planning of the labeling slab/plane\nwith respect to the imaging slab or slices.\nThis screenshot is based on DICOM macro C.8.13.5.14.\n'}
     beh = {'value': 'beh', 'display_name': 'Behavioral recording',
            'description': 'Behavioral recordings from tasks.\nThese files are similar to events files, but do not include the `"onset"` and\n`"duration"` columns that are mandatory for events files.\n'}
     blood = {'value': 'blood', 'display_name': 'Blood recording data',
-             'description': 'Blood measurements of radioactivity stored in\n[tabular files](SPEC_ROOT/02-common-principles.md#tabular-files)\nand located in the `pet/` directory along with the corresponding PET data.\n'}
+             'description': 'Blood measurements of radioactivity stored in\n[tabular files](SPEC_ROOT/common-principles.md#tabular-files)\nand located in the `pet/` directory along with the corresponding PET data.\n'}
     bold = {'value': 'bold', 'display_name': 'Blood-Oxygen-Level Dependent image',
             'description': 'Blood-Oxygen-Level Dependent contrast (specialized T2\\* weighting)\n'}
     cbv = {'value': 'cbv', 'display_name': 'Cerebral blood volume image',
@@ -240,6 +239,8 @@ class SuffixEnum(SuffixEnum):
             'description': 'A binary mask that functions as a discrete "label" for a single structure.\n\nThis suffix may only be used in derivative datasets.\n'}
     meg = {'value': 'meg', 'display_name': 'Magnetoencephalography',
            'description': 'Unprocessed MEG data stored in the native file format of the MEG instrument\nwith which the data was collected.\n'}
+    motion = {'value': 'motion', 'display_name': 'Motion',
+              'description': 'Data recorded from a tracking system store.\n'}
     nirs = {'value': 'nirs', 'display_name': 'Near Infrared Spectroscopy',
             'description': 'Data associated with a Shared Near Infrared Spectroscopy Format file.'}
     optodes = {'value': 'optodes', 'display_name': 'Optodes',
@@ -247,7 +248,7 @@ class SuffixEnum(SuffixEnum):
     pet = {'value': 'pet', 'display_name': 'Positron Emission Tomography',
            'description': 'PET imaging data SHOULD be stored in 4D\n(or 3D, if only one volume was acquired) NIfTI files with the `_pet` suffix.\nVolumes MUST be stored in chronological order\n(the order they were acquired in).\n'}
     phase = {'value': 'phase', 'display_name': 'Phase image',
-             'description': '[DEPRECATED](SPEC_ROOT/02-common-principles.md#definitions).\nPhase information associated with magnitude information stored in BOLD\ncontrast.\nThis suffix should be replaced by the\n[`part-phase`](SPEC_ROOT/appendices/entities.md#part)\nin conjunction with the `bold` suffix.\n',
+             'description': '[DEPRECATED](SPEC_ROOT/common-principles.md#definitions).\nPhase information associated with magnitude information stored in BOLD\ncontrast.\nThis suffix should be replaced by the\n[`part-phase`](SPEC_ROOT/appendices/entities.md#part)\nin conjunction with the `bold` suffix.\n',
              'anyOf': [{'unit': 'arbitrary'}, {'unit': 'rad'}]}
     phase1 = {'value': 'phase1', 'display_name': 'Phase',
               'description': 'Phase map generated by GRE or similar schemes, associated with the first\necho in the sequence.\n'}
@@ -282,8 +283,11 @@ class EntityEnum(EntityEnum):
               'description': 'A sample pertaining to a subject such as tissue, primary cell or cell-free sample.\nThe `sample-<label>` entity is used to distinguish between different samples from the same subject.\nThe label MUST be unique per subject and is RECOMMENDED to be unique throughout the dataset.\n',
               'type': 'string', 'format': 'label'}
     task = {'name': 'task', 'display_name': 'Task',
-            'description': 'A set of structured activities performed by the participant.\nTasks are usually accompanied by stimuli and responses, and can greatly vary in complexity.\n\nIn the context of brain scanning, a task is always tied to one data acquisition.\nTherefore, even if during one acquisition the subject performed multiple conceptually different behaviors\n(with different sets of instructions) they will be considered one (combined) task.\n\nWhile tasks may be repeated across multiple acquisitions,\na given task may have different sets of stimuli (for example, randomized order) and participant responses\nacross subjects, sessions, and runs.\n\nThe `task-<label>` MUST be consistent across subjects and sessions.\n\nFiles with the `task-<label>` entity SHOULD have an associated\n[events file](SPEC_ROOT/04-modality-specific-files/05-task-events.md#task-events),\nas well as certain metadata fields in the associated JSON file.\n\nFor the purpose of this specification we consider the so-called "resting state" a task,\nalthough events files are not expected for resting state data.\nAdditionally, a common convention in the specification is to include the word "rest" in\nthe `task` label for resting state files (for example, `task-rest`).\n',
+            'description': 'A set of structured activities performed by the participant.\nTasks are usually accompanied by stimuli and responses, and can greatly vary in complexity.\n\nIn the context of brain scanning, a task is always tied to one data acquisition.\nTherefore, even if during one acquisition the subject performed multiple conceptually different behaviors\n(with different sets of instructions) they will be considered one (combined) task.\n\nWhile tasks may be repeated across multiple acquisitions,\na given task may have different sets of stimuli (for example, randomized order) and participant responses\nacross subjects, sessions, and runs.\n\nThe `task-<label>` MUST be consistent across subjects and sessions.\n\nFiles with the `task-<label>` entity SHOULD have an associated\n[events file](SPEC_ROOT/modality-specific-files/task-events.md#task-events),\nas well as certain metadata fields in the associated JSON file.\n\nFor the purpose of this specification we consider the so-called "resting state" a task,\nalthough events files are not expected for resting state data.\nAdditionally, a common convention in the specification is to include the word "rest" in\nthe `task` label for resting state files (for example, `task-rest`).\n',
             'type': 'string', 'format': 'label'}
+    tracksys = {'name': 'tracksys', 'display_name': 'Tracking system',
+                'description': 'The `tracksys-<label>` entity can be used as a key-value pair\nto label *_motion.tsv and *_motion.json files.\nIt can also be used to label *_channel.tsv or *_events.tsv files\nwhen they belong to a specific tracking system.\n\nThis entity corresponds to the `"TrackingSystemName"` metadata field in a *_motion.json file.\n`tracksys-<label>` entity is a concise string whereas `"TrackingSystemName"`\nmay be longer and more human readable.\n',
+                'type': 'string', 'format': 'label'}
     acquisition = {'name': 'acq', 'display_name': 'Acquisition',
                    'description': 'The `acq-<label>` entity corresponds to a custom label the user MAY use to distinguish\na different set of parameters used for acquiring the same modality.\n\nFor example, this should be used when a study includes two T1w images -\none full brain low resolution and one restricted field of view but high resolution.\nIn such case two files could have the following names:\n`sub-01_acq-highres_T1w.nii.gz` and `sub-01_acq-lowres_T1w.nii.gz`;\nhowever, the user is free to choose any other label than `highres` and `lowres` as long\nas they are consistent across subjects and sessions.\n\nIn case different sequences are used to record the same modality\n(for example, `RARE` and `FLASH` for T1w)\nthis field can also be used to make that distinction.\nThe level of detail at which the distinction is made\n(for example, just between `RARE` and `FLASH`, or between `RARE`, `FLASH`, and `FLASHsubsampled`)\nremains at the discretion of the researcher.\n',
                    'type': 'string', 'format': 'label'}
@@ -294,7 +298,7 @@ class EntityEnum(EntityEnum):
               'description': 'The `trc-<label>` entity can be used to distinguish sequences using different tracers.\n\nThis entity represents the `"TracerName"` metadata field.\nTherefore, if the `trc-<label>` entity is present in a filename,\n`"TracerName"` MUST be defined in the associated metadata.\nPlease note that the `<label>` does not need to match the actual value of the field.\n',
               'type': 'string', 'format': 'label'}
     stain = {'name': 'stain', 'display_name': 'Stain',
-             'description': 'The `stain-<label>` key/pair values can be used to distinguish image files\nfrom the same sample using different stains or antibodies for contrast enhancement.\n\nThis entity represents the `"SampleStaining"` metadata field.\nTherefore, if the `stain-<label>` entity is present in a filename,\n`"SampleStaining"` SHOULD be defined in the associated metadata,\nalthough the label may be different.\n\nDescriptions of antibodies SHOULD also be indicated in the `"SamplePrimaryAntibodies"`\nand/or `"SampleSecondaryAntobodies"` metadata fields, as appropriate.\n',
+             'description': 'The `stain-<label>` key/pair values can be used to distinguish image files\nfrom the same sample using different stains or antibodies for contrast enhancement.\n\nThis entity represents the `"SampleStaining"` metadata field.\nTherefore, if the `stain-<label>` entity is present in a filename,\n`"SampleStaining"` SHOULD be defined in the associated metadata,\nalthough the label may be different.\n\nDescriptions of antibodies SHOULD also be indicated in the `"SamplePrimaryAntibodies"`\nand/or `"SampleSecondaryAntibodies"` metadata fields, as appropriate.\n',
              'type': 'string', 'format': 'label'}
     reconstruction = {'name': 'rec', 'display_name': 'Reconstruction',
                       'description': 'The `rec-<label>` entity can be used to distinguish different reconstruction algorithms\n(for example, `MoCo` for the ones using motion correction).\n',
@@ -321,10 +325,10 @@ class EntityEnum(EntityEnum):
                  'description': 'If files belonging to an entity-linked file collection are acquired at different\nmagnetization transfer (MT) states, the `_mt-<label>` entity MUST be used to\ndistinguish individual files.\n\nThis entity represents the `"MTState"` metadata field.\nTherefore, if the `mt-<label>` entity is present in a filename,\n`"MTState"` MUST be defined in the associated metadata.\nAllowed label values for this entity are `on` and `off`,\nfor images acquired in presence and absence of an MT pulse, respectively.\n',
                  'type': 'string', 'format': 'label', 'enum': ['on', 'off']}
     part = {'name': 'part', 'display_name': 'Part',
-            'description': 'This entity is used to indicate which component of the complex\nrepresentation of the MRI signal is represented in voxel data.\nThe `part-<label>` entity is associated with the DICOM Tag\n`0008, 9208`.\nAllowed label values for this entity are `phase`, `mag`, `real` and `imag`,\nwhich are typically used in `part-mag`/`part-phase` or\n`part-real`/`part-imag` pairs of files.\n\nPhase images MAY be in radians or in arbitrary units.\nThe sidecar JSON file MUST include the units of the `phase` image.\nThe possible options are `"rad"` or `"arbitrary"`.\n\nWhen there is only a magnitude image of a given type, the `part` entity MAY be\nomitted.\n',
+            'description': 'This entity is used to indicate which component of the complex\nrepresentation of the MRI signal is represented in voxel data.\nThe `part-<label>` entity is associated with the DICOM Tag\n`0008, 9208`.\nAllowed label values for this entity are `phase`, `mag`, `real` and `imag`,\nwhich are typically used in `part-mag`/`part-phase` or\n`part-real`/`part-imag` pairs of files.\n\nPhase images MAY be in radians or in arbitrary units.\nThe sidecar JSON file MUST include the `"Units"` of the `phase` image.\nThe possible options are `"rad"` or `"arbitrary"`.\n\nWhen there is only a magnitude image of a given type, the `part` entity MAY be\nomitted.\n',
             'type': 'string', 'format': 'label', 'enum': ['mag', 'phase', 'real', 'imag']}
     processing = {'name': 'proc', 'display_name': 'Processed (on device)',
-                  'description': "The proc label is analogous to rec for MR and denotes a variant of\na file that was a result of particular processing performed on the device.\n\nThis is useful for files produced in particular by Elekta's MaxFilter\n(for example, `sss`, `tsss`, `trans`, `quat` or `mc`),\nwhich some installations impose to be run on raw data because of active\nshielding software corrections before the MEG data can actually be\nexploited.\n",
+                  'description': "The proc label is analogous to rec for MR and denotes a variant of\na file that was a result of particular processing performed on the device.\n\nThis is useful for files produced in particular by Neuromag/Elekta/MEGIN's\nMaxFilter (for example, `sss`, `tsss`, `trans`, `quat` or `mc`),\nwhich some installations impose to be run on raw data because of active\nshielding software corrections before the MEG data can actually be\nexploited.\n",
                   'type': 'string', 'format': 'label'}
     hemisphere = {'name': 'hemi', 'display_name': 'Hemisphere',
                   'description': 'The `hemi-<label>` entity indicates which hemibrain is described by the file.\nAllowed label values for this entity are `L` and `R`, for the left and right\nhemibrains, respectively.\n',
@@ -333,17 +337,17 @@ class EntityEnum(EntityEnum):
              'description': 'The `space-<label>` entity can be used to indicate the way in which electrode positions are interpreted\n(for EEG/MEG/iEEG data)\nor the spatial reference to which a file has been aligned (for MRI data).\nThe `<label>` MUST be taken from one of the modality specific lists in the\n[Coordinate Systems Appendix](SPEC_ROOT/appendices/coordinate-systems.md).\nFor example, for iEEG data, the restricted keywords listed under\n[iEEG Specific Coordinate Systems](SPEC_ROOT/appendices/coordinate-systems.md#ieeg-specific-coordinate-systems)\nare acceptable for `<label>`.\n\nFor EEG/MEG/iEEG data, this entity can be applied to raw data,\nbut for other data types, it is restricted to derivative data.\n',
              'type': 'string', 'format': 'label'}
     split = {'name': 'split', 'display_name': 'Split',
-             'description': 'In the case of long data recordings that exceed a file size of 2Gb,\n`.fif` files are conventionally split into multiple parts.\nEach of these files has an internal pointer to the next file.\nThis is important when renaming these split recordings to the BIDS convention.\n\nInstead of a simple renaming, files should be read in and saved under their\nnew names with dedicated tools like [MNE-Python](https://mne.tools/),\nwhich will ensure that not only the file names, but also the internal file pointers, will be updated.\n\nIt is RECOMMENDED that `.fif` files with multiple parts use the `split-<index>` entity to indicate each part.\nIf there are multiple parts of a recording and the optional `scans.tsv` is provided,\nall files MUST be listed separately in `scans.tsv` and\nthe entries for the `acq_time` column in `scans.tsv` MUST all be identical,\nas described in [Scans file](SPEC_ROOT/03-modality-agnostic-files.md#scans-file).\n',
+             'description': 'In the case of long data recordings that exceed a file size of 2Gb,\n`.fif` files are conventionally split into multiple parts.\nEach of these files has an internal pointer to the next file.\nThis is important when renaming these split recordings to the BIDS convention.\n\nInstead of a simple renaming, files should be read in and saved under their\nnew names with dedicated tools like [MNE-Python](https://mne.tools/),\nwhich will ensure that not only the filenames, but also the internal file pointers, will be updated.\n\nIt is RECOMMENDED that `.fif` files with multiple parts use the `split-<index>` entity to indicate each part.\nIf there are multiple parts of a recording and the optional `scans.tsv` is provided,\nall files MUST be listed separately in `scans.tsv` and\nthe entries for the `acq_time` column in `scans.tsv` MUST all be identical,\nas described in [Scans file](SPEC_ROOT/modality-agnostic-files.md#scans-file).\n',
              'type': 'string', 'format': 'index'}
     recording = {'name': 'recording', 'display_name': 'Recording',
                  'description': 'The `recording-<label>` entity can be used to distinguish continuous recording files.\n\nThis entity is commonly applied when continuous recordings have different sampling frequencies or start times.\nFor example, physiological recordings with different sampling frequencies may be distinguished using\nlabels like `recording-100Hz` and `recording-500Hz`.\n',
                  'type': 'string', 'format': 'label'}
     chunk = {'name': 'chunk', 'display_name': 'Chunk',
-             'description': 'The `chunk-<index>` key/value pair is used to distinguish between different regions,\n2D images or 3D volumes files,\nof the same physical sample with different fields of view acquired in the same imaging experiment.\n',
+             'description': 'The `chunk-<index>` key/value pair is used to distinguish between images of\nthe same physical sample with different fields of view acquired in the same\nimaging experiment.\nThis entity applies to collections of 2D images, 3D volumes or 4D volume series\n(for example, diffusion weighted images), and may be used to indicate different\nanatomical structures or regions of the same structure.\n',
              'type': 'string', 'format': 'index'}
-    atlas = {'name': 'atlas', 'display_name': 'Atlas',
-             'description': 'The `atlas-<label>` key/value pair corresponds to a custom label the user\nMAY use to distinguish a different atlas used for similar type of data.\n\nThis entity is only applicable to derivative data.\n',
-             'type': 'string', 'format': 'label'}
+    segmentation = {'name': 'seg', 'display_name': 'Segmentation',
+                    'description': 'The `seg-<label>` key/value pair corresponds to a custom label the user\nMAY use to distinguish different segmentations.\n\nThis entity is only applicable to derivative data.\n',
+                    'type': 'string', 'format': 'label'}
     resolution = {'name': 'res', 'display_name': 'Resolution',
                   'description': 'Resolution of regularly sampled N-dimensional data.\n\nThis entity represents the `"Resolution"` metadata field.\nTherefore, if the `res-<label>` entity is present in a filename,\n`"Resolution"` MUST also be added in the JSON file, to provide interpretation.\n\nThis entity is only applicable to derivative data.\n',
                   'type': 'string', 'format': 'label'}
