@@ -14,9 +14,8 @@ from .query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpE
     EntityExpr
 from . import model_v1_8_0
 from . import model_v1_9_0
-from . import model_v1_9_0 as model_latest
 
-from . import model_v1_9_0
+# latest stable supported BIDS schema
 from . import model_v1_9_0 as model_latest
 
 LOGGER = logging.getLogger("ancpbids")
