@@ -270,7 +270,7 @@ if __name__ == '__main__':
     print(f"Using schema version: {version_tag}")
 
     # Download the schema
-    save_path = f"../schema/schema.v{version_tag}.json"  # Adding 'v' before the version
+    save_path = f"../schema/schema_v{version_tag}.json"  # Adding 'v' before the version
     download_schema(schema_url, save_path)
 
     # Initialize ClassGenerator with the specified or latest schema file
