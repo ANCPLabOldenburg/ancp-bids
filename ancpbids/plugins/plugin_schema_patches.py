@@ -325,6 +325,12 @@ def get_schema(model):
         current = current.parent_object_
     return None
 
+def get_sidecar_file(artifact, **entities):
+    parent = artifact.get_parent()
+    filters = dict(**artifact.get_entities())
+    filters.update(**entities)
+    return parent.query(**filters)
+
 
 class PatchingSchemaPlugin(SchemaPlugin):
     def execute(self, schema):
@@ -340,6 +346,7 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.Artifact.get_entities = get_entities
         schema.Artifact.add_entity = lambda artifact, key, value: add_entity(schema, artifact, key, value)
         schema.Artifact.add_entities = lambda artifact, **kwargs: add_entities(schema, artifact, **kwargs)
+        schema.Artifact.sidecar = get_sidecar_file
         schema.Folder.load_file_contents = load_file_contents
         schema.File.load_contents = load_contents
         schema.File.get_absolute_path = get_absolute_path_by_file
