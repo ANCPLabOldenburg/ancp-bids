@@ -37,5 +37,4 @@ class TorchDataset(Dataset):
         if not math.isclose(sum_ratios, 1.0):
             raise ValueError("sum of split ratios should be 1.0")
 
-        size_dataset = len(self)
-        return random_split(self, [round(size_dataset * ratio) for ratio in args])
+        return random_split(self, args)
