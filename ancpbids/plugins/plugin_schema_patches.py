@@ -3,6 +3,7 @@ import inspect
 import math
 import os
 import sys
+import json
 from difflib import SequenceMatcher
 
 from ancpbids.plugin import SchemaPlugin
@@ -102,6 +103,52 @@ def create_artifact(folder, raw=None):
     if isinstance(raw, Artifact):
         artifact.entities.extend(raw.entities)
     artifact.parent_object_ = folder
+    folder.files.append(artifact)
+    return artifact
+
+
+def touch(self) -> str:
+    # Get the absolute path of the parent directory
+    parent_directory = self.parent_object_.get_absolute_path()
+
+    # Ensure the parent directory exists
+    if not os.path.exists(parent_directory):
+        os.makedirs(parent_directory, exist_ok=True)
+
+    # Generate BIDS-compliant filename
+    entity_str = "_".join([f"{entity.key}-{entity.value}" for entity in self.entities])
+    file_name = f"{entity_str}_{self.suffix}{self.extension}"
+
+    # Construct the full file path
+    full_path = os.path.join(parent_directory, file_name)
+
+    # Create the file if it doesn't already exist
+    if not os.path.exists(full_path):
+        with open(full_path, 'w') as f:
+            pass  # Create an empty file
+
+    # Return the full path for reference
+    return full_path
+
+
+
+def create_intermediate_results(folder, file_name, content, format_type="json"):
+    """Create a file to store intermediate results in a specified format."""
+    artifact = create_artifact(folder)
+    artifact.name = file_name
+
+    if format_type == "json":
+        artifact.content = json.dumps(content, indent=4)
+    elif format_type == "tsv":
+        if isinstance(content, list) and all(isinstance(row, list) for row in content):
+            artifact.content = "\n".join("\t".join(map(str, row)) for row in content)
+        else:
+            raise ValueError("Content must be a list of lists for TSV format.")
+    elif format_type == "txt":
+        artifact.content = str(content)
+    else:
+        raise ValueError(f"Unsupported format type: {format_type}")
+
     folder.files.append(artifact)
     return artifact
 
@@ -348,6 +395,8 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.File.get_relative_path = _file_get_relative_path
         schema.Folder.remove_file = remove_file
         schema.Folder.create_artifact = create_artifact
+        schema.Artifact.touch=touch
+        schema.Folder.create_intermediate_results = create_intermediate_results
         schema.Folder.create_folder = create_folder
         schema.Dataset.create_derivative = create_derivative
         schema.Folder.get_file = get_file
