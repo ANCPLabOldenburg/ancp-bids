@@ -79,12 +79,14 @@ def _get_path(folder, file_name=None, absolute=True):
     current_folder = folder
     while current_folder is not None:
         if isinstance(current_folder, Dataset):
+            # prepend the dataset name if it is not part of the base dir name
+            if not current_folder.base_dir_.endswith(current_folder.name):
+                segments.insert(0, current_folder.name)
             if absolute:
                 segments.insert(0, current_folder.base_dir_)
             # assume we reached the highest level, maybe not good for nested datasets
             break
-        else:
-            segments.insert(0, current_folder.name)
+        segments.insert(0, current_folder.name)
         current_folder = current_folder.parent_object_
     _path = os.path.join(*segments) if segments else ''
     _path = os.path.normpath(_path)
@@ -138,9 +140,10 @@ def create_derivative(ds, path=None, **kwargs):
     return derivative
 
 
-def create_dataset(schema, **kwargs):
+def create_dataset(schema, base_dir=None, **kwargs):
     ds = Dataset()
     ds._versioned_schema = schema
+    ds.base_dir_ = base_dir
     ds.update(**kwargs)
     ds.dataset_description = DatasetDescriptionFile(name="dataset_description.json")
     ds.dataset_description.BIDSVersion = schema.VERSION
@@ -325,6 +328,7 @@ def get_schema(model):
         current = current.parent_object_
     return None
 
+
 def get_sidecar_file(artifact, **entities):
     parent = artifact.get_parent()
     filters = dict(**artifact.get_entities())
@@ -374,4 +378,4 @@ class PatchingSchemaPlugin(SchemaPlugin):
         schema.fuzzy_match_entity_key = lambda user_key: fuzzy_match_entity_key(schema, user_key)
         schema.fuzzy_match_entity = lambda user_key: fuzzy_match_entity(schema, user_key)
 
-        schema.create_dataset = lambda **kwargs: create_dataset(schema, **kwargs)
+        schema.create_dataset = lambda base_dir=None, **kwargs: create_dataset(schema, base_dir=base_dir, **kwargs)

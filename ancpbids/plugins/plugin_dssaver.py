@@ -2,7 +2,7 @@ import inspect
 import os
 
 import ancpbids
-from ancpbids.plugin import WritingPlugin
+from ancpbids.plugin import WritingPlugin, SchemaPlugin
 
 
 class DatasetWritingPlugin(WritingPlugin):
@@ -20,6 +20,7 @@ class DatasetWritingPlugin(WritingPlugin):
             src_dir = ds.get_absolute_path()
 
         self.schema = ds.get_schema()
+
         generator = context_folder.to_generator()
         for obj in generator:
             typ = type(obj)
@@ -38,10 +39,15 @@ class DatasetWritingPlugin(WritingPlugin):
             self._type_handler_File(src_dir, target_dir, obj)
 
     def _type_handler_File(self, src_dir, target_dir, file, new_file_name=None):
+        abs_file_name = file.get_absolute_path()
+        dir_name = os.path.dirname(abs_file_name)
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+
         if hasattr(file, 'content') and callable(file.content):
-            file.content(file.get_absolute_path())
+            file.content(abs_file_name)
         else:
-            ancpbids.utils.write_contents(file.get_absolute_path(), file)
+            ancpbids.utils.write_contents(abs_file_name, file)
 
     def _type_handler_Folder(self, src_dir, target_dir, folder, traverse_children=False):
         new_dir = os.path.join(target_dir, folder.get_relative_path())
@@ -93,3 +99,14 @@ class DatasetWritingPlugin(WritingPlugin):
 
 _TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetWritingPlugin) if
                  inspect.isfunction(obj) and obj.__name__.startswith('_type_handler_')}
+
+
+def write_artifact(artifact):
+    dummy_inst = DatasetWritingPlugin()
+    dummy_inst._type_handler_Artifact(None, None, artifact)
+    return artifact.get_absolute_path()
+
+
+class ArtifactWritingSchemaPlugin(SchemaPlugin):
+    def execute(self, schema):
+        schema.Artifact.write = write_artifact
