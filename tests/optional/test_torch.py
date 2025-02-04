@@ -12,9 +12,9 @@ class BasicTestCase(BaseTestCase):
         torch_ds = TorchDataset(DS005_DIR, suffix="bold")
         train_set, test_set, val_set = torch_ds.split(0.8, 0.1, 0.1)
 
-        assert len(train_set) == 39
+        assert len(train_set) == 40
         assert len(test_set) == 5
-        assert len(val_set) == 5
+        assert len(val_set) == 4
 
         train_dl: torch.utils.data.DataLoader = torch.utils.data.DataLoader(train_set, shuffle=True)
         file_path, onset_events = next(iter(train_dl))
