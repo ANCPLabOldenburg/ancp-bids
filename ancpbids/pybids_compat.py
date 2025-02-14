@@ -9,12 +9,8 @@ from . import load_dataset
 from .query import query, query_entities
 from .utils import resolve_segments, convert_to_relative
 
-warnings.warn('Development of the BIDSLayout interface will continue in the pybids project.')
-
 class BIDSLayout:
-    """WARNING: Development of this class will continue in the pybids project.
-
-    A convenience class to provide access to an in-memory representation of a BIDS dataset.
+    """A convenience class to provide access to an in-memory representation of a BIDS dataset.
 
     .. code-block::
 

@@ -6,6 +6,7 @@ from typing import Union, List, Optional
 
 from ancpbids import plugins
 from ancpbids import utils
+from ancpbids.pybids_compat import BIDSLayout
 from . import model_v1_8_0
 from . import model_v1_9_0
 from . import model_v1_10_0
