@@ -6,7 +6,6 @@ from typing import Union, List, Optional
 
 from ancpbids import plugins
 from ancpbids import utils
-from ancpbids.pybids_compat import BIDSLayout
 from . import model_v1_8_0
 from . import model_v1_9_0
 from . import model_v1_10_0
@@ -191,6 +190,8 @@ for pl in get_plugins(SchemaPlugin):
 # load file handler plugins
 for pl in get_plugins(FileHandlerPlugin):
     pl.execute(utils.FILE_READERS, utils.FILE_WRITERS)
+
+from .pybids_compat import BIDSLayout
 
 select = Select
 any_of = AnyExpr
