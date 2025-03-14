@@ -3,6 +3,7 @@ import math
 import sys
 import argparse
 from io import StringIO
+from packaging import version
 
 import yaml
 
@@ -254,6 +255,26 @@ SCHEMA = sys.modules[__name__]
         for k, v in context.items():
             generator.append_ver(f" {k} = {v}")
 
+
+# Function to check if the version is less than 8
+
+def check_version(version_str):
+    try:
+        parsed_version = version.parse(version_str)
+    except ValueError:
+        raise ValueError(f"Invalid version format: {version_str}")
+
+    # Define the minimum allowed version (1.8.0)
+    min_version = version.parse("1.8.0")
+
+    # Compare the parsed version with the minimum allowed version
+    if parsed_version < min_version:
+        raise Exception(f"Cannot generate model for version {version_str}. Version must be 1.8.0 or higher.")
+
+    return version_str
+
+
+# Inside the __main__ block, where the version is fetched or specified:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate Python model from BIDS schema.")
     parser.add_argument('--schema-version', type=str, help='Specify the schema version to use (default is latest).')
@@ -268,6 +289,9 @@ if __name__ == '__main__':
         version_tag, schema_url = fetch_schema_version()
 
     print(f"Using schema version: {version_tag}")
+
+    # Check if version is less than 8
+    check_version(version_tag)
 
     # Download the schema
     save_path = f"../schema/schema.v{version_tag}.json"  # Adding 'v' before the version
@@ -285,10 +309,12 @@ if __name__ == '__main__':
     generator.generate_enum("ModalityEnum", "objects/modalities")
     generator.generate_enum("SuffixEnum", "objects/suffixes")
 
+
     def sorter(unordered_entities):
         ordered_entities_names = generator.bids_schema["rules"]["entities"]
         ordered_entities = {k: unordered_entities[k] for k in ordered_entities_names}
         return ordered_entities
+
 
     generator.generate_enum("EntityEnum", "objects/entities", sorter=sorter)
 
@@ -302,3 +328,4 @@ if __name__ == '__main__':
     generator.version_output.seek(0)
     with open(f"../ancpbids/model_v{module_version_tag}.py", 'w') as f:
         f.write(generator.version_output.read())
+

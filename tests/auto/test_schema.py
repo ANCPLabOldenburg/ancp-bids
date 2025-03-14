@@ -1,7 +1,7 @@
 import unittest
 
 from ancpbids import model_v1_8_0, model_v1_9_0 as model_latest, load_dataset, load_schema
-from ..base_test_case import BaseTestCase, DS005_DIR, DS005_SMALL_DIR
+from tests.base_test_case import BaseTestCase, DS005_DIR, DS005_SMALL_DIR
 
 
 class SchemaTestCase(BaseTestCase):

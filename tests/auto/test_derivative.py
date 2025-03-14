@@ -1,5 +1,5 @@
 from ancpbids import load_dataset
-from ..base_test_case import *
+from tests.base_test_case import *
 
 
 class DerivativesTestCase(BaseTestCase):
