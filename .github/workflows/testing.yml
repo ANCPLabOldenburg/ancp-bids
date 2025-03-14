@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -25,6 +25,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest pytest-cov
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements-optional.txt ]; then pip install -r requirements-optional.txt; fi
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -36,7 +37,7 @@ jobs:
         PYTHONPATH: .
       run: |
         pip install -r requirements_tests.txt
-        pytest --cov=ancpbids --cov-report=xml tests/auto
+        pytest --cov=ancpbids --cov-report=xml tests/auto tests/optional
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:

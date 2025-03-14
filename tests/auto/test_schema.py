@@ -1,7 +1,7 @@
 import unittest
 
-from ancpbids import model_v1_8_0, model_v1_9_0 as model_latest, load_dataset, load_schema
-from tests.base_test_case import BaseTestCase, DS005_DIR, DS005_SMALL_DIR
+from ancpbids import model_v1_8_0, model_latest, load_dataset, load_schema
+from ..base_test_case import BaseTestCase, DS005_DIR, DS005_SMALL_DIR
 
 
 class SchemaTestCase(BaseTestCase):
@@ -19,7 +19,7 @@ class SchemaTestCase(BaseTestCase):
         ds_latest = load_dataset(DS005_DIR)
         schema_latest = ds_latest.get_schema()
         self.assertEqual(schema_latest, model_latest)
-        self.assertEqual('1.9.0', schema_latest.VERSION)
+        self.assertEqual('1.10.0', schema_latest.VERSION)
 
         ds_old = load_dataset(DS005_SMALL_DIR)
         schema_old = ds_old.get_schema()
@@ -29,7 +29,7 @@ class SchemaTestCase(BaseTestCase):
     def test_load_schema(self):
         schema_latest = load_schema(DS005_DIR)
         self.assertEqual(schema_latest, model_latest)
-        self.assertEqual('1.9.0', schema_latest.VERSION)
+        self.assertEqual('1.10.0', schema_latest.VERSION)
 
         schema_v180 = load_schema(DS005_SMALL_DIR)
         self.assertEqual(schema_v180, model_v1_8_0)
@@ -41,8 +41,13 @@ class SchemaTestCase(BaseTestCase):
 
     def test_v190_motion_modality_exists(self):
         from ancpbids import model_v1_9_0
-        # in 1.9.0 the motion modality was added, for example
+        # in 1.9.0 the motion modality was added
         self.assertTrue("motion" in [e.name for e in model_v1_9_0.ModalityEnum])
+
+    def test_v110_mrs_modality_exists(self):
+        from ancpbids import model_v1_10_0
+        # in 1.10.0 the mrs modality was added
+        self.assertTrue("motion" in [e.name for e in model_v1_10_0.ModalityEnum])
 
 
 

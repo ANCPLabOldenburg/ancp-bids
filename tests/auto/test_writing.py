@@ -11,7 +11,7 @@ from numpy.testing import tempdir
 
 import ancpbids
 from ancpbids import model_latest, re
-from tests.base_test_case import BaseTestCase, DS005_DIR
+from ..base_test_case import BaseTestCase, DS005_DIR
 
 
 class WritingTestCase(BaseTestCase):
@@ -109,7 +109,8 @@ class WritingTestCase(BaseTestCase):
 
     def test_write_intermediate_results(self):
         from ancpbids import model_latest as schema
-        dataset = schema.create_dataset(name='my-test-ds')
+        output_dir = tempfile.mkdtemp()
+        dataset = schema.create_dataset(output_dir, name='my-test-ds')
         dataset.dataset_description.Name = 'a programmatically created dataset'
         dataset.dataset_description.BIDSVersion = schema.VERSION
 
@@ -120,23 +121,18 @@ class WritingTestCase(BaseTestCase):
             img_file.suffix = 'bold'
             img_file.extension = '.nii.gz'
             img_file.add_entity('task', 'programming')
-            # touch() makes sure the artifact has a proper BIDS name within its parent directory
-            file_path: str = img_file.touch()
+            # content callback just creates an empty file
+            img_file.content = lambda file_name: open(file_name, 'w').close()
+            # immediately create the file
+            file_path: str = img_file.write()
             # we only care about the path beginning with the derivative folder
             expected_relative_file_path = os.path.normpath(
                 f"my-test-ds/sub-{i}/func/sub-{i}_task-programming_bold.nii.gz")
-            print(f"Generated file_path: {file_path}")
-            print(f"Expected path: {expected_relative_file_path}")
             self.assertTrue(file_path.endswith(expected_relative_file_path))
-
 
             # we can also get its absolute path name
             file_path_abs = img_file.get_absolute_path()
             self.assertEqual(file_path_abs, file_path, "Expected touch to return the absolute path of the file")
-
-            self.assertFalse(os.path.exists(file_path), f"File should not have been created yet: {file_path}")
-            # just create an empty file (this is where users would call some third party lib to create file specific contents)
-            open(file_path, 'w').close()
             self.assertTrue(os.path.exists(file_path), f"Missing expected file {file_path}")
 
 
