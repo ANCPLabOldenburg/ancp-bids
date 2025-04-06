@@ -71,10 +71,7 @@ class BIDSLayout:
         if path.startswith(self.dataset.base_dir_):
             path = path[len(self.dataset.base_dir_):].strip(os.sep)
         file = self.dataset.get_file(path)
-        md = file.get_metadata()
-        if md and include_entities:
-            schema_entities = {e.literal_: e.name for e in list(self.schema.EntityEnum)}
-            md.update({schema_entities[e.key]: e.value for e in file.entities})
+        md = file.get_metadata(include_entities=include_entities)
         return md
 
     def get(self, return_type: str = 'object', target: str = None, scope: str = None,
