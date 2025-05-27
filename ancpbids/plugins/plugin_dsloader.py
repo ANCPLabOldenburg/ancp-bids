@@ -64,12 +64,26 @@ class DatasetPopulationPlugin(DatasetPlugin):
             return
         for file in filter(lambda f: f.name.endswith(".json"), folder.files):
             if isinstance(file, Artifact):
-                mdfile = MetadataArtifact()
+                if self.options.lazy_loading:
+                    mdfile = LazyMetadataArtifact()
+                    mdfile.set_lazy_loading(True)
+                else:
+                    mdfile = MetadataArtifact()
             else:
-                mdfile = MetadataFile()
+                if self.options.lazy_loading:
+                    mdfile = LazyMetadataFile()
+                    mdfile.set_lazy_loading(True)
+                else:
+                    mdfile = MetadataFile()
+
             mdfile.parent_object_ = folder
             mdfile.update(file)
-            mdfile.contents = mdfile.load_contents()
+
+            # Load contents based on lazy loading setting
+            if not self.options.lazy_loading:
+                mdfile.contents = mdfile.load_contents() if hasattr(mdfile, 'load_contents') else utils.load_contents(
+                    mdfile.get_absolute_path())
+
             folder.files.remove(file)
             folder.files.append(mdfile)
 
@@ -81,12 +95,27 @@ class DatasetPopulationPlugin(DatasetPlugin):
             return
         for file in filter(lambda f: f.name.endswith(".tsv"), folder.files):
             if isinstance(file, Artifact):
-                newfile = TSVArtifact()
+                if self.options.lazy_loading:
+                    newfile = LazyTSVArtifact()
+                    newfile.set_lazy_loading(True)
+                else:
+                    newfile = TSVArtifact()
             else:
-                newfile = TSVFile()
+                if self.options.lazy_loading:
+                    newfile = LazyTSVFile()
+                    newfile.set_lazy_loading(True)
+                else:
+                    newfile = TSVFile()
+
             newfile.parent_object_ = folder
             newfile.update(file)
-            newfile.contents = newfile.load_contents()
+
+            # Load contents based on lazy loading setting
+            if not self.options.lazy_loading:
+                newfile.contents = newfile.load_contents() if hasattr(newfile,
+                                                                      'load_contents') else utils.load_contents(
+                    newfile.get_absolute_path())
+
             folder.files.remove(file)
             folder.files.append(newfile)
 
