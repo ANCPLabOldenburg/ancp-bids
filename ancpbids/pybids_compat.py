@@ -67,11 +67,12 @@ class BIDSLayout:
 
         """
         path = os.path.normpath(path)
-        # Make path relative to dataset root
+        # make relative to dataset root, i.e., remove base path
         if path.startswith(self.dataset.base_dir_):
             path = path[len(self.dataset.base_dir_):].strip(os.sep)
         file = self.dataset.get_file(path)
-        return file.get_metadata(include_entities=include_entities, scope=scope)
+        md = file.get_metadata(include_entities=include_entities)
+        return md
 
     def get(self, return_type: str = 'object', target: str = None, scope: str = None,
             extension: Union[str, List[str]] = None, suffix: Union[str, List[str]] = None,
