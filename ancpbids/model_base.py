@@ -2,6 +2,7 @@ from enum import Enum, auto
 from typing import List, Union, Dict, Any
 from math import inf
 import sys
+import os
 
 class Model(dict):
     def __init__(self, *args, **kwargs):

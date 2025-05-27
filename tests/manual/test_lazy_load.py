@@ -179,9 +179,106 @@ class BasicTestCase(BaseTestCase):
         assert len(anat_files) == 1
         assert anat_files[0].datatype == "anat"
 
-    
+    # NEW LAZY LOADING TESTS
+    #for each of the file type and functionality
+    def test_lazy_loading_enabled(self):
+        """Test that lazy loading prevents immediate content loading"""
+        # Load dataset with lazy loading enabled
+        options = DatasetOptions(lazy_loading=True)
+        ds005 = load_dataset(DS005_DIR, options)
+
+        # Check that TSV files are lazy-loaded
+        participants_file = ds005.get_file("participants.tsv")
+        self.assertTrue(hasattr(participants_file, 'set_lazy_loading'))
+
+        # For lazy files, contents should be None initially or use a lazy property
+        # This depends on your implementation - adjust based on how you handle lazy loading
+        if hasattr(participants_file, '_contents_loaded'):
+            self.assertFalse(participants_file._contents_loaded)
+
+        # Check that JSON metadata files are also lazy-loaded
+        func_datatype = ds005.subjects[0].datatypes[-1]  # func datatype
+        json_files = func_datatype.query(extension=".json", scope="self")
+        if json_files:
+            json_file = json_files[0]
+            self.assertTrue(hasattr(json_file, 'set_lazy_loading'))
+
+    def test_lazy_loading_disabled(self):
+        """Test that regular loading loads content immediately"""
+        # Load dataset with lazy loading disabled (default)
+        options = DatasetOptions(lazy_loading=False)
+        ds005 = load_dataset(DS005_DIR, options)
+
+        # Check that contents are loaded immediately
+        participants_file = ds005.get_file("participants.tsv")
+        self.assertIsNotNone(participants_file.contents)
+        self.assertEqual(16, len(participants_file.contents))
+
+        # Check JSON files too
+        dataset_description = ds005.dataset_description
+        self.assertIsNotNone(dataset_description.contents)
+
+    def test_lazy_loading_on_demand(self):
+        """Test that lazy-loaded content can be accessed when needed"""
+        options = DatasetOptions(lazy_loading=True)
+        ds005 = load_dataset(DS005_DIR, options)
+
+        # Get a lazy-loaded TSV file
+        participants_file = ds005.get_file("participants.tsv")
+
+        # Access contents - this should trigger loading
+        contents = participants_file.contents
+        self.assertIsNotNone(contents)
+        self.assertEqual(16, len(contents))
+        self.assertEqual(['participant_id', 'sex', 'age'], list(contents[0].keys()))
+
+    def test_lazy_loading_file_types(self):
+        """Test that correct lazy file types are created"""
+        from ancpbids.schema import LazyTSVFile, LazyMetadataFile, LazyTSVArtifact, LazyMetadataArtifact
+
+        options = DatasetOptions(lazy_loading=True)
+        ds005 = load_dataset(DS005_DIR, options)
+
+        # Check TSV files use lazy classes
+        participants_file = ds005.get_file("participants.tsv")
+        self.assertTrue(isinstance(participants_file, LazyTSVFile))
+
+        # Check JSON metadata files use lazy classes
+        func_datatype = ds005.subjects[0].datatypes[-1]
+        json_files = func_datatype.query(extension=".json", scope="self")
+        if json_files:
+            self.assertTrue(isinstance(json_files[0], LazyMetadataArtifact))
+
+        # Check TSV artifacts use lazy classes
+        tsv_artifacts = func_datatype.query(extension=".tsv", scope="self")
+        if tsv_artifacts:
+            self.assertTrue(isinstance(tsv_artifacts[0], LazyTSVArtifact))
+
+    def test_lazy_vs_eager_performance(self):
+        """Test performance difference between lazy and eager loading"""
+        import time
+
+        # Time lazy loading
+        start_time = time.time()
+        options_lazy = DatasetOptions(lazy_loading=True)
+        ds005_lazy = load_dataset(DS005_DIR, options_lazy)
+        lazy_time = time.time() - start_time
+
+        # Time eager loading
+        start_time = time.time()
+        options_eager = DatasetOptions(lazy_loading=False)
+        ds005_eager = load_dataset(DS005_DIR, options_eager)
+        eager_time = time.time() - start_time
+
+        # Lazy loading should be faster for initial loading
+        self.assertLess(lazy_time, eager_time,
+                        f"Lazy loading ({lazy_time:.3f}s) should be faster than eager loading ({eager_time:.3f}s)")
+
+        # But both should produce equivalent results when accessed
+        lazy_participants = ds005_lazy.get_file("participants.tsv").contents
+        eager_participants = ds005_eager.get_file("participants.tsv").contents
+        self.assertEqual(len(lazy_participants), len(eager_participants))
+
 
 if __name__ == '__main__':
     unittest.main()
-
-
