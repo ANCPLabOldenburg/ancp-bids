@@ -3,7 +3,7 @@ import unittest
 import tempfile
 
 from ancpbids import utils, load_dataset
-from ..base_test_case import BaseTestCase
+from tests.base_test_case import BaseTestCase
 
 
 class FetchDatasetTestCase(BaseTestCase):
