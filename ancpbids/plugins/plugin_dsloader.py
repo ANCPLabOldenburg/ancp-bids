@@ -8,6 +8,50 @@ from .. import utils
 from ..plugin import DatasetPlugin
 from ..model_base import *
 
+
+class LazyLoadingMixin:
+    """
+    Mixin class to add lazy loading functionality to any object.
+    Uses lambda functions that resolve themselves when properties are accessed.
+    """
+
+    def set_lazy_property(self, property_name, loader_func):
+        """
+        Set a property to be lazily loaded using a lambda function.
+
+        Args:
+            property_name: Name of the property to make lazy
+            loader_func: Lambda function that loads the content when called
+        """
+        self._lazy_loaders = getattr(self, '_lazy_loaders', {})
+        self._lazy_contents = getattr(self, '_lazy_contents', {})
+        self._lazy_loaded = getattr(self, '_lazy_loaded', {})
+
+        self._lazy_loaders[property_name] = loader_func
+        self._lazy_contents[property_name] = None
+        self._lazy_loaded[property_name] = False
+
+        # Create the lazy property getter/setter
+        def lazy_getter(obj):
+            if not obj._lazy_loaded[property_name]:
+                try:
+                    obj._lazy_contents[property_name] = obj._lazy_loaders[property_name]()
+                    obj._lazy_loaded[property_name] = True
+                except Exception as e:
+                    raise RuntimeError(f"Failed to lazy load {property_name}: {e}")
+            return obj._lazy_contents[property_name]
+
+        def lazy_setter(obj, value):
+            obj._lazy_contents[property_name] = value
+            obj._lazy_loaded[property_name] = True
+
+        # Override the property on the instance's class
+        if not hasattr(self.__class__, f'_lazy_{property_name}'):
+            setattr(self.__class__, f'_lazy_{property_name}', property(lazy_getter, lazy_setter))
+            # Replace the original property
+            setattr(self.__class__, property_name, getattr(self.__class__, f'_lazy_{property_name}'))
+
+
 class DatasetPopulationPlugin(DatasetPlugin):
 
     def execute(self, dataset, schema):
@@ -64,25 +108,32 @@ class DatasetPopulationPlugin(DatasetPlugin):
             return
         for file in filter(lambda f: f.name.endswith(".json"), folder.files):
             if isinstance(file, Artifact):
-                if self.options.lazy_loading:
-                    mdfile = LazyMetadataArtifact()
-                    mdfile.set_lazy_loading(True)
-                else:
-                    mdfile = MetadataArtifact()
+                mdfile = MetadataArtifact()
             else:
-                if self.options.lazy_loading:
-                    mdfile = LazyMetadataFile()
-                    mdfile.set_lazy_loading(True)
-                else:
-                    mdfile = MetadataFile()
+                mdfile = MetadataFile()
 
             mdfile.parent_object_ = folder
             mdfile.update(file)
 
             # Load contents based on lazy loading setting
-            if not self.options.lazy_loading:
-                mdfile.contents = mdfile.load_contents() if hasattr(mdfile, 'load_contents') else utils.load_contents(
-                    mdfile.get_absolute_path())
+            if self.options.lazy_loading:
+                # Add lazy loading mixin functionality
+                if not isinstance(mdfile, LazyLoadingMixin):
+                    mdfile.__class__ = type(mdfile.__class__.__name__, (mdfile.__class__, LazyLoadingMixin), {})
+
+                # Create lambda that resolves itself when contents property is accessed
+                def create_loader(file_obj):
+                    return lambda: (
+                        file_obj.load_contents() if hasattr(file_obj, 'load_contents')
+                        else utils.load_contents(file_obj.get_absolute_path())
+                    )
+
+                mdfile.set_lazy_property('contents', create_loader(mdfile))
+            else:
+                mdfile.contents = (
+                    mdfile.load_contents() if hasattr(mdfile, 'load_contents')
+                    else utils.load_contents(mdfile.get_absolute_path())
+                )
 
             folder.files.remove(file)
             folder.files.append(mdfile)
@@ -95,26 +146,32 @@ class DatasetPopulationPlugin(DatasetPlugin):
             return
         for file in filter(lambda f: f.name.endswith(".tsv"), folder.files):
             if isinstance(file, Artifact):
-                if self.options.lazy_loading:
-                    newfile = LazyTSVArtifact()
-                    newfile.set_lazy_loading(True)
-                else:
-                    newfile = TSVArtifact()
+                newfile = TSVArtifact()
             else:
-                if self.options.lazy_loading:
-                    newfile = LazyTSVFile()
-                    newfile.set_lazy_loading(True)
-                else:
-                    newfile = TSVFile()
+                newfile = TSVFile()
 
             newfile.parent_object_ = folder
             newfile.update(file)
 
             # Load contents based on lazy loading setting
-            if not self.options.lazy_loading:
-                newfile.contents = newfile.load_contents() if hasattr(newfile,
-                                                                      'load_contents') else utils.load_contents(
-                    newfile.get_absolute_path())
+            if self.options.lazy_loading:
+                # Add lazy loading mixin functionality
+                if not isinstance(newfile, LazyLoadingMixin):
+                    newfile.__class__ = type(newfile.__class__.__name__, (newfile.__class__, LazyLoadingMixin), {})
+
+                # Create lambda that resolves itself when contents property is accessed
+                def create_loader(file_obj):
+                    return lambda: (
+                        file_obj.load_contents() if hasattr(file_obj, 'load_contents')
+                        else utils.load_contents(file_obj.get_absolute_path())
+                    )
+
+                newfile.set_lazy_property('contents', create_loader(newfile))
+            else:
+                newfile.contents = (
+                    newfile.load_contents() if hasattr(newfile, 'load_contents')
+                    else utils.load_contents(newfile.get_absolute_path())
+                )
 
             folder.files.remove(file)
             folder.files.append(newfile)
@@ -290,16 +347,43 @@ class DatasetPopulationPlugin(DatasetPlugin):
         file = parent.get_file(file_name)
         if not file:
             return
-        json_object = file.contents if 'contents' in file else file.load_contents()
-        if not json_object:
-            return
+
         model_type = member['type']
-        json_file = self._map_object(model_type, json_object)
+        json_file = model_type()
         json_file.name = file_name
-        json_file.contents = json_object
+
+        if self.options.lazy_loading:
+            # Add lazy loading mixin functionality
+            if not isinstance(json_file, LazyLoadingMixin):
+                json_file.__class__ = type(json_file.__class__.__name__, (json_file.__class__, LazyLoadingMixin), {})
+
+            # Create lambda that will load and parse JSON when accessed
+            def create_json_loader(file_ref, model_type_ref, plugin_ref):
+                return lambda: (
+                    plugin_ref._load_and_map_json(file_ref, model_type_ref)
+                )
+
+            json_file.set_lazy_property('contents', create_json_loader(file, model_type, self))
+        else:
+            # Load immediately (original behavior)
+            json_object = file.contents if hasattr(file, 'contents') and file.contents else file.load_contents()
+            if not json_object:
+                return
+            # Map the JSON object to the model
+            json_file = self._map_object(model_type, json_object)
+            json_file.name = file_name
+            json_file.contents = json_object
+
         setattr(parent, member['name'], json_file)
         parent.remove_file(file_name)
         json_file.parent_object_ = parent
+
+    def _load_and_map_json(self, file, model_type):
+        """Helper method to load and map JSON content for lazy loading"""
+        json_object = file.contents if hasattr(file, 'contents') and file.contents else file.load_contents()
+        if not json_object:
+            return None
+        return json_object
 
 
 _TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetPopulationPlugin) if
