@@ -5,8 +5,42 @@ import re
 
 from .plugin_files_handlers import read_plain_text
 from .. import utils
-from ..plugin import DatasetPlugin
+from ..plugin import DatasetPlugin, SchemaPlugin
 from ..model_base import *
+
+
+def lazy_contents_getter(lazy_loading_object):
+    if callable(lazy_loading_object._contents):
+        lazy_loading_object._contents = lazy_loading_object._contents()
+    return lazy_loading_object._contents
+
+
+def lazy_contents_setter(lazy_loading_object, value):
+    lazy_loading_object._contents = value
+
+
+def patch_contents_property(*types_to_patch):
+    for type_to_patch in types_to_patch:
+        # need a reference to the original contents property
+        original_contents = type_to_patch.contents
+
+        # replace with new property which uses the provided getter/setter
+        type_to_patch.contents = property(lazy_contents_getter, lazy_contents_setter)
+
+        # reverts the contents property to its original value, so, the next time contents is accessed, it will be reloaded
+        # note that we must capture the outer variable original_contents as a default parameter value
+        def unload(self, original=original_contents):
+            self.contents = original
+
+        # also allow to unload the contents
+        type_to_patch.unload = unload
+
+
+class PatchingSchemaPlugin(SchemaPlugin):
+    def execute(self, schema):
+        patch_contents_property(schema.MetadataFile, schema.MetadataArtifact, schema.TSVFile, schema.TSVArtifact,
+                                schema.JsonFile)
+
 
 class DatasetPopulationPlugin(DatasetPlugin):
 
@@ -67,9 +101,16 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 mdfile = MetadataArtifact()
             else:
                 mdfile = MetadataFile()
+
             mdfile.parent_object_ = folder
             mdfile.update(file)
-            mdfile.contents = mdfile.load_contents()
+
+            # Load contents based on lazy loading setting
+            if self.options.lazy_loading:
+                mdfile.contents = lambda _mdfile=mdfile: _mdfile.load_contents()
+            else:
+                mdfile.contents = mdfile.load_contents()
+
             folder.files.remove(file)
             folder.files.append(mdfile)
 
@@ -84,14 +125,46 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 newfile = TSVArtifact()
             else:
                 newfile = TSVFile()
+
             newfile.parent_object_ = folder
             newfile.update(file)
-            newfile.contents = newfile.load_contents()
+
+            if self.options.lazy_loading:
+                newfile.contents = lambda _newfile=newfile: _newfile.load_contents()
+            else:
+                newfile.contents = newfile.load_contents()
+
             folder.files.remove(file)
             folder.files.append(newfile)
 
         for child in folder.folders:
             self._handle_tsv_files(child)
+
+    def _type_handler_JsonFile(self, parent, member, allow_lazy=True):
+        name = member['name']
+        file_name = name + '.json'
+        file = parent.get_file(file_name)
+        if not file:
+            return
+
+        # create a placeholder json file within the parent folder and remove the File object
+        model_type = member['type']
+        json_file = model_type()
+        setattr(parent, member['name'], json_file)
+        parent.remove_file(file_name)
+        json_file.parent_object_ = parent
+        json_file.name = file_name
+
+        # if lazy-loading=True, defer mapping/constructing the json object
+        if allow_lazy and self.options.lazy_loading:
+            json_file.contents = lambda _jf=json_file, _f=file, _mt=model_type: self._contents_loader(_jf, _f, _mt)
+        else:
+            json_file.contents = self._contents_loader(json_file, file, model_type)
+
+    def _contents_loader(self, json_file, original_file, model_type):
+        json_object = original_file.load_contents()
+        self._map_object(model_type, json_object, json_file)
+        return json_object
 
     def _convert_derivatives_folders(self, parent):
         if not parent:
@@ -160,7 +233,8 @@ class DatasetPopulationPlugin(DatasetPlugin):
         if mapper_name not in _TYPE_MAPPERS:
             mapper_name = '_type_handler_default'
         mapper = _TYPE_MAPPERS[mapper_name]
-        mapper(self, parent, member)
+        # do not allow lazy-loading for member fields as those are part of the BIDS schema
+        mapper(self, parent, member, allow_lazy=False)
 
     def _expand_members(self, folder):
         members = self.schema.get_members(type(folder))
@@ -190,10 +264,10 @@ class DatasetPopulationPlugin(DatasetPlugin):
             # do not traverse into sub-dirs as they have been already processed recursively
             break
 
-    def _type_handler_default(self, parent, member):
+    def _type_handler_default(self, parent, member, allow_lazy=True):
         typ = member['type']
         if issubclass(typ, JsonFile):
-            self._type_handler_JsonFile(parent, member, True)
+            self._type_handler_JsonFile(parent, member, allow_lazy)
         elif issubclass(typ, Folder):
             pattern = '.*'
             meta = member['meta']
@@ -201,7 +275,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 pattern = meta['name_pattern']
             self._handle_direct_folders(parent, member, pattern=pattern, new_type=typ)
 
-    def _type_handler_File(self, parent, member):
+    def _type_handler_File(self, parent, member, allow_lazy=True):
         if not isinstance(parent, Folder):
             return
         file_name = member['name']
@@ -213,7 +287,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
             setattr(parent, member['name'], file)
             parent.remove_file(file.name)
 
-    def _type_handler_Artifact(self, parent, member):
+    def _type_handler_Artifact(self, parent, member, allow_lazy=True):
         if not isinstance(parent, Folder):
             return
         attr = getattr(parent, member['name'])
@@ -230,7 +304,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
             else:
                 setattr(parent, member['name'], file)
 
-    def _type_handler_Folder(self, parent, member):
+    def _type_handler_Folder(self, parent, member, allow_lazy=True):
         if not isinstance(parent, Folder):
             return
         name = member['name']
@@ -239,8 +313,9 @@ class DatasetPopulationPlugin(DatasetPlugin):
             setattr(parent, name, folder)
             parent.remove_folder(name)
 
-    def _map_object(self, model_type, json_object):
-        target = model_type()
+    def _map_object(self, model_type, json_object, target=None):
+        if target is None:
+            target = model_type()
         members = self.schema.get_members(model_type, True)
         actual_props = json_object.keys()
         direct_props = list(map(lambda m: (m['name'], m), members))
@@ -254,23 +329,6 @@ class DatasetPopulationPlugin(DatasetPlugin):
                     value = self._map_object(value_type, value)
                 setattr(target, prop_name, value)
         return target
-
-    def _type_handler_JsonFile(self, parent, member, is_subclass=False):
-        name = member['name']
-        file_name = name + '.json'
-        file = parent.get_file(file_name)
-        if not file:
-            return
-        json_object = file.contents if 'contents' in file else file.load_contents()
-        if not json_object:
-            return
-        model_type = member['type']
-        json_file = self._map_object(model_type, json_object)
-        json_file.name = file_name
-        json_file.contents = json_object
-        setattr(parent, member['name'], json_file)
-        parent.remove_file(file_name)
-        json_file.parent_object_ = parent
 
 
 _TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetPopulationPlugin) if
