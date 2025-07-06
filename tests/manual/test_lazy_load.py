@@ -48,6 +48,7 @@ class LazyLoadingTestCase(BaseTestCase):
             eager_call_count = mock_load.call_count
 
         # Lazy loading should result in fewer immediate load calls
+        # dataset_description.json are configured to not use lazy-loading, for example
         self.assertLess(lazy_call_count, eager_call_count)
 
     def test_lazy_loading_on_demand(self):

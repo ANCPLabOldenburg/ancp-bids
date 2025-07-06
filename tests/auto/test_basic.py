@@ -25,7 +25,7 @@ class BasicTestCase(BaseTestCase):
         self.assertEqual('.nii.gz', bids_obj['extension'])
 
     def test_ds005_basic_structure(self):
-        ds005 = load_dataset(DS005_DIR)
+        ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=True))
         self.assertEqual("ds005", ds005.name)
 
         ds_descr = ds005.dataset_description

@@ -5,51 +5,41 @@ import re
 
 from .plugin_files_handlers import read_plain_text
 from .. import utils
-from ..plugin import DatasetPlugin
+from ..plugin import DatasetPlugin, SchemaPlugin
 from ..model_base import *
 
 
-class LazyLoadingMixin:
-    """
-    Mixin class to add lazy loading functionality to any object.
-    Uses lambda functions that resolve themselves when properties are accessed.
-    """
+def lazy_contents_getter(lazy_loading_object):
+    if callable(lazy_loading_object._contents):
+        lazy_loading_object._contents = lazy_loading_object._contents()
+    return lazy_loading_object._contents
 
-    def set_lazy_property(self, property_name, loader_func):
-        """
-        Set a property to be lazily loaded using a lambda function.
 
-        Args:
-            property_name: Name of the property to make lazy
-            loader_func: Lambda function that loads the content when called
-        """
-        self._lazy_loaders = getattr(self, '_lazy_loaders', {})
-        self._lazy_contents = getattr(self, '_lazy_contents', {})
-        self._lazy_loaded = getattr(self, '_lazy_loaded', {})
+def lazy_contents_setter(lazy_loading_object, value):
+    lazy_loading_object._contents = value
 
-        self._lazy_loaders[property_name] = loader_func
-        self._lazy_contents[property_name] = None
-        self._lazy_loaded[property_name] = False
 
-        # Create the lazy property getter/setter
-        def lazy_getter(obj):
-            if not obj._lazy_loaded[property_name]:
-                try:
-                    obj._lazy_contents[property_name] = obj._lazy_loaders[property_name]()
-                    obj._lazy_loaded[property_name] = True
-                except Exception as e:
-                    raise RuntimeError(f"Failed to lazy load {property_name}: {e}")
-            return obj._lazy_contents[property_name]
+def patch_contents_property(*types_to_patch):
+    for type_to_patch in types_to_patch:
+        # need a reference to the original contents property
+        original_contents = type_to_patch.contents
 
-        def lazy_setter(obj, value):
-            obj._lazy_contents[property_name] = value
-            obj._lazy_loaded[property_name] = True
+        # replace with new property which uses the provided getter/setter
+        type_to_patch.contents = property(lazy_contents_getter, lazy_contents_setter)
 
-        # Override the property on the instance's class
-        if not hasattr(self.__class__, f'_lazy_{property_name}'):
-            setattr(self.__class__, f'_lazy_{property_name}', property(lazy_getter, lazy_setter))
-            # Replace the original property
-            setattr(self.__class__, property_name, getattr(self.__class__, f'_lazy_{property_name}'))
+        # reverts the contents property to its original value, so, the next time contents is accessed, it will be reloaded
+        # note that we must capture the outer variable original_contents as a default parameter value
+        def unload(self, original=original_contents):
+            self.contents = original
+
+        # also allow to unload the contents
+        type_to_patch.unload = unload
+
+
+class PatchingSchemaPlugin(SchemaPlugin):
+    def execute(self, schema):
+        patch_contents_property(schema.MetadataFile, schema.MetadataArtifact, schema.TSVFile, schema.TSVArtifact,
+                                schema.JsonFile)
 
 
 class DatasetPopulationPlugin(DatasetPlugin):
@@ -117,23 +107,9 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
             # Load contents based on lazy loading setting
             if self.options.lazy_loading:
-                # Add lazy loading mixin functionality
-                if not isinstance(mdfile, LazyLoadingMixin):
-                    mdfile.__class__ = type(mdfile.__class__.__name__, (mdfile.__class__, LazyLoadingMixin), {})
-
-                # Create lambda that resolves itself when contents property is accessed
-                def create_loader(file_obj):
-                    return lambda: (
-                        file_obj.load_contents() if hasattr(file_obj, 'load_contents')
-                        else utils.load_contents(file_obj.get_absolute_path())
-                    )
-
-                mdfile.set_lazy_property('contents', create_loader(mdfile))
+                mdfile.contents = lambda _mdfile=mdfile: _mdfile.load_contents()
             else:
-                mdfile.contents = (
-                    mdfile.load_contents() if hasattr(mdfile, 'load_contents')
-                    else utils.load_contents(mdfile.get_absolute_path())
-                )
+                mdfile.contents = mdfile.load_contents()
 
             folder.files.remove(file)
             folder.files.append(mdfile)
@@ -153,31 +129,42 @@ class DatasetPopulationPlugin(DatasetPlugin):
             newfile.parent_object_ = folder
             newfile.update(file)
 
-            # Load contents based on lazy loading setting
             if self.options.lazy_loading:
-                # Add lazy loading mixin functionality
-                if not isinstance(newfile, LazyLoadingMixin):
-                    newfile.__class__ = type(newfile.__class__.__name__, (newfile.__class__, LazyLoadingMixin), {})
-
-                # Create lambda that resolves itself when contents property is accessed
-                def create_loader(file_obj):
-                    return lambda: (
-                        file_obj.load_contents() if hasattr(file_obj, 'load_contents')
-                        else utils.load_contents(file_obj.get_absolute_path())
-                    )
-
-                newfile.set_lazy_property('contents', create_loader(newfile))
+                newfile.contents = lambda _newfile=newfile: _newfile.load_contents()
             else:
-                newfile.contents = (
-                    newfile.load_contents() if hasattr(newfile, 'load_contents')
-                    else utils.load_contents(newfile.get_absolute_path())
-                )
+                newfile.contents = newfile.load_contents()
 
             folder.files.remove(file)
             folder.files.append(newfile)
 
         for child in folder.folders:
             self._handle_tsv_files(child)
+
+    def _type_handler_JsonFile(self, parent, member, allow_lazy=True):
+        name = member['name']
+        file_name = name + '.json'
+        file = parent.get_file(file_name)
+        if not file:
+            return
+
+        # create a placeholder json file within the parent folder and remove the File object
+        model_type = member['type']
+        json_file = model_type()
+        setattr(parent, member['name'], json_file)
+        parent.remove_file(file_name)
+        json_file.parent_object_ = parent
+        json_file.name = file_name
+
+        # if lazy-loading=True, defer mapping/constructing the json object
+        if allow_lazy and self.options.lazy_loading:
+            json_file.contents = lambda _jf=json_file, _f=file, _mt=model_type: self._contents_loader(_jf, _f, _mt)
+        else:
+            json_file.contents = self._contents_loader(json_file, file, model_type)
+
+    def _contents_loader(self, json_file, original_file, model_type):
+        json_object = original_file.load_contents()
+        self._map_object(model_type, json_object, json_file)
+        return json_object
 
     def _convert_derivatives_folders(self, parent):
         if not parent:
@@ -246,7 +233,8 @@ class DatasetPopulationPlugin(DatasetPlugin):
         if mapper_name not in _TYPE_MAPPERS:
             mapper_name = '_type_handler_default'
         mapper = _TYPE_MAPPERS[mapper_name]
-        mapper(self, parent, member)
+        # do not allow lazy-loading for member fields as those are part of the BIDS schema
+        mapper(self, parent, member, allow_lazy=False)
 
     def _expand_members(self, folder):
         members = self.schema.get_members(type(folder))
@@ -276,10 +264,10 @@ class DatasetPopulationPlugin(DatasetPlugin):
             # do not traverse into sub-dirs as they have been already processed recursively
             break
 
-    def _type_handler_default(self, parent, member):
+    def _type_handler_default(self, parent, member, allow_lazy=True):
         typ = member['type']
         if issubclass(typ, JsonFile):
-            self._type_handler_JsonFile(parent, member, True)
+            self._type_handler_JsonFile(parent, member, allow_lazy)
         elif issubclass(typ, Folder):
             pattern = '.*'
             meta = member['meta']
@@ -287,7 +275,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
                 pattern = meta['name_pattern']
             self._handle_direct_folders(parent, member, pattern=pattern, new_type=typ)
 
-    def _type_handler_File(self, parent, member):
+    def _type_handler_File(self, parent, member, allow_lazy=True):
         if not isinstance(parent, Folder):
             return
         file_name = member['name']
@@ -299,7 +287,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
             setattr(parent, member['name'], file)
             parent.remove_file(file.name)
 
-    def _type_handler_Artifact(self, parent, member):
+    def _type_handler_Artifact(self, parent, member, allow_lazy=True):
         if not isinstance(parent, Folder):
             return
         attr = getattr(parent, member['name'])
@@ -316,7 +304,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
             else:
                 setattr(parent, member['name'], file)
 
-    def _type_handler_Folder(self, parent, member):
+    def _type_handler_Folder(self, parent, member, allow_lazy=True):
         if not isinstance(parent, Folder):
             return
         name = member['name']
@@ -325,8 +313,9 @@ class DatasetPopulationPlugin(DatasetPlugin):
             setattr(parent, name, folder)
             parent.remove_folder(name)
 
-    def _map_object(self, model_type, json_object):
-        target = model_type()
+    def _map_object(self, model_type, json_object, target=None):
+        if target is None:
+            target = model_type()
         members = self.schema.get_members(model_type, True)
         actual_props = json_object.keys()
         direct_props = list(map(lambda m: (m['name'], m), members))
@@ -340,50 +329,6 @@ class DatasetPopulationPlugin(DatasetPlugin):
                     value = self._map_object(value_type, value)
                 setattr(target, prop_name, value)
         return target
-
-    def _type_handler_JsonFile(self, parent, member, is_subclass=False):
-        name = member['name']
-        file_name = name + '.json'
-        file = parent.get_file(file_name)
-        if not file:
-            return
-
-        model_type = member['type']
-        json_file = model_type()
-        json_file.name = file_name
-
-        if self.options.lazy_loading:
-            # Add lazy loading mixin functionality
-            if not isinstance(json_file, LazyLoadingMixin):
-                json_file.__class__ = type(json_file.__class__.__name__, (json_file.__class__, LazyLoadingMixin), {})
-
-            # Create lambda that will load and parse JSON when accessed
-            def create_json_loader(file_ref, model_type_ref, plugin_ref):
-                return lambda: (
-                    plugin_ref._load_and_map_json(file_ref, model_type_ref)
-                )
-
-            json_file.set_lazy_property('contents', create_json_loader(file, model_type, self))
-        else:
-            # Load immediately (original behavior)
-            json_object = file.contents if hasattr(file, 'contents') and file.contents else file.load_contents()
-            if not json_object:
-                return
-            # Map the JSON object to the model
-            json_file = self._map_object(model_type, json_object)
-            json_file.name = file_name
-            json_file.contents = json_object
-
-        setattr(parent, member['name'], json_file)
-        parent.remove_file(file_name)
-        json_file.parent_object_ = parent
-
-    def _load_and_map_json(self, file, model_type):
-        """Helper method to load and map JSON content for lazy loading"""
-        json_object = file.contents if hasattr(file, 'contents') and file.contents else file.load_contents()
-        if not json_object:
-            return None
-        return json_object
 
 
 _TYPE_MAPPERS = {name: obj for name, obj in inspect.getmembers(DatasetPopulationPlugin) if
