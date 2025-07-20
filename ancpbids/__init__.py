@@ -66,6 +66,7 @@ def load_dataset(base_dir: str, options: Optional[DatasetOptions] = None):
     str
         a Dataset object depending on the used schema which represents the dataset as an in-memory graph
     """
+    base_dir = str(base_dir)
     if not os.path.isdir(base_dir):
         raise ValueError("Invalid Directory")
     schema = load_schema(base_dir)
