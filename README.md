@@ -7,6 +7,38 @@
 
 # ancpBIDS Technical Overview
 
+## Key Features
+
+- **BIDS Dataset Loading**  
+	Load BIDS datasets of any size or complexity, with support for multiple BIDS schema versions.
+
+- **Flexible Query Engine**  
+	Query files, folders, and metadata using a powerful, Pythonic API. Supports entity-based, scope-based, and custom queries.
+
+- **Validation**  
+	Validate datasets against the BIDS specification and custom rules using a plugin-based validation system.
+
+- **Writing and Derivatives**  
+	Write and update BIDS datasets, including support for creating and saving BIDS derivatives.
+
+- **Lazy Loading**  
+	Efficiently handle large datasets with optional lazy loading, reducing memory usage and speeding up initial access.
+
+- **Plugin Architecture**  
+	Extend or customize core functionality (validation, file handling, schema, etc.) via a robust plugin system.
+
+- **PyBIDS Compatibility Layer**  
+	Drop-in compatibility for many `pybids` API calls, easing migration from or integration with existing codebases.
+
+- **Synthetic and Real Data Support**  
+	Works with both synthetic test datasets and real-world BIDS datasets.
+
+- **CI/CD Ready**  
+	Includes a comprehensive suite of automated and manual tests, with synthetic datasets for reproducibility.
+
+- **Extensible and Versioned Schema**  
+	Supports multiple BIDS schema versions and allows for easy extension as the BIDS standard evolves.
+
 ## Architecture
 
 **ancpBIDS** is a modular Python library for reading, querying, validating, and writing BIDS datasets. Its architecture is designed for extensibility and maintainability, with the following key components:
