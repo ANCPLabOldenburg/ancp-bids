@@ -38,11 +38,11 @@ class DatasetOptions(dict):
         
         By default, this option is set to False as it may have a negative performance impact."""
 
-    lazy_loading: bool = False
-    """If True, file contents will be loaded only when accessed, not during dataset initialization.
+    lazy_loading: bool = True
+    """If True (default), file contents will be loaded only when accessed, not during dataset initialization.
         This can significantly improve memory usage and loading performance for large datasets.
 
-        By default, this option is set to False to maintain backward compatibility."""
+        Set to False to immediately load all metadata file contents into memory during dataset initialization."""
 
 
 def load_dataset(base_dir: str, options: Optional[DatasetOptions] = None):
