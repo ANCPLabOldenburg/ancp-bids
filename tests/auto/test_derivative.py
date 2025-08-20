@@ -1,48 +1,43 @@
+
 from ancpbids import load_dataset
-from ..base_test_case import *
+from ..base_test_case import SYNTHETIC_DIR, DS005_SMALL2_DIR
 
+def test_derivative_generated_by():
+    test_ds = load_dataset(SYNTHETIC_DIR)
+    schema = test_ds.get_schema()
+    fmriprep_folder = test_ds.derivatives.get_folder('fmriprep')
+    assert isinstance(fmriprep_folder, schema.DerivativeFolder)
+    assert isinstance(fmriprep_folder.dataset_description, schema.DerivativeDatasetDescriptionFile)
+    dddf = fmriprep_folder.dataset_description
+    assert len(dddf.GeneratedBy) == 1
+    generated_by = dddf.GeneratedBy[0]
+    assert generated_by.Name == "fmriprep"
+    assert generated_by.Version == "1.1.0"
+    assert generated_by.Container
+    container = generated_by.Container
+    assert container.Type == "abc"
+    assert container.Tag == "xyz"
+    assert container.URI == "test:abc/xyz"
 
-class DerivativesTestCase(BaseTestCase):
-    def test_derivative_generated_by(self):
-        test_ds = load_dataset(SYNTHETIC_DIR)
-        schema = test_ds.get_schema()
-        fmriprep_folder = test_ds.derivatives.get_folder('fmriprep')
-        self.assertTrue(isinstance(fmriprep_folder, schema.DerivativeFolder))
-        self.assertTrue(isinstance(fmriprep_folder.dataset_description, schema.DerivativeDatasetDescriptionFile))
-        dddf = fmriprep_folder.dataset_description
-        self.assertEqual(1, len(dddf.GeneratedBy))
-        generated_by = dddf.GeneratedBy[0]
-        self.assertEqual("fmriprep", generated_by.Name)
-        self.assertEqual("1.1.0", generated_by.Version)
-        self.assertTrue(generated_by.Container)
-        container = generated_by.Container
-        self.assertEqual("abc", container.Type)
-        self.assertEqual("xyz", container.Tag)
-        self.assertEqual("test:abc/xyz", container.URI)
+def test_derivative_dataset_description():
+    test_ds = load_dataset(DS005_SMALL2_DIR)
+    schema = test_ds.get_schema()
+    dd_files = test_ds.select(schema.DatasetDescriptionFile).objects(as_list=True)
+    assert len(dd_files) == 2
+    names = {'Mixed-gambles task', 'Mixed-gambles task -- dummy derivative'}
+    dd_names = [d['Name'] for d in dd_files]
+    assert set(dd_names) == names
+    dd = dd_files[1]
+    # PipelineDescription is not part of BIDS spec but available in the generic contents object
+    assert dd.contents['PipelineDescription']['Name'] == 'events'
 
-    def test_derivative_dataset_description(self):
-        test_ds = load_dataset(DS005_SMALL2_DIR)
-        schema = test_ds.get_schema()
-        dd_files = test_ds.select(schema.DatasetDescriptionFile).objects(as_list=True)
-        self.assertEqual(2, len(dd_files))
-        names = {'Mixed-gambles task', 'Mixed-gambles task -- dummy derivative'}
-        dd_names = [d['Name'] for d in dd_files]
-        self.assertTrue(set(dd_names) == names)
-
-        dd = dd_files[1]
-        # PipelineDescription is not part of BIDS spec but available in the generic contents object
-        self.assertEqual('events', dd.contents['PipelineDescription']['Name'])
-
-    def test_create_artifact_with_raw(self):
-        test_ds = load_dataset(DS005_SMALL2_DIR)
-        sub01_json = test_ds.query(sub='01', suffix='bold', extension='.json')[0]
-        derivative_folder = test_ds.create_derivative(name="unit-test")
-        deriv_artifact = derivative_folder.create_artifact(raw=sub01_json)
-        deriv_artifact.add_entities(desc='unittest')
-        self.assertEqual("01", deriv_artifact.get_entity("sub"))
-        self.assertEqual("mixedgamblestask", deriv_artifact.get_entity("task"))
-        self.assertEqual(1, deriv_artifact.get_entity("run"))
-        self.assertEqual("unittest", deriv_artifact.get_entity("desc"))
-
-if __name__ == '__main__':
-    unittest.main()
+def test_create_artifact_with_raw():
+    test_ds = load_dataset(DS005_SMALL2_DIR)
+    sub01_json = test_ds.query(sub='01', suffix='bold', extension='.json')[0]
+    derivative_folder = test_ds.create_derivative(name="unit-test")
+    deriv_artifact = derivative_folder.create_artifact(raw=sub01_json)
+    deriv_artifact.add_entities(desc='unittest')
+    assert deriv_artifact.get_entity("sub") == "01"
+    assert deriv_artifact.get_entity("task") == "mixedgamblestask"
+    assert deriv_artifact.get_entity("run") == 1
+    assert deriv_artifact.get_entity("desc") == "unittest"
