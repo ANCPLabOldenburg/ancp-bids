@@ -23,8 +23,9 @@ def test_parse_bids_name():
     assert 'bold' == bids_obj['suffix']
     assert '.nii.gz' == bids_obj['extension']
 
-def test_ds005_basic_structure():
-    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=True))
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_ds005_basic_structure(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     assert ds005.name == "ds005"
 
     ds_descr = ds005.dataset_description
@@ -75,15 +76,17 @@ def test_ds005_basic_structure():
     assert tsvfiles[1].name == "sub-01_task-mixedgamblestask_run-02_events.tsv"
     assert tsvfiles[2].name == "sub-01_task-mixedgamblestask_run-03_events.tsv"
 
-def test_json_file_contents():
-    ds005 = load_dataset(DS005_DIR)
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_json_file_contents(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     dataset_description = ds005.load_file_contents("dataset_description.json")
     assert isinstance(dataset_description, dict)
     assert dataset_description['BIDSVersion'] == "1.0.0rc2"
     assert dataset_description['Name'] == "Mixed-gambles task"
 
-def test_tsv_file_contents():
-    ds005 = load_dataset(DS005_DIR)
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_tsv_file_contents(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     participants = ds005.load_file_contents("participants.tsv")
     assert ['participant_id', 'sex', 'age'] == list(participants[0].keys())
     assert len(participants) == 16
@@ -94,8 +97,9 @@ def test_tsv_file_contents():
     assert ['participant_id', 'sex', 'age'] == list(participants.columns)
     assert len(participants) == 16
 
-def test_parse_entities_in_filenames():
-    ds005 = load_dataset(DS005_DIR)
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_parse_entities_in_filenames(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     artifact = ds005.subjects[0].datatypes[-1].query(scope="self")[0]
     assert isinstance(artifact, ds005.get_schema().Artifact)
     assert artifact.suffix == "bold"
@@ -113,14 +117,16 @@ def test_parse_entities_in_filenames():
     assert entity.key == "run"
     assert entity.value == 1
 
-def test_to_generator():
-    ds005 = load_dataset(DS005_DIR)
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_to_generator(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     schema = ds005.get_schema()
     all_direct_files = list(ds005.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, schema.File)))
     assert len(all_direct_files) == 8
 
-def test_get_files_and_folders():
-    ds005 = load_dataset(DS005_DIR)
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_get_files_and_folders(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     file = ds005.get_file("dataset_description.json")
     assert file is not None
     assert file.name == "dataset_description.json"
@@ -128,16 +134,18 @@ def test_get_files_and_folders():
     assert file is not None
     assert file.name == "sub-01_task-mixedgamblestask_run-01_bold.nii.gz"
 
-def test_repr():
-    ds005 = load_dataset(DS005_DIR)
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_repr(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     assert str(ds005) == "{'name': 'ds005'}"
     assert str(ds005.derivatives) == "{'name': 'derivatives'}"
     assert str(ds005.README) == "{'name': 'README'}"
     expected = "{'name': 'dataset_description.json', 'Name': 'Mixed-gambles task', 'BIDSVersion': '1.0.0rc2', 'License': 'This dataset is made available u[...]'}"
     assert str(ds005.dataset_description) == expected
 
-def test_participants_tsv():
-    ds005 = load_dataset(DS005_DIR)
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_participants_tsv(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     schema = ds005.get_schema()
     assert isinstance(ds005.participants_tsv, schema.TSVFile)
     contents = ds005.participants_tsv.contents
@@ -147,18 +155,20 @@ def test_participants_tsv():
     assert ['sub-01', '0', '28'] == list(contents[0].values())
     assert contents[0] == {'participant_id': 'sub-01', 'sex': '0', 'age': '28'}
 
-def test_absolute_path():
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_absolute_path(lazy_loading):
     ds_path_norm = os.path.normpath(DS005_DIR)
-    ds005 = load_dataset(ds_path_norm)
+    ds005 = load_dataset(ds_path_norm, DatasetOptions(lazy_loading=lazy_loading))
     ds_path = ds005.get_absolute_path()
     assert ds_path == ds_path_norm
 
-def test_datatype_of_artifact():
-    ds005 = load_dataset(DS005_DIR)
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_datatype_of_artifact(lazy_loading):
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     anat_files = ds005.query(scope="raw", sub="01", suffix="T1w")
     assert len(anat_files) == 1
     assert anat_files[0].datatype is None
-    ds005 = load_dataset(DS005_DIR, DatasetOptions(infer_artifact_datatype=True))
+    ds005 = load_dataset(DS005_DIR, DatasetOptions(infer_artifact_datatype=True, lazy_loading=lazy_loading))
     anat_files = ds005.query(scope="raw", sub="01", suffix="T1w")
     assert len(anat_files) == 1
     assert anat_files[0].datatype == "anat"

@@ -9,8 +9,11 @@ from ..base_test_case import DS005_DIR
 import shutil
 import tempfile
 
-def write_test_derivative():
-    dataset = ancpbids.load_dataset(DS005_DIR)
+import pytest
+from ancpbids import DatasetOptions
+
+def write_test_derivative(lazy_loading):
+    dataset = ancpbids.load_dataset(DS005_DIR, DatasetOptions(lazy_loading=lazy_loading))
     pipeline_name = "mypipeline-%d" % time.time()
     derivative = dataset.create_derivative(name=pipeline_name)
     derivative.dataset_description.GeneratedBy.Name = "My Test Pipeline"
@@ -44,11 +47,12 @@ def write_test_derivative():
     ancpbids.write_derivative(dataset, derivative)
     return DS005_DIR, pipeline_name
 
-def test_write_derivative():
+@pytest.mark.parametrize("lazy_loading", [True, False])
+def test_write_derivative(lazy_loading):
     # create a temporary dataset with a test derivative and return its root path and the created derivative
-    ds_path, pipeline_name = write_test_derivative()
+    ds_path, pipeline_name = write_test_derivative(lazy_loading)
     # pretend loading a new dataset
-    dataset = ancpbids.load_dataset(ds_path)
+    dataset = ancpbids.load_dataset(ds_path, DatasetOptions(lazy_loading=lazy_loading))
     # get the underlying graph/dataset for further inspection
     derivative_folder = list(filter(lambda f: f.name == pipeline_name, dataset.derivatives.folders))
     assert len(derivative_folder) == 1
