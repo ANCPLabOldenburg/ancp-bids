@@ -5,7 +5,7 @@
 [![Codecov](https://codecov.io/gh/ANCPLabOldenburg/ancp-bids/branch/main/graph/badge.svg)](https://codecov.io/gh/ANCPLabOldenburg/ancp-bids)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-# ancpBIDS Technical Overview
+**ancpBIDS** is a modular Python library for reading, querying, validating, and writing BIDS datasets. Its architecture is designed for extensibility and maintainability.
 
 ## Key Features
 
@@ -40,8 +40,6 @@
 	Supports multiple BIDS schema versions and allows for easy extension as the BIDS standard evolves.
 
 ## Architecture
-
-**ancpBIDS** is a modular Python library for reading, querying, validating, and writing BIDS datasets. Its architecture is designed for extensibility and maintainability, with the following key components:
 
 - **Core Models:**  
 	The core BIDS data model is implemented in `ancpbids/model_base.py` and versioned model files (e.g., `model_v1_8_0.py`). These define the schema and object graph for BIDS datasets.
@@ -112,6 +110,29 @@ The plugin system is a core feature for extensibility:
 
 - The codebase uses type hints and docstrings for clarity.
 - Contributions should follow PEP8 and include tests and documentation.
+## Model Generation Utility
+
+The script `tools/generatemodel.py` is provided to automate the generation of Python model classes from BIDS schema files. This utility ensures that the codebase can easily stay up-to-date with the latest BIDS schema versions.
+
+**Features:**
+- Fetches the latest or a specified BIDS schema version directly from the official BIDS GitHub repository.
+- Downloads the schema and generates Python model files in the `ancpbids/` directory (e.g., `model_base.py`, `model_v<version>.py`).
+- Supports custom ordering and enum generation for BIDS datatypes, modalities, suffixes, and entities.
+
+**Usage:**
+
+```bash
+cd tools
+python generatemodel.py [--schema-version <version>]
+```
+
+- If `--schema-version` is omitted, the latest available schema version will be used.
+- The generated files will be saved in the `ancpbids/` directory and the corresponding schema in the `schema/` directory.
+
+**When to use:**
+- When a new BIDS schema version is released and you want to update the models.
+- When making changes to the schema or model structure for development or testing.
+
 
 ## Further Reading
 
