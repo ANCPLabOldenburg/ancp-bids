@@ -9,8 +9,11 @@ from ancpbids import utils
 from . import model_v1_8_0
 from . import model_v1_9_0
 from . import model_v1_10_0
+from . import model_v1_10_1
+from . import model_v1_11_0
+from . import model_v1_11_1
 # latest stable supported BIDS schema
-from ancpbids import model_v1_10_0 as model_latest
+from ancpbids import model_v1_11_1 as model_latest
 
 from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin, \
     FileHandlerPlugin
@@ -196,8 +199,16 @@ def write_derivative(ds, derivative):
 load_plugins_by_package(plugins, ranking=0, system=True)
 
 # execute all SchemaPlugins, these plugins may monkey-patch the schema
+_SCHEMA_MODULES = [
+    model_v1_8_0,
+    model_v1_9_0,
+    model_v1_10_0,
+    model_v1_10_1,
+    model_v1_11_0,
+    model_v1_11_1,
+]
 for pl in get_plugins(SchemaPlugin):
-    for schema in [model_v1_8_0, model_v1_9_0, model_v1_10_0]:
+    for schema in _SCHEMA_MODULES:
         pl.execute(schema)
 
 # load file handler plugins
