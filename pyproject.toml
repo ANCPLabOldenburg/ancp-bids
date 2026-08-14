@@ -1,2 +1,65 @@
 [build-system]
-requires = ["setuptools", "wheel>=0.30.0"]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ancpbids"
+dynamic = ["version"]
+description = "Read/write/validate/query BIDS datasets"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.8"
+authors = [
+    { name = "Erdal Karaca", email = "erdal.karaca.de@gmail.com" },
+]
+maintainers = [
+    { name = "ANCP Lab, University of Oldenburg", email = "currentancp@listserv.uni-oldenburg.de" },
+]
+keywords = ["BIDS", "neuroimaging", "dataset"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = []
+
+[project.optional-dependencies]
+pandas = ["pandas"]
+torch = ["torch"]
+docs = [
+    "sphinx-copybutton>=0.5.0",
+    "sphinx-inline-tabs",
+    "sphinxcontrib-napoleon",
+]
+
+[project.urls]
+Homepage = "https://github.com/ANCPLabOldenburg/ancp-bids"
+Documentation = "https://ancpbids.readthedocs.io"
+Repository = "https://github.com/ANCPLabOldenburg/ancp-bids"
+Issues = "https://github.com/ANCPLabOldenburg/ancp-bids/issues"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "flake8",
+    "pandas",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["ancpbids*"]
+
+[tool.uv]
+default-groups = ["dev"]
