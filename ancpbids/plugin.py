@@ -58,35 +58,35 @@ class ValidationPlugin(Plugin):
         def __init__(self):
             self.messages = []
 
-        def error(self, message, offender=None):
+        def error(self, message, offender=None, code=None):
             """Adds a new error message to the report.
 
             Parameters
             ----------
             message:
                 the error message to add to the report
+            offender:
+                the graph node that triggered the message
+            code:
+                optional schema issue code (for example ``NOT_INCLUDED``)
 
             """
-            self.messages.append({
-                'severity': 'error',
-                'offender': offender,
-                'message': message
-            })
+            self.messages.append(_message('error', message, offender, code))
 
-        def warn(self, message, offender=None):
+        def warn(self, message, offender=None, code=None):
             """Adds a new warning message to the report.
 
             Parameters
             ----------
             message:
                 the warning message to add to the report
+            offender:
+                the graph node that triggered the message
+            code:
+                optional schema issue code
 
             """
-            self.messages.append({
-                'severity': 'warn',
-                'offender': offender,
-                'message': message
-            })
+            self.messages.append(_message('warn', message, offender, code))
 
         def has_errors(self):
             """
@@ -102,6 +102,17 @@ class ValidationPlugin(Plugin):
 
     def execute(self, dataset, report: ValidationReport):
         raise NotImplementedError()
+
+
+def _message(severity, message, offender, code):
+    entry = {
+        'severity': severity,
+        'offender': offender,
+        'message': message,
+    }
+    if code:
+        entry['code'] = code
+    return entry
 
 
 def is_valid_plugin(plugin_class):
