@@ -19,7 +19,7 @@ API
         all_subject_labels = layout.get_subjects(task='lang')
         all_bold_session_labels = layout.get_sessions(suffix='bold')
 
-    See :class:`EntityEnum <ancpbids.model_v1_7_0.EntityEnum>` for supported entities.
+    See :class:`EntityEnum <ancpbids.model_base.EntityEnum>` for supported entities.
 
 .. automodule:: ancpbids
     :members:

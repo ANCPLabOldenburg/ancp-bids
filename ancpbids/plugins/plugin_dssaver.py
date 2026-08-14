@@ -2,7 +2,7 @@ import inspect
 import os
 
 import ancpbids
-from ancpbids.plugin import WritingPlugin, SchemaPlugin
+from ancpbids.plugin import WritingPlugin
 
 
 class DatasetWritingPlugin(WritingPlugin):
@@ -105,8 +105,3 @@ def write_artifact(artifact):
     dummy_inst = DatasetWritingPlugin()
     dummy_inst._type_handler_Artifact(None, None, artifact)
     return artifact.get_absolute_path()
-
-
-class ArtifactWritingSchemaPlugin(SchemaPlugin):
-    def execute(self, schema):
-        schema.Artifact.write = write_artifact

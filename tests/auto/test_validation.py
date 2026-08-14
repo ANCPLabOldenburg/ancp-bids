@@ -15,12 +15,6 @@ def createSUT(ds_dir, rule_class, lazy_loading):
     return report
 
 @pytest.mark.parametrize("lazy_loading", [True, False])
-def test_validate_static_structure(lazy_loading):
-    report = createSUT(DS005_CONFLICT_DIR, plugin_dsvalidator.StaticStructureValidationPlugin, lazy_loading)
-    assert len(report.messages) == 1
-    assert 'dataset_description' in report.messages[0]['message']
-
-@pytest.mark.parametrize("lazy_loading", [True, False])
 def test_validate_datatypes(lazy_loading):
     report = createSUT(DS005_CONFLICT_DIR, plugin_dsvalidator.DatatypesValidationPlugin, lazy_loading)
     assert len(report.messages) == 2

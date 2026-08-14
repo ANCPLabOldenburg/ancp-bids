@@ -23,7 +23,7 @@ def test_schema_versions(lazy_loading):
     ds_old = load_dataset(DS005_SMALL_DIR, DatasetOptions(lazy_loading=lazy_loading))
     schema_old = ds_old.get_schema()
     assert schema_old == model_v1_8_0
-    assert schema_old.VERSION == 'v1.8.0'
+    assert schema_old.VERSION == '1.8.0'
 
 def test_load_schema():
     schema_latest = load_schema(DS005_DIR)
@@ -32,7 +32,7 @@ def test_load_schema():
 
     schema_v180 = load_schema(DS005_SMALL_DIR)
     assert schema_v180 == model_v1_8_0
-    assert schema_v180.VERSION == 'v1.8.0'
+    assert schema_v180.VERSION == '1.8.0'
 
     # The classes of each schema are separate identities
     # assert on arbitrary class
@@ -60,3 +60,56 @@ def test_v111_emg_exists():
     assert "emg" in [e.name for e in model_v1_11_0.DatatypeEnum]
     assert "emg" in [e.name for e in model_v1_11_1.ModalityEnum]
 
+
+def test_vendored_schema_json():
+    from ancpbids.schema import available_versions, load, load_json
+
+    versions = available_versions()
+    assert versions[0] == "1.8.0"
+    assert versions[-1] == "1.11.1"
+    document = load_json("1.11.1")
+    assert document["bids_version"] == "1.11.1"
+    assert "rules" in document
+    assert "objects" in document
+    assert load_json("v1.8.0")["bids_version"] == "1.8.0"
+    assert load("1.11.1") is model_latest
+    assert load("v1.8.0") is model_v1_8_0
+
+
+def test_schema_stubs():
+    from pathlib import Path
+    from ancpbids import schema as schema_pkg
+
+    stub_dir = Path(schema_pkg.__file__).parent
+    stub_180 = (stub_dir / "v1_8_0.pyi").read_text()
+    stub_111 = (stub_dir / "v1_11_1.pyi").read_text()
+    aliases = (stub_dir / "aliases.pyi").read_text()
+    assert "class SuffixEnum(Enum):" in stub_180
+    assert "    bold = ..." in stub_180
+    assert "    emg = ..." not in stub_180
+    assert "    emg = ..." in stub_111
+    assert "model_v1_8_0:" in aliases
+    assert "model_latest:" in aliases
+    assert (stub_dir / "v1_8_0.py").exists()
+    from ancpbids.schema.v1_8_0 import Schema as StubSchema
+    assert StubSchema is schema_pkg.Schema
+
+
+def test_members_from_properties():
+    schema = model_latest
+    by_name = {m['name']: m for m in schema.get_members(schema.Dataset)}
+    assert not hasattr(schema.Dataset, 'MEMBERS')
+    assert by_name['subjects']['type'] is schema.Subject
+    assert by_name['subjects']['max'] > 1
+    assert by_name['subjects']['meta']['name_pattern'] == 'sub-.*'
+    assert by_name['dataset_description']['type'] is schema.DatasetDescriptionFile
+    assert by_name['participants_tsv']['meta']['name_pattern'] == 'participants.tsv'
+    assert by_name['files']['type'] is schema.File
+
+    json_members = {m['name']: m for m in schema.get_members(schema.JsonFile)}
+    assert json_members['contents']['type'] is dict
+
+    subject = {m['name']: m for m in schema.get_members(schema.Subject)}
+    assert subject['sessions']['meta']['name_pattern'] == 'ses-.*'
+    assert subject['datatypes']['meta']['name_pattern'] == '.*'
+    assert schema.get_members(schema.DatatypeFolder, include_superclass=False) == []

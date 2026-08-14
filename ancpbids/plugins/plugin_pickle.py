@@ -4,7 +4,6 @@ from types import ModuleType
 
 from ancpbids import utils
 from ancpbids.model_base import Dataset
-from ancpbids.plugin import SchemaPlugin
 
 ANCP_BIDS_SCHEMA_VERSION = "AncpBIDSSchemaVersion"
 
@@ -14,10 +13,12 @@ ANCPBIDS_PICKLE_FILE = ".ancpbids-dataset.pickle"
 class DatasetPickler(pickle.Pickler):
 
     def persistent_id(self, obj):
+        from ancpbids.schema import Schema
+        if isinstance(obj, Schema):
+            return (ANCP_BIDS_SCHEMA_VERSION, obj.VERSION)
         if isinstance(obj, ModuleType) and obj.__name__.startswith("ancpbids."):
-            return (("%s" % ANCP_BIDS_SCHEMA_VERSION), obj.VERSION)
-        else:
-            return None
+            return (ANCP_BIDS_SCHEMA_VERSION, obj.VERSION)
+        return None
 
 
 class DatasetUnpickler(pickle.Unpickler):
@@ -40,8 +41,3 @@ def unpickle_dataset(dataset_path) -> Dataset:
     ds_path = os.path.join(dataset_path, ANCPBIDS_PICKLE_FILE)
     with open(ds_path, 'rb') as f:
         return DatasetUnpickler(f).load()
-
-
-class PickleSchemaPlugin(SchemaPlugin):
-    def execute(self, schema):
-        schema.Dataset.pickle = pickle_dataset

@@ -1,6 +1,9 @@
 import logging
 import os
-import sys
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ancpbids.schema import Schema
 
 FILE_READERS = {}
 FILE_WRITERS = {}
@@ -229,9 +232,11 @@ def convert_to_relative(dataset, path):
         path = os.path.join(*path_segments)
     return path
 
-def get_schema_by_version(schema_version):
-    schema_version = schema_version.replace('.', '_')
-    schema_name = f'ancpbids.model_v{schema_version}'
-    if schema_name in sys.modules:
-        schema = sys.modules[schema_name]
-        return schema
+
+def get_schema_by_version(schema_version: str) -> Optional["Schema"]:
+    from ancpbids.schema import available_versions, load
+
+    version = schema_version.lstrip('v')
+    if version in available_versions():
+        return load(version)
+    return None

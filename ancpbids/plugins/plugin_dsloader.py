@@ -5,41 +5,8 @@ import re
 
 from .plugin_files_handlers import read_plain_text
 from .. import utils
-from ..plugin import DatasetPlugin, SchemaPlugin
+from ..plugin import DatasetPlugin
 from ..model_base import *
-
-
-def lazy_contents_getter(lazy_loading_object):
-    if callable(lazy_loading_object._contents):
-        lazy_loading_object._contents = lazy_loading_object._contents()
-    return lazy_loading_object._contents
-
-
-def lazy_contents_setter(lazy_loading_object, value):
-    lazy_loading_object._contents = value
-
-
-def patch_contents_property(*types_to_patch):
-    for type_to_patch in types_to_patch:
-        # need a reference to the original contents property
-        original_contents = type_to_patch.contents
-
-        # replace with new property which uses the provided getter/setter
-        type_to_patch.contents = property(lazy_contents_getter, lazy_contents_setter)
-
-        # reverts the contents property to its original value, so, the next time contents is accessed, it will be reloaded
-        # note that we must capture the outer variable original_contents as a default parameter value
-        def unload(self, original=original_contents):
-            self.contents = original
-
-        # also allow to unload the contents
-        type_to_patch.unload = unload
-
-
-class PatchingSchemaPlugin(SchemaPlugin):
-    def execute(self, schema):
-        patch_contents_property(schema.MetadataFile, schema.MetadataArtifact, schema.TSVFile, schema.TSVArtifact,
-                                schema.JsonFile)
 
 
 class DatasetPopulationPlugin(DatasetPlugin):
@@ -229,7 +196,7 @@ class DatasetPopulationPlugin(DatasetPlugin):
 
     def _expand_member(self, parent, member):
         typ = member['type']
-        if not issubclass(typ, Model):
+        if not inspect.isclass(typ) or not issubclass(typ, Model):
             return
         mapper_name = '_type_handler_%s' % typ.__name__
         if mapper_name not in _TYPE_MAPPERS:

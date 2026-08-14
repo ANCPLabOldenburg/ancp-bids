@@ -194,7 +194,7 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
           regex_search=False, sorter=None,
           **entities) -> Union[List[str], List[object]]:
     """Depending on the return_type value returns either paths to files that matched the filtering criteria
-    or :class:`Artifact <ancpbids.model_v1_7_0.Artifact>` objects for further processing by the caller.
+    or :class:`Artifact <ancpbids.model_base.Artifact>` objects for further processing by the caller.
 
     Note that all provided filter criteria are AND combined, i.e. subj='02',task='lang' will match files containing
     '02' as a subject AND 'lang' as a task. If you provide a list of values for a criteria, they will be OR combined.
@@ -211,11 +211,11 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
             an entry-point of type Folder to search within
     return_type:
         Either 'files' to return paths of matched files
-        or 'object' to return :class:`Artifact <ancpbids.model_v1_7_0.Artifact>` object, defaults to 'object'
+        or 'object' to return :class:`Artifact <ancpbids.model_base.Artifact>` object, defaults to 'object'
 
     target:
         Either `suffixes`, `extensions` or one of any valid BIDS entities key
-        (see :class:`EntityEnum <ancpbids.model_v1_7_0.EntityEnum>`, defaults to `None`
+        (see :class:`EntityEnum <ancpbids.model_base.EntityEnum>`, defaults to `None`
     scope:
         a hint where to search for files
         If passed, only nodes/directories that match the specified scope will be

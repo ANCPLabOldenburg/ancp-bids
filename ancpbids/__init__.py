@@ -1,24 +1,17 @@
 import logging
 import os
-import sys
 from dataclasses import dataclass
-from typing import Union, List, Optional
+from typing import Union, List, Optional, TYPE_CHECKING
 
 from ancpbids import plugins
 from ancpbids import utils
-from . import model_v1_8_0
-from . import model_v1_9_0
-from . import model_v1_10_0
-from . import model_v1_10_1
-from . import model_v1_11_0
-from . import model_v1_11_1
-# latest stable supported BIDS schema
-from ancpbids import model_v1_11_1 as model_latest
 
 from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin, \
     FileHandlerPlugin
 from .query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
     EntityExpr
+from .model_base import Dataset
+from .schema import Schema
 
 LOGGER = logging.getLogger("ancpbids")
 
@@ -51,7 +44,7 @@ class DatasetOptions(dict):
     """If the dataset has been previously made available as a pickle file '.ancpbids-dataset.pickle' at the root of the dataset folder, this option allows to ignore it by setting it to True."""
 
 
-def load_dataset(base_dir: str, options: Optional[DatasetOptions] = None):
+def load_dataset(base_dir: str, options: Optional[DatasetOptions] = None) -> Dataset:
     """Loads a dataset given its directory path on the file system.
 
     .. code-block::
@@ -94,7 +87,7 @@ def load_dataset(base_dir: str, options: Optional[DatasetOptions] = None):
     return ds
 
 
-def load_schema(base_dir):
+def load_schema(base_dir: str) -> Schema:
     """Loads a BIDS schema object which represents the static/formal definition of the BIDS specification.
 
     As per BIDS spec, a BIDS compliant dataset must have a BIDSVersion field in the dataset_description.json
@@ -198,18 +191,18 @@ def write_derivative(ds, derivative):
 # load system plugins using lowest rank value
 load_plugins_by_package(plugins, ranking=0, system=True)
 
-# execute all SchemaPlugins, these plugins may monkey-patch the schema
-_SCHEMA_MODULES = [
-    model_v1_8_0,
-    model_v1_9_0,
-    model_v1_10_0,
-    model_v1_10_1,
-    model_v1_11_0,
-    model_v1_11_1,
-]
-for pl in get_plugins(SchemaPlugin):
-    for schema in _SCHEMA_MODULES:
-        pl.execute(schema)
+from .schema import available_versions, load as load_schema_version
+
+if TYPE_CHECKING:
+    from ancpbids.schema.aliases import *  # noqa: F401,F403
+else:
+    _schemas: List[Schema] = [load_schema_version(version) for version in available_versions()]
+    model_latest: Schema = _schemas[-1]
+    for _schema in _schemas:
+        globals()[f"model_v{_schema.VERSION.replace('.', '_')}"] = _schema
+    for pl in get_plugins(SchemaPlugin):
+        for _schema in _schemas:
+            pl.execute(_schema)
 
 # load file handler plugins
 for pl in get_plugins(FileHandlerPlugin):

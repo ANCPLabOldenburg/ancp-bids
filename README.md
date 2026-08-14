@@ -43,10 +43,10 @@
 ## Architecture
 
 - **Core Models:**  
-	The core BIDS data model is implemented in `ancpbids/model_base.py` and versioned model files (e.g., `model_v1_8_0.py`). These define the schema and object graph for BIDS datasets.
+	The in-memory graph is hand-maintained in `ancpbids/model_base.py`. Versioned enums are loaded at runtime from official BIDS `schema.json` files vendored in `ancpbids/schema/`.
 
 - **Plugin System:**  
-	The plugin mechanism (see `ancpbids/plugin.py`) allows for dynamic extension of core functionality. Plugins can hook into schema modification, dataset processing, file handling, writing, and validation.
+	The plugin mechanism (see `ancpbids/plugin.py`) allows for dynamic extension of core functionality. Plugins can hook into schema modification, dataset processing, file handling, writing, and validation. Graph methods (`query`, `get_schema`, …) live on the model classes; `SchemaPlugin` remains an extension point.
 
 - **Query Engine:**  
 	The query logic is implemented in `ancpbids/query.py`, providing flexible access to dataset contents and metadata.
@@ -84,7 +84,7 @@ The plugin system is a core feature for extensibility:
 
 ## Versioning and Schema Evolution
 
-- The codebase supports multiple BIDS schema versions, with separate model files for each version.
+- The codebase supports multiple BIDS schema versions via vendored `schema.json` files.
 - The schema is loaded dynamically based on the dataset version, allowing for forward compatibility.
 
 ## Testing and CI
@@ -99,7 +99,7 @@ The plugin system is a core feature for extensibility:
 ## Developer Guidelines
 
 - **Extending the Model:**  
-	Add new schema versions as new files in `ancpbids/`, following the pattern of existing model files.
+	Add a new `ancpbids/schema/schema_v<version>.json` (see Model Generation Utility). Type stubs and `model_latest` update from the vendored JSON files.
 - **Adding Plugins:**  
 	Follow the plugin system described above.
 - **Testing:**  
@@ -113,26 +113,18 @@ The plugin system is a core feature for extensibility:
 - Contributions should follow PEP8 and include tests and documentation.
 ## Model Generation Utility
 
-The script `tools/generatemodel.py` is provided to automate the generation of Python model classes from BIDS schema files. This utility ensures that the codebase can easily stay up-to-date with the latest BIDS schema versions.
-
-**Features:**
-- Fetches the latest or a specified BIDS schema version directly from the official BIDS GitHub repository.
-- Downloads the schema and generates Python model files in the `ancpbids/` directory (e.g., `model_base.py`, `model_v<version>.py`).
-- Supports custom ordering and enum generation for BIDS datatypes, modalities, suffixes, and entities.
+The in-memory graph (`ancpbids/model_base.py`) is hand-maintained. `tools/generatemodel.py` fetches an official BIDS `schema.json` into `ancpbids/schema/` and writes version-specific type stubs (`v1_X_Y.pyi`) so IDEs can see enum literals such as `SuffixEnum.bold`. Enums are still built from JSON at runtime.
 
 **Usage:**
 
 ```bash
-cd tools
-python generatemodel.py [--schema-version <version>]
+uv run --with requests python tools/generatemodel.py [--schema-version <version>]
+uv run python tools/generatemodel.py --stubs-only
 ```
 
-- If `--schema-version` is omitted, the latest available schema version will be used.
-- The generated files will be saved in the `ancpbids/` directory and the corresponding schema in the `schema/` directory.
-
-**When to use:**
-- When a new BIDS schema version is released and you want to update the models.
-- When making changes to the schema or model structure for development or testing.
+- If `--schema-version` is omitted, the latest available schema version is used.
+- `--stubs-only` regenerates stubs from JSON files already in `ancpbids/schema/`.
+- Output: `ancpbids/schema/schema_v<version>.json`, `ancpbids/schema/v1_X_Y.pyi`, and `ancpbids/schema/aliases.pyi`.
 
 
 ## Further Reading

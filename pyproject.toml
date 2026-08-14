@@ -61,5 +61,8 @@ include-package-data = true
 [tool.setuptools.packages.find]
 include = ["ancpbids*"]
 
+[tool.setuptools.package-data]
+ancpbids = ["schema/*.json", "schema/*.pyi", "py.typed"]
+
 [tool.uv]
 default-groups = ["dev"]

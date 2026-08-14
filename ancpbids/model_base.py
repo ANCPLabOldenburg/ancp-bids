@@ -1,30 +1,84 @@
+"""In-memory BIDS graph types. Hand-maintained; not generated from YAML."""
 from enum import Enum, auto
-from typing import List, Union, Dict, Any
-from math import inf
-import sys
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, get_origin
 
-class Model(dict):
-    def __init__(self, *args, **kwargs):
-        pass
+from .model_ops import ArtifactOps, DatasetOps, FileOps, FolderOps, LazyContents, ModelOps
 
-    def __repr__(self):
+if TYPE_CHECKING:
+    from .schema import Schema
+
+
+def member(pattern):
+    """Override the on-disk name used when expanding this property into the graph."""
+    def deco(obj):
+        target = obj.fget if isinstance(obj, property) else obj
+        target._member = {'meta': {'name_pattern': pattern}}
+        return obj
+
+    return deco
+
+
+def _property_defaults(cls):
+    defaults = {}
+    seen_model = False
+    for klass in reversed(cls.__mro__):
+        if klass is Model:
+            seen_model = True
+            continue
+        if not seen_model:
+            continue
+        for name, value in klass.__dict__.items():
+            if not isinstance(value, property) or not value.fget or name.startswith('_'):
+                continue
+            annotation = value.fget.__annotations__.get('return')
+            defaults[name] = [] if _is_list_type(annotation) else None
+    return defaults
+
+
+def _is_list_type(annotation):
+    if isinstance(annotation, str):
+        return annotation.startswith('List[')
+    return get_origin(annotation) in (list, List)
+
+
+class Model(ModelOps, dict):
+    # TODO(v1): switch to dataclasses for typed constructors. Blocked on Model
+    # being a dict (update/values/to_dict/hash) and lazy contents as a mixin property.
+    parent_object_: Optional['Model']
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        defaults = _property_defaults(type(self))
+        names = list(defaults)
+        if len(args) > len(names):
+            raise TypeError(
+                '%s() takes %d positional arguments but %d were given'
+                % (type(self).__name__, len(names) + 1, len(args) + 1))
+        for name, value in zip(names, args):
+            if name in kwargs:
+                raise TypeError('%s() got multiple values for argument %r'
+                                % (type(self).__name__, name))
+            kwargs[name] = value
+        unexpected = [key for key in kwargs if key not in defaults]
+        if unexpected:
+            raise TypeError('%s() got an unexpected keyword argument %r'
+                            % (type(self).__name__, unexpected[0]))
+        for name, default in defaults.items():
+            value = kwargs.get(name)
+            self[name] = default if value is None else value
+
+    def __repr__(self) -> str:
         return str({key: (str(value)[:32] + '[...]') if len(str(value)) > 32 else value
                     for key, value in self.items()
                     if value is not None and not isinstance(value, (dict, list))})
         
 class MetadataFieldDefinition(Model):
-    def __init__(self, name: 'str' = None, description: 'str' = None, type: 'Dict' = None):
-        super(MetadataFieldDefinition, self).__init__()
-        self['name'] = name or None
-        self['description'] = description or None
-        self['type'] = type or None
 
     @property
     def name(self) -> 'str':
         return self['name']
 
     @name.setter
-    def name(self, name: 'str'):
+    def name(self, name: 'str') -> None:
         self['name'] = name
             
     @property
@@ -32,7 +86,7 @@ class MetadataFieldDefinition(Model):
         return self['description']
 
     @description.setter
-    def description(self, description: 'str'):
+    def description(self, description: 'str') -> None:
         self['description'] = description
             
     @property
@@ -40,31 +94,18 @@ class MetadataFieldDefinition(Model):
         return self['type']
 
     @type.setter
-    def type(self, type: 'Dict'):
+    def type(self, type: 'Dict') -> None:
         self['type'] = type
             
-    MEMBERS = {
-        'name': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'description': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'type': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
-
 
 class EntitiyDefinition(Model):
-    def __init__(self, key: 'str' = None, name: 'str' = None, entity: 'str' = None, description: 'str' = None, type: 'Dict' = None):
-        super(EntitiyDefinition, self).__init__()
-        self['key'] = key or None
-        self['name'] = name or None
-        self['entity'] = entity or None
-        self['description'] = description or None
-        self['type'] = type or None
 
     @property
     def key(self) -> 'str':
         return self['key']
 
     @key.setter
-    def key(self, key: 'str'):
+    def key(self, key: 'str') -> None:
         self['key'] = key
             
     @property
@@ -72,7 +113,7 @@ class EntitiyDefinition(Model):
         return self['name']
 
     @name.setter
-    def name(self, name: 'str'):
+    def name(self, name: 'str') -> None:
         self['name'] = name
             
     @property
@@ -80,7 +121,7 @@ class EntitiyDefinition(Model):
         return self['entity']
 
     @entity.setter
-    def entity(self, entity: 'str'):
+    def entity(self, entity: 'str') -> None:
         self['entity'] = entity
             
     @property
@@ -88,7 +129,7 @@ class EntitiyDefinition(Model):
         return self['description']
 
     @description.setter
-    def description(self, description: 'str'):
+    def description(self, description: 'str') -> None:
         self['description'] = description
             
     @property
@@ -96,31 +137,18 @@ class EntitiyDefinition(Model):
         return self['type']
 
     @type.setter
-    def type(self, type: 'Dict'):
+    def type(self, type: 'Dict') -> None:
         self['type'] = type
             
-    MEMBERS = {
-        'key': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'name': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'entity': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'description': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'type': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
-
 
 class SuffixDefinition(Model):
-    def __init__(self, name: 'str' = None, description: 'str' = None, type: 'Dict' = None):
-        super(SuffixDefinition, self).__init__()
-        self['name'] = name or None
-        self['description'] = description or None
-        self['type'] = type or None
 
     @property
     def name(self) -> 'str':
         return self['name']
 
     @name.setter
-    def name(self, name: 'str'):
+    def name(self, name: 'str') -> None:
         self['name'] = name
             
     @property
@@ -128,7 +156,7 @@ class SuffixDefinition(Model):
         return self['description']
 
     @description.setter
-    def description(self, description: 'str'):
+    def description(self, description: 'str') -> None:
         self['description'] = description
             
     @property
@@ -136,29 +164,18 @@ class SuffixDefinition(Model):
         return self['type']
 
     @type.setter
-    def type(self, type: 'Dict'):
+    def type(self, type: 'Dict') -> None:
         self['type'] = type
             
-    MEMBERS = {
-        'name': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'description': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'type': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
 
-
-class File(Model):
-    def __init__(self, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(File, self).__init__()
-        self['name'] = name or None
-        self['extension'] = extension or None
-        self['uri'] = uri or None
+class File(FileOps, Model):
 
     @property
     def name(self) -> 'str':
         return self['name']
 
     @name.setter
-    def name(self, name: 'str'):
+    def name(self, name: 'str') -> None:
         self['name'] = name
             
     @property
@@ -166,7 +183,7 @@ class File(Model):
         return self['extension']
 
     @extension.setter
-    def extension(self, extension: 'str'):
+    def extension(self, extension: 'str') -> None:
         self['extension'] = extension
             
     @property
@@ -174,48 +191,23 @@ class File(Model):
         return self['uri']
 
     @uri.setter
-    def uri(self, uri: 'str'):
+    def uri(self, uri: 'str') -> None:
         self['uri'] = uri
             
-    MEMBERS = {
-        'name': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'extension': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'uri': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
+
+class JsonFile(LazyContents, File):
+    pass
 
 
-class JsonFile(File):
-    def __init__(self, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(JsonFile, self).__init__(name or None, extension or None, uri or None)
-        self['contents'] = contents or None
-
-    @property
-    def contents(self) -> 'Dict':
-        return self['contents']
-
-    @contents.setter
-    def contents(self, contents: 'Dict'):
-        self['contents'] = contents
-            
-    MEMBERS = {
-        'contents': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
-
-
-class Artifact(File):
+class Artifact(ArtifactOps, File):
     r"""An artifact is a file whose name conforms to the BIDS file naming convention."""
-    def __init__(self, suffix: 'str' = None, datatype: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(Artifact, self).__init__(name or None, extension or None, uri or None)
-        self['suffix'] = suffix or None
-        self['datatype'] = datatype or None
-        self['entities'] = entities or []
 
     @property
     def suffix(self) -> 'str':
         return self['suffix']
 
     @suffix.setter
-    def suffix(self, suffix: 'str'):
+    def suffix(self, suffix: 'str') -> None:
         self['suffix'] = suffix
             
     @property
@@ -223,7 +215,7 @@ class Artifact(File):
         return self['datatype']
 
     @datatype.setter
-    def datatype(self, datatype: 'str'):
+    def datatype(self, datatype: 'str') -> None:
         self['datatype'] = datatype
             
     @property
@@ -231,121 +223,48 @@ class Artifact(File):
         return self['entities']
 
     @entities.setter
-    def entities(self, entities: 'List[EntityRef]'):
+    def entities(self, entities: 'List[EntityRef]') -> None:
         self['entities'] = entities
             
-    MEMBERS = {
-        'suffix': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'datatype': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'entities': {'type': 'EntityRef', 'min': 1, 'max': inf, 'use': 'optional', 'meta': {}},
-    }
+
+class MetadataArtifact(LazyContents, Artifact):
+    pass
 
 
-class MetadataArtifact(Artifact):
-    def __init__(self, contents: 'Dict' = None, suffix: 'str' = None, datatype: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(MetadataArtifact, self).__init__(suffix or None, datatype or None, entities or [], name or None, extension or None, uri or None)
-        self['contents'] = contents or None
-
-    @property
-    def contents(self) -> 'Dict':
-        return self['contents']
-
-    @contents.setter
-    def contents(self, contents: 'Dict'):
-        self['contents'] = contents
-            
-    MEMBERS = {
-        'contents': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
+class MetadataFile(LazyContents, File):
+    pass
 
 
-class MetadataFile(File):
-    def __init__(self, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(MetadataFile, self).__init__(name or None, extension or None, uri or None)
-        self['contents'] = contents or None
-
-    @property
-    def contents(self) -> 'Dict':
-        return self['contents']
-
-    @contents.setter
-    def contents(self, contents: 'Dict'):
-        self['contents'] = contents
-            
-    MEMBERS = {
-        'contents': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
-
-
-class TSVArtifact(Artifact):
-    def __init__(self, delimiter: 'str' = None, contents: 'Dict' = None, suffix: 'str' = None, datatype: 'str' = None, entities: 'List[EntityRef]' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(TSVArtifact, self).__init__(suffix or None, datatype or None, entities or [], name or None, extension or None, uri or None)
-        self['delimiter'] = delimiter or None
-        self['contents'] = contents or None
+class TSVArtifact(LazyContents, Artifact):
 
     @property
     def delimiter(self) -> 'str':
         return self['delimiter']
 
     @delimiter.setter
-    def delimiter(self, delimiter: 'str'):
+    def delimiter(self, delimiter: 'str') -> None:
         self['delimiter'] = delimiter
-            
-    @property
-    def contents(self) -> 'Dict':
-        return self['contents']
-
-    @contents.setter
-    def contents(self, contents: 'Dict'):
-        self['contents'] = contents
-            
-    MEMBERS = {
-        'delimiter': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'contents': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
 
 
-class TSVFile(File):
-    def __init__(self, delimiter: 'str' = None, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(TSVFile, self).__init__(name or None, extension or None, uri or None)
-        self['delimiter'] = delimiter or None
-        self['contents'] = contents or None
+class TSVFile(LazyContents, File):
 
     @property
     def delimiter(self) -> 'str':
         return self['delimiter']
 
     @delimiter.setter
-    def delimiter(self, delimiter: 'str'):
+    def delimiter(self, delimiter: 'str') -> None:
         self['delimiter'] = delimiter
-            
-    @property
-    def contents(self) -> 'Dict':
-        return self['contents']
-
-    @contents.setter
-    def contents(self, contents: 'Dict'):
-        self['contents'] = contents
-            
-    MEMBERS = {
-        'delimiter': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'contents': {'type': 'dict', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
 
 
-class Folder(Model):
-    def __init__(self, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
-        super(Folder, self).__init__()
-        self['name'] = name or None
-        self['files'] = files or []
-        self['folders'] = folders or []
+class Folder(FolderOps, Model):
 
     @property
     def name(self) -> 'str':
         return self['name']
 
     @name.setter
-    def name(self, name: 'str'):
+    def name(self, name: 'str') -> None:
         self['name'] = name
             
     @property
@@ -353,7 +272,7 @@ class Folder(Model):
         return self['files']
 
     @files.setter
-    def files(self, files: 'List[File]'):
+    def files(self, files: 'List[File]') -> None:
         self['files'] = files
             
     @property
@@ -361,28 +280,18 @@ class Folder(Model):
         return self['folders']
 
     @folders.setter
-    def folders(self, folders: 'List[Folder]'):
+    def folders(self, folders: 'List[Folder]') -> None:
         self['folders'] = folders
             
-    MEMBERS = {
-        'name': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'files': {'type': 'File', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-        'folders': {'type': 'Folder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-    }
-
 
 class EntityRef(Model):
-    def __init__(self, key: 'str' = None, value: 'str' = None):
-        super(EntityRef, self).__init__()
-        self['key'] = key or None
-        self['value'] = value or None
 
     @property
     def key(self) -> 'str':
         return self['key']
 
     @key.setter
-    def key(self, key: 'str'):
+    def key(self, key: 'str') -> None:
         self['key'] = key
             
     @property
@@ -390,41 +299,22 @@ class EntityRef(Model):
         return self['value']
 
     @value.setter
-    def value(self, value: 'str'):
+    def value(self, value: 'str') -> None:
         self['value'] = value
             
-    MEMBERS = {
-        'key': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'value': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-    }
-
 
 class DatasetDescriptionFile(JsonFile):
     class DatasetTypeEnum(Enum):
         raw = auto()
         derivative = auto()
 
-    def __init__(self, Name: 'str' = None, BIDSVersion: 'str' = None, HEDVersion: 'str' = None, DatasetType: 'DatasetDescriptionFile.DatasetTypeEnum' = None, License: 'str' = None, Acknowledgements: 'str' = None, HowToAcknowledge: 'str' = None, DatasetDOI: 'str' = None, Authors: 'List[str]' = None, Funding: 'List[str]' = None, EthicsApprovals: 'List[str]' = None, ReferencesAndLinks: 'List[str]' = None, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(DatasetDescriptionFile, self).__init__(contents or None, name or None, extension or None, uri or None)
-        self['Name'] = Name or None
-        self['BIDSVersion'] = BIDSVersion or None
-        self['HEDVersion'] = HEDVersion or None
-        self['DatasetType'] = DatasetType or None
-        self['License'] = License or None
-        self['Acknowledgements'] = Acknowledgements or None
-        self['HowToAcknowledge'] = HowToAcknowledge or None
-        self['DatasetDOI'] = DatasetDOI or None
-        self['Authors'] = Authors or []
-        self['Funding'] = Funding or []
-        self['EthicsApprovals'] = EthicsApprovals or []
-        self['ReferencesAndLinks'] = ReferencesAndLinks or []
 
     @property
     def Name(self) -> 'str':
         return self['Name']
 
     @Name.setter
-    def Name(self, Name: 'str'):
+    def Name(self, Name: 'str') -> None:
         self['Name'] = Name
             
     @property
@@ -432,7 +322,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['BIDSVersion']
 
     @BIDSVersion.setter
-    def BIDSVersion(self, BIDSVersion: 'str'):
+    def BIDSVersion(self, BIDSVersion: 'str') -> None:
         self['BIDSVersion'] = BIDSVersion
             
     @property
@@ -440,7 +330,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['HEDVersion']
 
     @HEDVersion.setter
-    def HEDVersion(self, HEDVersion: 'str'):
+    def HEDVersion(self, HEDVersion: 'str') -> None:
         self['HEDVersion'] = HEDVersion
             
     @property
@@ -449,7 +339,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['DatasetType']
 
     @DatasetType.setter
-    def DatasetType(self, DatasetType: 'DatasetDescriptionFile.DatasetTypeEnum'):
+    def DatasetType(self, DatasetType: 'DatasetDescriptionFile.DatasetTypeEnum') -> None:
         self['DatasetType'] = DatasetType
             
     @property
@@ -457,7 +347,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['License']
 
     @License.setter
-    def License(self, License: 'str'):
+    def License(self, License: 'str') -> None:
         self['License'] = License
             
     @property
@@ -465,7 +355,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['Acknowledgements']
 
     @Acknowledgements.setter
-    def Acknowledgements(self, Acknowledgements: 'str'):
+    def Acknowledgements(self, Acknowledgements: 'str') -> None:
         self['Acknowledgements'] = Acknowledgements
             
     @property
@@ -473,7 +363,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['HowToAcknowledge']
 
     @HowToAcknowledge.setter
-    def HowToAcknowledge(self, HowToAcknowledge: 'str'):
+    def HowToAcknowledge(self, HowToAcknowledge: 'str') -> None:
         self['HowToAcknowledge'] = HowToAcknowledge
             
     @property
@@ -481,7 +371,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['DatasetDOI']
 
     @DatasetDOI.setter
-    def DatasetDOI(self, DatasetDOI: 'str'):
+    def DatasetDOI(self, DatasetDOI: 'str') -> None:
         self['DatasetDOI'] = DatasetDOI
             
     @property
@@ -489,7 +379,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['Authors']
 
     @Authors.setter
-    def Authors(self, Authors: 'List[str]'):
+    def Authors(self, Authors: 'List[str]') -> None:
         self['Authors'] = Authors
             
     @property
@@ -497,7 +387,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['Funding']
 
     @Funding.setter
-    def Funding(self, Funding: 'List[str]'):
+    def Funding(self, Funding: 'List[str]') -> None:
         self['Funding'] = Funding
             
     @property
@@ -505,7 +395,7 @@ class DatasetDescriptionFile(JsonFile):
         return self['EthicsApprovals']
 
     @EthicsApprovals.setter
-    def EthicsApprovals(self, EthicsApprovals: 'List[str]'):
+    def EthicsApprovals(self, EthicsApprovals: 'List[str]') -> None:
         self['EthicsApprovals'] = EthicsApprovals
             
     @property
@@ -513,37 +403,18 @@ class DatasetDescriptionFile(JsonFile):
         return self['ReferencesAndLinks']
 
     @ReferencesAndLinks.setter
-    def ReferencesAndLinks(self, ReferencesAndLinks: 'List[str]'):
+    def ReferencesAndLinks(self, ReferencesAndLinks: 'List[str]') -> None:
         self['ReferencesAndLinks'] = ReferencesAndLinks
             
-    MEMBERS = {
-        'Name': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'BIDSVersion': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'HEDVersion': {'type': 'str', 'min': 0, 'max': 1, 'use': 'recommended', 'meta': {}},
-        'DatasetType': {'type': 'DatasetTypeEnum', 'min': 0, 'max': 1, 'use': 'recommended', 'meta': {}},
-        'License': {'type': 'str', 'min': 0, 'max': 1, 'use': 'recommended', 'meta': {}},
-        'Acknowledgements': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'HowToAcknowledge': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'DatasetDOI': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'Authors': {'type': 'str', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-        'Funding': {'type': 'str', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-        'EthicsApprovals': {'type': 'str', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-        'ReferencesAndLinks': {'type': 'str', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-    }
-
 
 class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
-    def __init__(self, GeneratedBy: 'List[GeneratedBy]' = None, SourceDatasets: 'List[SourceDatasets]' = None, Name: 'str' = None, BIDSVersion: 'str' = None, HEDVersion: 'str' = None, DatasetType: 'DatasetDescriptionFile.DatasetTypeEnum' = None, License: 'str' = None, Acknowledgements: 'str' = None, HowToAcknowledge: 'str' = None, DatasetDOI: 'str' = None, Authors: 'List[str]' = None, Funding: 'List[str]' = None, EthicsApprovals: 'List[str]' = None, ReferencesAndLinks: 'List[str]' = None, contents: 'Dict' = None, name: 'str' = None, extension: 'str' = None, uri: 'str' = None):
-        super(DerivativeDatasetDescriptionFile, self).__init__(Name or None, BIDSVersion or None, HEDVersion or None, DatasetType or None, License or None, Acknowledgements or None, HowToAcknowledge or None, DatasetDOI or None, Authors or [], Funding or [], EthicsApprovals or [], ReferencesAndLinks or [], contents or None, name or None, extension or None, uri or None)
-        self['GeneratedBy'] = GeneratedBy or []
-        self['SourceDatasets'] = SourceDatasets or []
 
     @property
     def GeneratedBy(self) -> 'List[GeneratedBy]':
         return self['GeneratedBy']
 
     @GeneratedBy.setter
-    def GeneratedBy(self, GeneratedBy: 'List[GeneratedBy]'):
+    def GeneratedBy(self, GeneratedBy: 'List[GeneratedBy]') -> None:
         self['GeneratedBy'] = GeneratedBy
             
     @property
@@ -551,102 +422,65 @@ class DerivativeDatasetDescriptionFile(DatasetDescriptionFile):
         return self['SourceDatasets']
 
     @SourceDatasets.setter
-    def SourceDatasets(self, SourceDatasets: 'List[SourceDatasets]'):
+    def SourceDatasets(self, SourceDatasets: 'List[SourceDatasets]') -> None:
         self['SourceDatasets'] = SourceDatasets
             
-    MEMBERS = {
-        'GeneratedBy': {'type': 'GeneratedBy', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-        'SourceDatasets': {'type': 'SourceDatasets', 'min': 0, 'max': inf, 'use': 'recommended', 'meta': {}},
-    }
-
 
 class DerivativeFolder(Folder):
-    def __init__(self, dataset_description: 'DerivativeDatasetDescriptionFile' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
-        super(DerivativeFolder, self).__init__(name or None, files or [], folders or [])
-        self['dataset_description'] = dataset_description or None
 
     @property
     def dataset_description(self) -> 'DerivativeDatasetDescriptionFile':
         return self['dataset_description']
 
     @dataset_description.setter
-    def dataset_description(self, dataset_description: 'DerivativeDatasetDescriptionFile'):
+    def dataset_description(self, dataset_description: 'DerivativeDatasetDescriptionFile') -> None:
         self['dataset_description'] = dataset_description
             
-    MEMBERS = {
-        'dataset_description': {'type': 'DerivativeDatasetDescriptionFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
-
 
 class SessionFolder(Folder):
-    def __init__(self, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
-        super(SessionFolder, self).__init__(name or None, files or [], folders or [])
-        self['datatypes'] = datatypes or []
 
     @property
     def datatypes(self) -> 'List[DatatypeFolder]':
         return self['datatypes']
 
     @datatypes.setter
-    def datatypes(self, datatypes: 'List[DatatypeFolder]'):
+    def datatypes(self, datatypes: 'List[DatatypeFolder]') -> None:
         self['datatypes'] = datatypes
             
-    MEMBERS = {
-        'datatypes': {'type': 'DatatypeFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-    }
-
 
 class DatatypeFolder(Folder):
-    def __init__(self, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
-        super(DatatypeFolder, self).__init__(name or None, files or [], folders or [])
-
-    MEMBERS = {
-    }
+    pass
 
 
 class Subject(Folder):
-    def __init__(self, sessions: 'List[SessionFolder]' = None, datatypes: 'List[DatatypeFolder]' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
-        super(Subject, self).__init__(name or None, files or [], folders or [])
-        self['sessions'] = sessions or []
-        self['datatypes'] = datatypes or []
 
+    @member('ses-.*')
     @property
     def sessions(self) -> 'List[SessionFolder]':
         return self['sessions']
 
     @sessions.setter
-    def sessions(self, sessions: 'List[SessionFolder]'):
+    def sessions(self, sessions: 'List[SessionFolder]') -> None:
         self['sessions'] = sessions
             
+    @member('.*')
     @property
     def datatypes(self) -> 'List[DatatypeFolder]':
         return self['datatypes']
 
     @datatypes.setter
-    def datatypes(self, datatypes: 'List[DatatypeFolder]'):
+    def datatypes(self, datatypes: 'List[DatatypeFolder]') -> None:
         self['datatypes'] = datatypes
             
-    MEMBERS = {
-        'sessions': {'type': 'SessionFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': 'ses-.*'}},
-        'datatypes': {'type': 'DatatypeFolder', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': '.*'}},
-    }
-
 
 class GeneratedBy(Model):
-    def __init__(self, Name: 'str' = None, Version: 'str' = None, Description: 'str' = None, CodeURL: 'str' = None, Container: 'List[GeneratedByContainer]' = None):
-        super(GeneratedBy, self).__init__()
-        self['Name'] = Name or None
-        self['Version'] = Version or None
-        self['Description'] = Description or None
-        self['CodeURL'] = CodeURL or None
-        self['Container'] = Container or []
 
     @property
     def Name(self) -> 'str':
         return self['Name']
 
     @Name.setter
-    def Name(self, Name: 'str'):
+    def Name(self, Name: 'str') -> None:
         self['Name'] = Name
             
     @property
@@ -654,7 +488,7 @@ class GeneratedBy(Model):
         return self['Version']
 
     @Version.setter
-    def Version(self, Version: 'str'):
+    def Version(self, Version: 'str') -> None:
         self['Version'] = Version
             
     @property
@@ -662,7 +496,7 @@ class GeneratedBy(Model):
         return self['Description']
 
     @Description.setter
-    def Description(self, Description: 'str'):
+    def Description(self, Description: 'str') -> None:
         self['Description'] = Description
             
     @property
@@ -670,7 +504,7 @@ class GeneratedBy(Model):
         return self['CodeURL']
 
     @CodeURL.setter
-    def CodeURL(self, CodeURL: 'str'):
+    def CodeURL(self, CodeURL: 'str') -> None:
         self['CodeURL'] = CodeURL
             
     @property
@@ -678,31 +512,18 @@ class GeneratedBy(Model):
         return self['Container']
 
     @Container.setter
-    def Container(self, Container: 'List[GeneratedByContainer]'):
+    def Container(self, Container: 'List[GeneratedByContainer]') -> None:
         self['Container'] = Container
             
-    MEMBERS = {
-        'Name': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'Version': {'type': 'str', 'min': 0, 'max': 1, 'use': 'recommended', 'meta': {}},
-        'Description': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'CodeURL': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'Container': {'type': 'GeneratedByContainer', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {}},
-    }
-
 
 class SourceDatasets(Model):
-    def __init__(self, DOI: 'str' = None, URL: 'str' = None, Version: 'str' = None):
-        super(SourceDatasets, self).__init__()
-        self['DOI'] = DOI or None
-        self['URL'] = URL or None
-        self['Version'] = Version or None
 
     @property
     def DOI(self) -> 'str':
         return self['DOI']
 
     @DOI.setter
-    def DOI(self, DOI: 'str'):
+    def DOI(self, DOI: 'str') -> None:
         self['DOI'] = DOI
             
     @property
@@ -710,7 +531,7 @@ class SourceDatasets(Model):
         return self['URL']
 
     @URL.setter
-    def URL(self, URL: 'str'):
+    def URL(self, URL: 'str') -> None:
         self['URL'] = URL
             
     @property
@@ -718,29 +539,18 @@ class SourceDatasets(Model):
         return self['Version']
 
     @Version.setter
-    def Version(self, Version: 'str'):
+    def Version(self, Version: 'str') -> None:
         self['Version'] = Version
             
-    MEMBERS = {
-        'DOI': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'URL': {'type': 'str', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'Version': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
-
 
 class GeneratedByContainer(Model):
-    def __init__(self, Type: 'str' = None, Tag: 'str' = None, URI: 'str' = None):
-        super(GeneratedByContainer, self).__init__()
-        self['Type'] = Type or None
-        self['Tag'] = Tag or None
-        self['URI'] = URI or None
 
     @property
     def Type(self) -> 'str':
         return self['Type']
 
     @Type.setter
-    def Type(self, Type: 'str'):
+    def Type(self, Type: 'str') -> None:
         self['Type'] = Type
             
     @property
@@ -748,7 +558,7 @@ class GeneratedByContainer(Model):
         return self['Tag']
 
     @Tag.setter
-    def Tag(self, Tag: 'str'):
+    def Tag(self, Tag: 'str') -> None:
         self['Tag'] = Tag
             
     @property
@@ -756,40 +566,23 @@ class GeneratedByContainer(Model):
         return self['URI']
 
     @URI.setter
-    def URI(self, URI: 'str'):
+    def URI(self, URI: 'str') -> None:
         self['URI'] = URI
             
-    MEMBERS = {
-        'Type': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'Tag': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'URI': {'type': 'str', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
 
-
-class Dataset(Folder):
+class Dataset(DatasetOps, Folder):
     r"""The entry point of an in-memory graph representation of a BIDS dataset."""
-    def __init__(self, subjects: 'List[Subject]' = None, dataset_description: 'DatasetDescriptionFile' = None, README: 'File' = None, CHANGES: 'File' = None, LICENSE: 'File' = None, genetic_info: 'JsonFile' = None, samples: 'JsonFile' = None, participants_tsv: 'File' = None, participants_json: 'JsonFile' = None, code: 'Folder' = None, derivatives: 'Folder' = None, sourcedata: 'Folder' = None, stimuli: 'Folder' = None, name: 'str' = None, files: 'List[File]' = None, folders: 'List[Folder]' = None):
-        super(Dataset, self).__init__(name or None, files or [], folders or [])
-        self['subjects'] = subjects or []
-        self['dataset_description'] = dataset_description or None
-        self['README'] = README or None
-        self['CHANGES'] = CHANGES or None
-        self['LICENSE'] = LICENSE or None
-        self['genetic_info'] = genetic_info or None
-        self['samples'] = samples or None
-        self['participants_tsv'] = participants_tsv or None
-        self['participants_json'] = participants_json or None
-        self['code'] = code or None
-        self['derivatives'] = derivatives or None
-        self['sourcedata'] = sourcedata or None
-        self['stimuli'] = stimuli or None
+    base_dir_: Optional[str]
+    _versioned_schema: Optional['Schema']
 
+
+    @member('sub-.*')
     @property
     def subjects(self) -> 'List[Subject]':
         return self['subjects']
 
     @subjects.setter
-    def subjects(self, subjects: 'List[Subject]'):
+    def subjects(self, subjects: 'List[Subject]') -> None:
         self['subjects'] = subjects
             
     @property
@@ -797,7 +590,7 @@ class Dataset(Folder):
         return self['dataset_description']
 
     @dataset_description.setter
-    def dataset_description(self, dataset_description: 'DatasetDescriptionFile'):
+    def dataset_description(self, dataset_description: 'DatasetDescriptionFile') -> None:
         self['dataset_description'] = dataset_description
             
     @property
@@ -805,7 +598,7 @@ class Dataset(Folder):
         return self['README']
 
     @README.setter
-    def README(self, README: 'File'):
+    def README(self, README: 'File') -> None:
         self['README'] = README
             
     @property
@@ -813,7 +606,7 @@ class Dataset(Folder):
         return self['CHANGES']
 
     @CHANGES.setter
-    def CHANGES(self, CHANGES: 'File'):
+    def CHANGES(self, CHANGES: 'File') -> None:
         self['CHANGES'] = CHANGES
             
     @property
@@ -821,7 +614,7 @@ class Dataset(Folder):
         return self['LICENSE']
 
     @LICENSE.setter
-    def LICENSE(self, LICENSE: 'File'):
+    def LICENSE(self, LICENSE: 'File') -> None:
         self['LICENSE'] = LICENSE
             
     @property
@@ -829,7 +622,7 @@ class Dataset(Folder):
         return self['genetic_info']
 
     @genetic_info.setter
-    def genetic_info(self, genetic_info: 'JsonFile'):
+    def genetic_info(self, genetic_info: 'JsonFile') -> None:
         self['genetic_info'] = genetic_info
             
     @property
@@ -837,23 +630,25 @@ class Dataset(Folder):
         return self['samples']
 
     @samples.setter
-    def samples(self, samples: 'JsonFile'):
+    def samples(self, samples: 'JsonFile') -> None:
         self['samples'] = samples
             
+    @member('participants.tsv')
     @property
     def participants_tsv(self) -> 'File':
         return self['participants_tsv']
 
     @participants_tsv.setter
-    def participants_tsv(self, participants_tsv: 'File'):
+    def participants_tsv(self, participants_tsv: 'File') -> None:
         self['participants_tsv'] = participants_tsv
             
+    @member('participants.json')
     @property
     def participants_json(self) -> 'JsonFile':
         return self['participants_json']
 
     @participants_json.setter
-    def participants_json(self, participants_json: 'JsonFile'):
+    def participants_json(self, participants_json: 'JsonFile') -> None:
         self['participants_json'] = participants_json
             
     @property
@@ -861,7 +656,7 @@ class Dataset(Folder):
         return self['code']
 
     @code.setter
-    def code(self, code: 'Folder'):
+    def code(self, code: 'Folder') -> None:
         self['code'] = code
             
     @property
@@ -869,7 +664,7 @@ class Dataset(Folder):
         return self['derivatives']
 
     @derivatives.setter
-    def derivatives(self, derivatives: 'Folder'):
+    def derivatives(self, derivatives: 'Folder') -> None:
         self['derivatives'] = derivatives
             
     @property
@@ -877,7 +672,7 @@ class Dataset(Folder):
         return self['sourcedata']
 
     @sourcedata.setter
-    def sourcedata(self, sourcedata: 'Folder'):
+    def sourcedata(self, sourcedata: 'Folder') -> None:
         self['sourcedata'] = sourcedata
             
     @property
@@ -885,25 +680,9 @@ class Dataset(Folder):
         return self['stimuli']
 
     @stimuli.setter
-    def stimuli(self, stimuli: 'Folder'):
+    def stimuli(self, stimuli: 'Folder') -> None:
         self['stimuli'] = stimuli
             
-    MEMBERS = {
-        'subjects': {'type': 'Subject', 'min': 0, 'max': inf, 'use': 'optional', 'meta': {'name_pattern': 'sub-.*'}},
-        'dataset_description': {'type': 'DatasetDescriptionFile', 'min': 0, 'max': 1, 'use': 'required', 'meta': {}},
-        'README': {'type': 'File', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'CHANGES': {'type': 'File', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'LICENSE': {'type': 'File', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'genetic_info': {'type': 'JsonFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'samples': {'type': 'JsonFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'participants_tsv': {'type': 'File', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {'name_pattern': 'participants.tsv'}},
-        'participants_json': {'type': 'JsonFile', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {'name_pattern': 'participants.json'}},
-        'code': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'derivatives': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'sourcedata': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-        'stimuli': {'type': 'Folder', 'min': 0, 'max': 1, 'use': 'optional', 'meta': {}},
-    }
-
 
 class DatatypeEnum(Enum):
  pass
