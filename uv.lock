@@ -65,7 +65,6 @@ wheels = [
 
 [[package]]
 name = "ancpbids"
-version = "0.4.2"
 source = { editable = "." }
 
 [package.optional-dependencies]

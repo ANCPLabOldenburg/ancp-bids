@@ -21,5 +21,12 @@ jobs:
       env:
         UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
       run: |
+        echo "Building from tag/ref: ${GITHUB_REF_NAME}"
         uv build
+        ls -la dist/
+        # Refuse .dev / local versions (tag must match a clean release commit)
+        if ls dist/*.whl | grep -E '\.dev|[+]'; then
+          echo "Refusing to publish a non-release version. Tag a clean commit."
+          exit 1
+        fi
         uv publish

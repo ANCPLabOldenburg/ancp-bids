@@ -228,4 +228,7 @@ from importlib.metadata import PackageNotFoundError, version
 try:
     __version__ = version("ancpbids")
 except PackageNotFoundError:
-    __version__ = "0.0.0"
+    try:
+        from ._version import version as __version__
+    except ImportError:
+        __version__ = "0.0.0"

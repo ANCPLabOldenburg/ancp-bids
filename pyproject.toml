@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=77", "wheel"]
+requires = ["setuptools>=77", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ancpbids"
-version = "0.4.2"
+dynamic = ["version"]
 description = "Read/write/validate/query BIDS datasets"
 readme = "README.md"
 license = "MIT"
@@ -83,6 +83,11 @@ include = ["ancpbids*"]
 [tool.setuptools.package-data]
 ancpbids = ["schema/*.json", "schema/*.pyi", "py.typed"]
 
+[tool.setuptools_scm]
+version_file = "ancpbids/_version.py"
+local_scheme = "no-local-version"
+fallback_version = "0.0.0"
+
 [tool.ruff]
 line-length = 127
 target-version = "py38"
@@ -92,6 +97,7 @@ exclude = [
     "dist",
     ".git",
     "__pycache__",
+    "ancpbids/_version.py",
 ]
 
 [tool.ruff.lint]
