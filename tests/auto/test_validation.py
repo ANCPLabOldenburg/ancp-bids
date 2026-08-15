@@ -47,6 +47,68 @@ def test_validate_datatypes(lazy_loading):
     assert "Unsupported datatype folder 'sub-01/xyz'" in messages
 
 
+def test_directories_rule_missing_is_skipped(tmp_path):
+    """Schemas without rules.directories (e.g. 1.8.0) must not crash validation."""
+    import json
+    from ancpbids import validate_dataset
+
+    root = tmp_path / "ds"
+    root.mkdir()
+    (root / "dataset_description.json").write_text(json.dumps({
+        "Name": "NoDirectoriesRule",
+        "BIDSVersion": "1.8.0",
+        "DatasetType": "raw",
+    }))
+    sub = root / "sub-01" / "anat"
+    sub.mkdir(parents=True)
+    (sub / "sub-01_T1w.nii.gz").write_bytes(b"\0")
+
+    ds = load_dataset(str(root), DatasetOptions(lazy_loading=True, ignore_pickle_file=True))
+    assert ds.get_schema().VERSION == "1.8.0"
+    assert "directories" not in ds.get_schema().document.get("rules", {})
+
+    report = createSUT(str(root), SchemaDirectoriesPlugin, True)
+    assert isinstance(report, ValidationPlugin.ValidationReport)
+
+    # Full validate must also succeed without KeyError.
+    full = validate_dataset(ds)
+    assert isinstance(full, ValidationPlugin.ValidationReport)
+
+
+def test_validation_report_includes_issue_codes(tmp_path):
+    import json
+    from ancpbids import validate_dataset
+    from ancpbids.plugins.plugin_schema_validator import SchemaSidecarsPlugin
+
+    root = tmp_path / "ds"
+    root.mkdir()
+    (root / "dataset_description.json").write_text(json.dumps({
+        "Name": "CodeCheck",
+        "BIDSVersion": "1.10.1",
+        "DatasetType": "raw",
+    }))
+    func = root / "sub-01" / "func"
+    func.mkdir(parents=True)
+    (func / "sub-01_task-rest_bold.nii.gz").write_bytes(b"\0")
+    (func / "sub-01_task-rest_bold.json").write_text(json.dumps({
+        "RepetitionTime": 2.0,
+        "TaskName": "rest",
+    }))
+
+    report = createSUT(str(root), SchemaSidecarsPlugin, True)
+    assert report.messages
+    assert all('code' in m for m in report.messages)
+    assert 'SIDECAR_KEY_RECOMMENDED' in report.codes()
+    manufacturer = next(
+        m for m in report.messages
+        if m.get('code') == 'SIDECAR_KEY_RECOMMENDED' and m.get('sub_code') == 'Manufacturer'
+    )
+    assert manufacturer['severity'] == 'warn'
+
+    full = validate_dataset(load_dataset(str(root), DatasetOptions(lazy_loading=True)))
+    assert all('code' in m for m in full.messages)
+
+
 @pytest.mark.parametrize("lazy_loading", [True, False])
 def test_validation_entities(lazy_loading):
     report = createSUT(RESOURCES_FOLDER + "/ds005_entities_validation",

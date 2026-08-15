@@ -1,10 +1,15 @@
 """Execute ``schema.document`` rules against a dataset graph."""
 import os
+import re
 from collections import defaultdict
 
 from ancpbids.model_base import Artifact, DatatypeFolder, DerivativeFolder, Folder
 
-from .expr import evaluate
+from .expr import evaluate, evaluate_ast, parse
+
+
+_SUFFIX_EQ = re.compile(r"""(?:^|[\s(&|])suffix\s*==\s*['\"]([^'\"]+)['\"]""")
+_DATATYPE_EQ = re.compile(r"""(?:^|[\s(&|])datatype\s*==\s*['\"]([^'\"]+)['\"]""")
 
 
 def files(dataset, report):
@@ -93,6 +98,72 @@ class _FileIndex:
         return any(path.endswith(suffix) or path.endswith(item) for path in self.paths)
 
 
+class _BoundRule:
+    __slots__ = ('rule', 'selector_asts')
+
+    def __init__(self, rule):
+        self.rule = rule
+        selectors = rule.get('selectors') or ()
+        compiled = []
+        for expr in selectors:
+            try:
+                compiled.append(parse(expr))
+            except Exception:
+                # Keep the raw string; _safe_eval will handle/ignore failures.
+                compiled.append(expr)
+        self.selector_asts = tuple(compiled)
+
+
+class _IndexedRules:
+    """Bucket rules by simple suffix/datatype selector constraints."""
+
+    def __init__(self, rules):
+        self.wildcard = []
+        self.by_suffix = defaultdict(list)
+        self.by_datatype = defaultdict(list)
+        for rule in rules:
+            bound = _BoundRule(rule)
+            suffixes, datatypes = _selector_constraints(rule.get('selectors') or ())
+            if not suffixes and not datatypes:
+                self.wildcard.append(bound)
+                continue
+            for suffix in suffixes:
+                self.by_suffix[suffix].append(bound)
+            for datatype in datatypes:
+                self.by_datatype[datatype].append(bound)
+
+    def for_file(self, suffix, datatype):
+        seen = set()
+        result = []
+        for bound in self.wildcard:
+            seen.add(id(bound))
+            result.append(bound)
+        if suffix:
+            for bound in self.by_suffix.get(suffix, ()):
+                bid = id(bound)
+                if bid in seen:
+                    continue
+                seen.add(bid)
+                result.append(bound)
+        if datatype:
+            for bound in self.by_datatype.get(datatype, ()):
+                bid = id(bound)
+                if bid in seen:
+                    continue
+                seen.add(bid)
+                result.append(bound)
+        return result
+
+
+def _selector_constraints(selectors):
+    suffixes = set()
+    datatypes = set()
+    for expr in selectors:
+        suffixes.update(_SUFFIX_EQ.findall(expr))
+        datatypes.update(_DATATYPE_EQ.findall(expr))
+    return suffixes, datatypes
+
+
 class _ValidationSession:
     def __init__(self, dataset):
         self.dataset = dataset
@@ -118,13 +189,14 @@ class _ValidationSession:
         self.stem_rules = []
         self.required_core = []
         self._load_file_rules(self.document['rules']['files'])
-        self.sidecar_rules = list(_rule_leaves(self.document['rules'].get('sidecars')))
-        self.json_rules = list(_rule_leaves(self.document['rules'].get('json')))
-        self.tabular_rules = list(_rule_leaves(self.document['rules'].get('tabular_data')))
-        self.dataset_metadata_rules = list(
+        self.sidecar_rules = _IndexedRules(_rule_leaves(self.document['rules'].get('sidecars')))
+        self.json_rules = _IndexedRules(_rule_leaves(self.document['rules'].get('json')))
+        self.tabular_rules = _IndexedRules(_rule_leaves(self.document['rules'].get('tabular_data')))
+        self.dataset_metadata_rules = _IndexedRules(
             _rule_leaves(self.document['rules'].get('dataset_metadata')))
-        self.check_rules = list(_rule_leaves(self.document['rules'].get('checks')))
+        self.check_rules = _IndexedRules(_rule_leaves(self.document['rules'].get('checks')))
         self._contexts = {}
+        self._files = None
         self.dataset_ctx = self._build_dataset_context()
 
     def _load_file_rules(self, node):
@@ -169,24 +241,39 @@ class _ValidationSession:
         }
 
     def iter_files(self):
-        for file in self.dataset.select(self.schema.File).objects():
-            if not file.name.startswith('.'):
-                yield file
+        if self._files is None:
+            self._files = [
+                file for file in self.dataset.select(self.schema.File).objects()
+                if not file.name.startswith('.')
+            ]
+        return self._files
 
     def context(self, file, rich=False):
-        cache_key = (id(file), rich)
-        cached = self._contexts.get(cache_key)
-        if cached is not None:
-            return cached
-        ctx = _basic_context(file, self)
+        file_id = id(file)
         if rich:
-            ctx = dict(ctx)
+            cached = self._contexts.get((file_id, True))
+            if cached is not None:
+                return cached
+            ctx = dict(_basic_context(file, self))
             ctx['sidecar'] = _sidecar(file)
             ctx['json'] = _load_json(file)
             ctx['columns'] = _load_columns(file)
             ctx['associations'] = _associations(file, self, ctx)
             ctx['size'] = _file_size(file)
-        self._contexts[cache_key] = ctx
+            self._contexts[(file_id, True)] = ctx
+            # Rich context is a superset; reuse for plain consumers.
+            self._contexts[(file_id, False)] = ctx
+            return ctx
+
+        cached = self._contexts.get((file_id, False))
+        if cached is not None:
+            return cached
+        # Prefer already-built rich context when available.
+        cached = self._contexts.get((file_id, True))
+        if cached is not None:
+            return cached
+        ctx = _basic_context(file, self)
+        self._contexts[(file_id, False)] = ctx
         return ctx
 
 
@@ -382,7 +469,17 @@ def _association_context(file):
     return ctx
 
 
-def _selectors_match(selectors, context):
+def _selectors_match(selectors, context, compiled=None):
+    if compiled is not None:
+        if not compiled:
+            return True
+        for item in compiled:
+            if isinstance(item, str):
+                if _safe_eval(item, context) is not True:
+                    return False
+            elif _safe_eval_ast(item, context) is not True:
+                return False
+        return True
     if not selectors:
         return True
     for expr in selectors:
@@ -394,6 +491,13 @@ def _selectors_match(selectors, context):
 def _safe_eval(expression, context):
     try:
         return evaluate(expression, context)
+    except Exception:
+        return None
+
+
+def _safe_eval_ast(ast, context):
+    try:
+        return evaluate_ast(ast, context)
     except Exception:
         return None
 
@@ -417,7 +521,10 @@ def _validate_files(session, report):
         if any(_core_rule_covers(rule, file) for file in files):
             continue
         missing = rule.get('path') or rule.get('stem')
-        report.error("Missing required file '%s'" % missing, session.dataset)
+        report.error(
+            "Missing required file '%s'" % missing,
+            session.dataset,
+            code='MISSING_REQUIRED_FILE')
 
 
 def _matches_any_suffix_rule(artifact, session):
@@ -508,7 +615,10 @@ def _validate_entities(session, report):
             rel = _relpath(artifact)
             for key in unknown:
                 report.error(
-                    "Invalid entity '%s' in artifact '%s'" % (key, rel), artifact)
+                    "Invalid entity '%s' in artifact '%s'" % (key, rel),
+                    artifact,
+                    code='ENTITY_NOT_IN_RULE',
+                    sub_code=key)
             continue
         if not _entity_order_error(keys, session.ordered_short):
             continue
@@ -516,7 +626,8 @@ def _validate_entities(session, report):
         report.error(
             "Invalid entities order: expected=%s, found=%s, artifact=%s" % (
                 expected, tuple(keys), _relpath(artifact)),
-            artifact)
+            artifact,
+            code='FILENAME_MISMATCH')
 
 
 def _entity_order_error(keys, ordered_short):
@@ -529,17 +640,27 @@ def _entity_order_error(keys, ordered_short):
 # --- rules.directories --------------------------------------------------------
 
 def _validate_directories(session, report):
-    trees = session.document['rules']['directories']
+    # Older schema versions (e.g. 1.8/1.9) omit rules.directories entirely.
+    trees = session.document.get('rules', {}).get('directories') or {}
+    if not trees:
+        return
     dtype = session.dataset_description.get('DatasetType') or 'raw'
     if dtype in ('derivative', 'derivatives'):
-        _check_tree(session.dataset, trees['derivative'], report, session)
+        deriv_tree = trees.get('derivative')
+        if deriv_tree:
+            _check_tree(session.dataset, deriv_tree, report, session)
         return
-    _check_tree(session.dataset, trees['raw'], report, session)
+    raw_tree = trees.get('raw')
+    if raw_tree:
+        _check_tree(session.dataset, raw_tree, report, session)
     deriv_root = session.dataset.derivatives
     if not deriv_root:
         return
+    deriv_tree = trees.get('derivative')
+    if not deriv_tree:
+        return
     for child in deriv_root.folders or []:
-        _check_tree(child, trees['derivative'], report, session)
+        _check_tree(child, deriv_tree, report, session)
 
 
 def _check_tree(folder, tree, report, session):
@@ -566,9 +687,15 @@ def _check_children(folder, tree, allowed_keys, report, session):
         if has_datatype and child.name in session.datatypes:
             continue
         if has_datatype:
-            report.error("Unsupported datatype folder '%s'" % _relpath(child), child)
+            report.error(
+                "Unsupported datatype folder '%s'" % _relpath(child),
+                child,
+                code='DATATYPE_MISMATCH')
             continue
-        report.error("Unsupported folder '%s'" % _relpath(child), child)
+        report.error(
+            "Unsupported folder '%s'" % _relpath(child),
+            child,
+            code='INVALID_LOCATION')
 
 
 def _classify_allowed(tree, allowed_keys):
@@ -623,44 +750,57 @@ def _child_folders(folder):
 # --- field rules (sidecars / json / dataset_metadata) -------------------------
 
 def _validate_fields(session, report, section, data_key):
-    rules = {
+    index = {
         'sidecars': session.sidecar_rules,
         'json': session.json_rules,
         'dataset_metadata': session.dataset_metadata_rules,
     }[section]
+    key_type = 'SIDECAR_KEY' if section == 'sidecars' else 'JSON_KEY'
     objects = session.metadata_objects
     for file in session.iter_files():
         ctx = session.context(file, rich=True)
         data = ctx.get(data_key) or {}
-        for rule in rules:
-            if not _selectors_match(rule.get('selectors'), ctx):
+        for bound in index.for_file(ctx.get('suffix'), ctx.get('datatype')):
+            if not _selectors_match(None, ctx, compiled=bound.selector_asts):
                 continue
-            _apply_fields(rule.get('fields') or {}, data, objects, report, file)
+            _apply_fields(bound.rule.get('fields') or {}, data, objects, report, file, key_type)
 
 
-def _apply_fields(fields, data, objects, report, file):
+def _apply_fields(fields, data, objects, report, file, key_type='JSON_KEY'):
     for name, spec in fields.items():
         level, issue = _field_spec(spec)
         present = isinstance(data, dict) and name in data and data[name] is not None
         if not present:
-            _missing_field(level, issue, name, report, file)
+            _missing_field(level, issue, name, report, file, key_type=key_type)
             continue
         if level == 'deprecated':
-            report.warn("Deprecated metadata '%s' in '%s'" % (name, _relpath(file)), file)
+            report.warn(
+                "Deprecated metadata '%s' in '%s'" % (name, _relpath(file)),
+                file,
+                code='SIDECAR_KEY_DEPRECATED' if key_type == 'SIDECAR_KEY' else 'JSON_KEY_DEPRECATED',
+                sub_code=name)
         definition = objects.get(name) or {}
         if _value_matches(data[name], definition):
             continue
         report.error(
             "Invalid type for '%s' in '%s'" % (name, _relpath(file)),
             file,
-            code='JSON_SCHEMA_VALIDATION_ERROR')
+            code='JSON_SCHEMA_VALIDATION_ERROR',
+            sub_code=name)
 
 
-def _missing_field(level, issue, name, report, file):
+def _missing_field(level, issue, name, report, file, key_type='JSON_KEY'):
     if level not in ('required', 'recommended'):
         return
     fallback = "Missing %s metadata '%s'" % (level, name)
-    _emit_issue(report, issue, file, fallback, default_level=level)
+    _emit_issue(
+        report,
+        issue,
+        file,
+        fallback,
+        default_level=level,
+        default_code=_field_level_code(key_type, level),
+        sub_code=name)
 
 
 # --- rules.tabular_data -------------------------------------------------------
@@ -673,10 +813,10 @@ def _validate_tabular(session, report):
         columns = ctx.get('columns')
         if columns is None:
             continue
-        for rule in session.tabular_rules:
-            if not _selectors_match(rule.get('selectors'), ctx):
+        for bound in session.tabular_rules.for_file(ctx.get('suffix'), ctx.get('datatype')):
+            if not _selectors_match(None, ctx, compiled=bound.selector_asts):
                 continue
-            _apply_tabular_rule(rule, columns, session, report, file)
+            _apply_tabular_rule(bound.rule, columns, session, report, file)
 
 
 def _apply_tabular_rule(rule, columns, session, report, file):
@@ -688,13 +828,14 @@ def _apply_tabular_rule(rule, columns, session, report, file):
         level, issue = _field_spec(spec)
         if header in columns:
             continue
-        _missing_field(level, issue, header, report, file)
+        _missing_field(level, issue, header, report, file, key_type='TSV_COLUMN')
     extras = [header for header in headers if header not in allowed]
     additional = rule.get('additional_columns')
     if additional == 'not_allowed' and extras:
         report.error(
             "Additional columns not allowed in '%s': %s" % (_relpath(file), extras),
-            file)
+            file,
+            code='TSV_ADDITIONAL_COLUMNS_NOT_ALLOWED')
     initial = rule.get('initial_columns') or []
     initial_headers = [
         (session.column_objects.get(key) or {}).get('name', key) for key in initial
@@ -703,12 +844,17 @@ def _apply_tabular_rule(rule, columns, session, report, file):
         report.error(
             "Invalid initial columns in '%s': expected=%s, found=%s" % (
                 _relpath(file), initial_headers, headers[:len(initial_headers)]),
-            file)
+            file,
+            code='TSV_COLUMN_ORDER_INCORRECT')
     for key in rule.get('index_columns') or []:
         header = (session.column_objects.get(key) or {}).get('name', key)
         values = columns.get(header) or []
         if len(values) != len(set(values)):
-            report.error("Duplicate index column '%s' in '%s'" % (header, _relpath(file)), file)
+            report.error(
+                "Duplicate index column '%s' in '%s'" % (header, _relpath(file)),
+                file,
+                code='TSV_INDEX_VALUE_NOT_UNIQUE',
+                sub_code=header)
 
 
 # --- rules.checks -------------------------------------------------------------
@@ -716,12 +862,18 @@ def _apply_tabular_rule(rule, columns, session, report, file):
 def _validate_checks(session, report):
     for file in session.iter_files():
         ctx = session.context(file, rich=True)
-        for rule in session.check_rules:
-            if not _selectors_match(rule.get('selectors'), ctx):
+        for bound in session.check_rules.for_file(ctx.get('suffix'), ctx.get('datatype')):
+            if not _selectors_match(None, ctx, compiled=bound.selector_asts):
                 continue
+            rule = bound.rule
             if _checks_pass(rule.get('checks') or [], ctx):
                 continue
-            _emit_issue(report, rule.get('issue') or {}, file, 'Schema check failed')
+            _emit_issue(
+                report,
+                rule.get('issue') or {},
+                file,
+                'Schema check failed',
+                default_code='CHECK_ERROR')
 
 
 def _checks_pass(checks, ctx):
@@ -745,20 +897,30 @@ def _entity_spec(spec):
     return spec, None
 
 
-def _emit_issue(report, issue, file, fallback, default_level='error'):
+def _field_level_code(key_type, level):
+    if key_type == 'TSV_COLUMN':
+        return 'TSV_COLUMN_MISSING'
+    if level == 'required':
+        return '%s_REQUIRED' % key_type
+    if level == 'recommended':
+        return '%s_RECOMMENDED' % key_type
+    return None
+
+
+def _emit_issue(report, issue, file, fallback, default_level='error', default_code=None, sub_code=None):
     issue = issue or {}
     if not isinstance(issue, dict):
         issue = {}
-    code = issue.get('code')
+    code = issue.get('code') or default_code
     level = issue.get('level') or default_level
     message = (issue.get('message') or fallback).strip()
     rel = _relpath(file) if file is not None else ''
     if rel:
         message = '%s [%s]' % (message, rel)
     if level in ('warning', 'warn', 'recommended'):
-        report.warn(message, file, code=code)
+        report.warn(message, file, code=code, sub_code=sub_code)
         return
-    report.error(message, file, code=code)
+    report.error(message, file, code=code, sub_code=sub_code)
 
 
 def _value_matches(value, definition):

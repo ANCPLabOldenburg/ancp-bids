@@ -3,6 +3,7 @@
 Oracle: ``meta.expression_tests`` in the vendored schema JSON.
 """
 import re
+from functools import lru_cache
 
 
 _TOKEN = re.compile(
@@ -165,10 +166,22 @@ _LITERALS = {
 }
 
 
+@lru_cache(maxsize=8192)
+def parse(expression):
+    """Parse a schema expression into an AST (cached by expression string)."""
+    return _Parser(_tokenize(expression)).parse()
+
+
 def evaluate(expression, context=None):
     if context is None:
         context = {'sidecar': {}}
-    return _eval(_Parser(_tokenize(expression)).parse(), context)
+    return _eval(parse(expression), context)
+
+
+def evaluate_ast(ast, context=None):
+    if context is None:
+        context = {'sidecar': {}}
+    return _eval(ast, context)
 
 
 def _eval(node, ctx):

@@ -79,7 +79,7 @@ class ValidationPlugin(Plugin):
         def __init__(self):
             self.messages = []
 
-        def error(self, message, offender=None, code=None):
+        def error(self, message, offender=None, code=None, sub_code=None):
             """Adds a new error message to the report.
 
             Parameters
@@ -89,12 +89,14 @@ class ValidationPlugin(Plugin):
             offender:
                 the graph node that triggered the message
             code:
-                optional schema issue code (for example ``NOT_INCLUDED``)
+                optional schema/validator issue code (for example ``NOT_INCLUDED``)
+            sub_code:
+                optional finer-grained code (for example a missing metadata key name)
 
             """
-            self.messages.append(_message('error', message, offender, code))
+            self.messages.append(_message('error', message, offender, code, sub_code))
 
-        def warn(self, message, offender=None, code=None):
+        def warn(self, message, offender=None, code=None, sub_code=None):
             """Adds a new warning message to the report.
 
             Parameters
@@ -104,10 +106,12 @@ class ValidationPlugin(Plugin):
             offender:
                 the graph node that triggered the message
             code:
-                optional schema issue code
+                optional schema/validator issue code
+            sub_code:
+                optional finer-grained code (for example a missing metadata key name)
 
             """
-            self.messages.append(_message('warn', message, offender, code))
+            self.messages.append(_message('warn', message, offender, code, sub_code))
 
         def has_errors(self):
             """
@@ -121,18 +125,26 @@ class ValidationPlugin(Plugin):
         def get_errors(self):
             return list(filter(lambda m: m['severity'] == 'error', self.messages))
 
+        def get_warnings(self):
+            return list(filter(lambda m: m['severity'] == 'warn', self.messages))
+
+        def codes(self):
+            """Return the distinct issue codes present in this report (excluding ``None``)."""
+            return sorted({m['code'] for m in self.messages if m.get('code')})
+
     def execute(self, dataset, report: ValidationReport):
         raise NotImplementedError()
 
 
-def _message(severity, message, offender, code):
+def _message(severity, message, offender, code, sub_code=None):
     entry = {
         'severity': severity,
         'offender': offender,
         'message': message,
+        'code': code,
     }
-    if code:
-        entry['code'] = code
+    if sub_code is not None:
+        entry['sub_code'] = sub_code
     return entry
 
 
