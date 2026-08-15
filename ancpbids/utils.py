@@ -194,7 +194,8 @@ def fetch_dataset(dataset_id: str, output_dir='~/.ancp-bids/datasets'):
         return output_path
 
     url = f'https://github.com/ANCPLabOldenburg/ancp-bids-dataset/raw/main/{download_file}'
-    import urllib.request, zipfile
+    import urllib.request
+    import zipfile
     with urllib.request.urlopen(url) as dl_file:
         with open(download_path, 'wb') as out_file:
             out_file.write(dl_file.read())

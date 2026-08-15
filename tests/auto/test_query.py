@@ -2,7 +2,7 @@
 
 import os
 import ancpbids
-from ancpbids import select, re, any_of, all_of, eq, op, entity
+from ancpbids import all_of, eq, entity
 from ..base_test_case import ENTITIES_DIR, DS005_DIR, SYNTHETIC_DIR
 
 import pytest

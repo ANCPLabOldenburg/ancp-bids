@@ -22,7 +22,7 @@ PLUGIN_ENTRY_POINT_GROUP = "ancpbids.plugins"
 #   to_df = "lab_bids_extensions.pandas_export:DataFrameMixin"
 MIXIN_ENTRY_POINT_GROUP = "ancpbids.mixins"
 
-_PLUGIN_META = "__ancpbids_plugin__"
+_HOOK_META = "__ancpbids_hook__"
 _MIXIN_META = "__ancpbids_mixin__"
 
 TargetRef = Union[type, str]
@@ -152,8 +152,8 @@ def is_valid_plugin(plugin_class):
     return issubclass(plugin_class, plugin_types) and plugin_class not in plugin_types
 
 
-def plugin(ranking: int = 1000, *, register: bool = True, **props):
-    """Class decorator that attaches plugin metadata and optionally registers the class.
+def hook(ranking: int = 1000, *, register: bool = True, **props):
+    """Class decorator that attaches hook metadata and optionally registers the class.
 
     Parameters
     ----------
@@ -168,7 +168,7 @@ def plugin(ranking: int = 1000, *, register: bool = True, **props):
     -------
     .. code-block:: python
 
-        @plugin(ranking=1000)
+        @hook(ranking=1000)
         class SiteRulesPlugin(ValidationPlugin):
             def execute(self, dataset, report):
                 ...
@@ -177,7 +177,7 @@ def plugin(ranking: int = 1000, *, register: bool = True, **props):
     def decorator(cls):
         if not is_valid_plugin(cls):
             raise ValueError('Invalid plugin class: %s' % cls.__name__)
-        setattr(cls, _PLUGIN_META, {'ranking': ranking, 'props': props})
+        setattr(cls, _HOOK_META, {'ranking': ranking, 'props': props})
         if register:
             register_plugin(cls, ranking=ranking, **props)
         return cls
@@ -223,8 +223,8 @@ def mixin(*, target: TargetRef, ranking: int = 1000, apply: bool = True, **props
     return decorator
 
 
-def get_plugin_meta(plugin_class) -> Optional[dict]:
-    return getattr(plugin_class, _PLUGIN_META, None)
+def get_hook_meta(hook_class) -> Optional[dict]:
+    return getattr(hook_class, _HOOK_META, None)
 
 
 def get_mixin_meta(mixin_class) -> Optional[dict]:
@@ -309,7 +309,7 @@ def load_plugins_by_package(ns_pkg, ranking: int = 1000, **props):
     """Loads all valid plugin classes by the provided package.
 
     .. deprecated::
-        Prefer ``@plugin`` plus the ``ancpbids.plugins`` entry-point group
+        Prefer ``@hook`` plus the ``ancpbids.plugins`` entry-point group
         (see ``load_plugins_from_entrypoints``). Package scanning remains for
         transitional use and will be removed in a future release.
 
@@ -327,7 +327,7 @@ def load_plugins_by_package(ns_pkg, ranking: int = 1000, **props):
         a list of plugin classes or empty if no valid plugin classes found
     """
     warnings.warn(
-        'load_plugins_by_package is deprecated; use @plugin and the '
+        'load_plugins_by_package is deprecated; use @hook and the '
         'ancpbids.plugins entry-point group (load_plugins_from_entrypoints) instead',
         DeprecationWarning,
         stacklevel=2,
@@ -357,7 +357,7 @@ def load_plugins_from_entrypoints(group: str = PLUGIN_ENTRY_POINT_GROUP, ranking
         [project.entry-points."ancpbids.plugins"]
         site_rules = "lab_bids_extensions.validation:SiteRulesPlugin"
 
-    Prefer decorating the class with ``@plugin(ranking=...)`` so ranking/props
+    Prefer decorating the class with ``@hook(ranking=...)`` so ranking/props
     travel with the class. Undecorated entry points use the ``ranking``/``props``
     arguments of this loader.
 
@@ -366,13 +366,13 @@ def load_plugins_from_entrypoints(group: str = PLUGIN_ENTRY_POINT_GROUP, ranking
     group:
         the entry-point group to scan (default: ``ancpbids.plugins``)
     ranking:
-        fallback ranking when the class has no ``@plugin`` metadata
+        fallback ranking when the class has no ``@hook`` metadata
     props
-        fallback properties merged under any ``@plugin`` props
+        fallback properties merged under any ``@hook`` props
     """
     for ep in _iter_entry_points(group):
         cls = ep.load()
-        meta = get_plugin_meta(cls)
+        meta = get_hook_meta(cls)
         if meta:
             register_plugin(cls, ranking=meta['ranking'], **{**props, **meta.get('props', {})})
         else:
@@ -401,7 +401,7 @@ def register_plugin(plugin_class, ranking: int = 1000, **props):
     if any(entry['plugin_class'] is plugin_class for entry in __PLUGINS__):
         return
 
-    meta = get_plugin_meta(plugin_class)
+    meta = get_hook_meta(plugin_class)
     if meta:
         ranking = meta['ranking']
         props = {**meta.get('props', {}), **props}

@@ -1,7 +1,6 @@
 import math
-from typing import Union
 
-from torch.utils.data import Dataset, random_split, DataLoader
+from torch.utils.data import Dataset, random_split
 import ancpbids
 
 

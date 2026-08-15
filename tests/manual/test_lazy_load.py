@@ -2,27 +2,17 @@
 
 import time
 import sys
-from unittest.mock import patch, MagicMock
-import os
-import time
+from unittest.mock import patch
 
-import numpy as np
-import pandas as pd
-import shutil
-import tempfile
 
-from numpy.testing import tempdir
 
-import ancpbids
-from ancpbids import model_latest, re
 from ..base_test_case import DS005_DIR
 from ancpbids import DatasetOptions
-from ancpbids import load_dataset, DatasetOptions
+from ancpbids import load_dataset
 
 
 
 
-import pytest
 
 def test_lazy_loading_prevents_immediate_loading():
     """Test that lazy loading prevents immediate content loading using mocking."""

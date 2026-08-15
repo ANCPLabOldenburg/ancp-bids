@@ -46,7 +46,7 @@
 	The in-memory graph is hand-maintained in `ancpbids/model_base.py`. Versioned enums are loaded at runtime from official BIDS `schema.json` files vendored in `ancpbids/schema/`.
 
 - **Plugin System:**  
-	The plugin mechanism (see `ancpbids/plugin.py`) allows for dynamic extension of core functionality. Plugins can hook into schema modification, dataset processing, file handling, writing, and validation. Graph methods (`query`, `get_schema`, …) live on the model classes; `SchemaPlugin` remains an extension point.
+	The extension mechanism (see `ancpbids/plugin.py`) allows for dynamic extension of core functionality. Plugins can hook into schema modification, dataset processing, file handling, writing, and validation. Graph methods (`query`, `get_schema`, …) live on the model classes; `SchemaPlugin` remains an extension point.
 
 - **Query Engine:**  
 	The query logic is implemented in `ancpbids/query.py`, providing flexible access to dataset contents and metadata.
@@ -68,18 +68,19 @@ Extensibility comes in two shapes:
 - **Mixins** — add methods to a host class such as `BIDSLayout` via `@mixin(target=...)`.
 
 Built-in plugins/mixins are registered the same way: decorated with
-`@plugin(ranking=0, system=True)` / `@mixin(...)` and listed under
+`@hook(ranking=0, system=True)` / `@mixin(...)` and listed under
 `ancpbids.plugins` / `ancpbids.mixins` in this project's `pyproject.toml`.
-Third-party packages add their own entries to those groups.
+Third-party packages add their own entries to those groups. Hooks are
+lifecycle contributors (`execute`); mixins add methods to host classes.
 
 ### Registering an external plugin
 
 1. Decorate a plugin subclass:
 
 	```python
-	from ancpbids.plugin import ValidationPlugin, plugin
+	from ancpbids.plugin import ValidationPlugin, hook
 
-	@plugin(ranking=1000)
+	@hook(ranking=1000)
 	class SiteRulesPlugin(ValidationPlugin):
 	    def execute(self, dataset, report: ValidationPlugin.ValidationReport):
 	        pass

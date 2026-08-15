@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ancpbids"
-dynamic = ["version"]
+version = "0.4.2"
 description = "Read/write/validate/query BIDS datasets"
 readme = "README.md"
 license = "MIT"
@@ -47,7 +47,7 @@ Documentation = "https://ancpbids.readthedocs.io"
 Repository = "https://github.com/ANCPLabOldenburg/ancp-bids"
 Issues = "https://github.com/ANCPLabOldenburg/ancp-bids/issues"
 
-# Built-in and third-party plugins share this group. Prefer @plugin(ranking=...) on
+# Built-in and third-party plugins share this group. Prefer @hook(ranking=...) on
 # each class. Loaded at import via load_plugins_from_entrypoints().
 [project.entry-points."ancpbids.plugins"]
 dataset_population = "ancpbids.plugins.plugin_dsloader:DatasetPopulationPlugin"
@@ -70,7 +70,7 @@ to_df = "ancpbids.mixins.mixin_dataframe:DataFrameMixin"
 dev = [
     "pytest",
     "pytest-cov",
-    "flake8",
+    "ruff",
     "pandas",
 ]
 
@@ -82,6 +82,46 @@ include = ["ancpbids*"]
 
 [tool.setuptools.package-data]
 ancpbids = ["schema/*.json", "schema/*.pyi", "py.typed"]
+
+[tool.ruff]
+line-length = 127
+target-version = "py38"
+exclude = [
+    ".venv",
+    "build",
+    "dist",
+    ".git",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "C90", # mccabe complexity
+]
+ignore = [
+    "E501", # long lines (docstrings / test data); line-length still guides formatter
+    "E731", # lambda assignments in query filters
+    "E721", # type(...) is type comparisons
+    "E722", # bare except in file handlers
+    "C901", # complexity debt (e.g. query)
+    "F403", # star imports
+    "F405", # names from star imports
+]
+
+[tool.ruff.lint.per-file-ignores]
+"ancpbids/__init__.py" = [
+    "E402", # deferred public re-exports
+    "F401", # public API re-exports
+]
+"tests/**" = [
+    "F841", # unused locals in manual / exploratory tests
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 [tool.uv]
 default-groups = ["dev"]

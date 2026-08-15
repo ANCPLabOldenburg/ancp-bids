@@ -5,11 +5,11 @@ import re
 
 from .plugin_files_handlers import read_plain_text
 from .. import utils
-from ..plugin import DatasetPlugin, plugin
+from ..plugin import DatasetPlugin, hook
 from ..model_base import *
 
 
-@plugin(ranking=0, system=True)
+@hook(ranking=0, system=True)
 class DatasetPopulationPlugin(DatasetPlugin):
 
     def execute(self, dataset, schema):

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ancpbids.plugin import FileHandlerPlugin, plugin
+from ancpbids.plugin import FileHandlerPlugin, hook
 
 
 def read_yaml(file_path: str, **kwargs):
@@ -75,7 +75,7 @@ def write_txt(file_path: str, contents: dict, **kwargs):
         fp.write(str(contents))
 
 
-@plugin(ranking=0, system=True)
+@hook(ranking=0, system=True)
 class FilesHandlerPlugin(FileHandlerPlugin):
     def execute(self, file_readers_registry, file_writers_registry):
         file_readers_registry['yaml'] = read_yaml

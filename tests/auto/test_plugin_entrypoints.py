@@ -3,17 +3,15 @@ from unittest.mock import patch
 import warnings
 
 from ancpbids.plugin import (
-    MIXIN_ENTRY_POINT_GROUP,
-    PLUGIN_ENTRY_POINT_GROUP,
     ValidationPlugin,
     __MIXINS__,
     __PLUGINS__,
     get_mixin_meta,
-    get_plugin_meta,
+    get_hook_meta,
     load_mixins_from_entrypoints,
     load_plugins_from_entrypoints,
     mixin,
-    plugin,
+    hook,
     register_plugin,
 )
 from ancpbids.plugins.plugin_dsloader import DatasetPopulationPlugin
@@ -40,19 +38,19 @@ def test_builtin_plugins_registered_via_entrypoints():
     assert len(dataset_entries) == 1
     assert dataset_entries[0]["ranking"] == 0
     assert dataset_entries[0]["props"].get("system") is True
-    assert get_plugin_meta(DatasetPopulationPlugin)["ranking"] == 0
+    assert get_hook_meta(DatasetPopulationPlugin)["ranking"] == 0
 
 
-def test_plugin_decorator_registers_with_ranking():
+def test_hook_decorator_registers_with_ranking():
     snapshot = list(__PLUGINS__)
 
     try:
-        @plugin(ranking=42, register=True)
+        @hook(ranking=42, register=True)
         class RankedPlugin(ValidationPlugin):
             def execute(self, dataset, report):
                 pass
 
-        meta = get_plugin_meta(RankedPlugin)
+        meta = get_hook_meta(RankedPlugin)
         assert meta["ranking"] == 42
         entry = next(e for e in __PLUGINS__ if e["plugin_class"] is RankedPlugin)
         assert entry["ranking"] == 42
@@ -67,7 +65,7 @@ def test_load_plugins_from_entrypoints_uses_decorator_ranking():
     snapshot = list(__PLUGINS__)
 
     try:
-        @plugin(ranking=7, register=False)
+        @hook(ranking=7, register=False)
         class DecoratedEntrypointPlugin(ValidationPlugin):
             def execute(self, dataset, report):
                 pass

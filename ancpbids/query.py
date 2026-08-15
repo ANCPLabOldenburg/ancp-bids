@@ -1,7 +1,5 @@
-import os
 import re
 import sys
-from collections import OrderedDict
 from fnmatch import fnmatch
 from typing import Union, List
 

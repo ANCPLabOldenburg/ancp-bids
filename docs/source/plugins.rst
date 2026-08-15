@@ -1,8 +1,9 @@
 Plugins and mixins
 ==================
 
-ancpBIDS can be extended with **plugins** (lifecycle hooks) and **mixins**
-(extra methods on host classes such as ``BIDSLayout``).
+ancpBIDS's plugin mechanism has two contribution kinds: **hooks** (lifecycle
+plugins with an ``execute`` method, registered via ``@hook``) and **mixins**
+(extra methods on host classes such as ``BIDSLayout``, via ``@mixin``).
 
 Plugin types
 ------------
@@ -14,7 +15,7 @@ Plugin types
 * ``ValidationPlugin`` — add custom validation rules
 
 Built-in plugins are declared in ancpBIDS' own ``pyproject.toml`` under
-``ancpbids.plugins`` (with ``@plugin(ranking=0, system=True)``) and loaded the
+``ancpbids.plugins`` (with ``@hook(ranking=0, system=True)``) and loaded the
 same way as third-party plugins. Additional plugins use the same entry-point
 group or ``register_plugin``.
 
@@ -25,15 +26,15 @@ Use this path when you publish a **separate** installable package that depends
 on ``ancpbids``. You declare contributions in **your** package's
 ``pyproject.toml``; you do not change ancpBIDS itself.
 
-1. Subclass a plugin base class and decorate it with ``@plugin`` (ranking is
+1. Subclass a plugin base class and decorate it with ``@hook`` (ranking is
    metadata on the class):
 
    .. code-block:: python
 
       # lab_bids_extensions/validation.py
-      from ancpbids.plugin import ValidationPlugin, plugin
+      from ancpbids.plugin import ValidationPlugin, hook
 
-      @plugin(ranking=1000)
+      @hook(ranking=1000)
       class SiteRulesPlugin(ValidationPlugin):
           def execute(self, dataset, report: ValidationPlugin.ValidationReport):
               # add errors/warnings via report.error(...) / report.warn(...)
@@ -59,7 +60,7 @@ on ``ancpbids``. You declare contributions in **your** package's
 3. Install your package into the same environment as ancpBIDS.
 
 4. Importing ``ancpbids`` loads entry-point plugins via
-   ``load_plugins_from_entrypoints()``. Ranking from ``@plugin`` is respected.
+   ``load_plugins_from_entrypoints()``. Ranking from ``@hook`` is respected.
 
 Registering an external mixin
 -----------------------------

@@ -4,7 +4,7 @@ import time
 import numpy as np
 import pandas as pd
 import ancpbids
-from ancpbids import model_latest, re
+from ancpbids import re
 from ..base_test_case import DS005_DIR
 import shutil
 import tempfile

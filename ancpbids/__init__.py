@@ -8,7 +8,7 @@ from ancpbids import utils
 
 from .plugin import get_plugins, load_plugins_from_entrypoints, \
     load_mixins_from_entrypoints, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin, \
-    FileHandlerPlugin, plugin, mixin
+    FileHandlerPlugin, hook, mixin
 from .query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
     EntityExpr
 from .model_base import Dataset
@@ -25,14 +25,14 @@ class DatasetOptions(dict):
     infer_artifact_datatype: bool = False
     """If True, will determine the datatype an Artifact is contained in, either directly or within a sub-directory.
         For example, given the path "sub-02/func/sub-02_task-mixedgamblestask_run-01_bold.nii.gz", the datatype will be "func".
-        
+
         By default, this option is set to False as it may have a negative performance impact.
     """
 
     ignore: Union[bool, List[str]] = False
     """If a .bidsignore file is available at the root, all resources (files/folders) matching the filters
         in that file will not be added to the in-memory graph. Alternatively, a list of fnmatch patterns can be provided.
-        
+
         By default, this option is set to False as it may have a negative performance impact."""
 
     lazy_loading: bool = True
@@ -223,6 +223,9 @@ re = ReExpr
 op = CustomOpExpr
 entity = EntityExpr
 
-from . import _version
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = _version.get_versions()['version']
+try:
+    __version__ = version("ancpbids")
+except PackageNotFoundError:
+    __version__ = "0.0.0"

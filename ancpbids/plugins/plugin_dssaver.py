@@ -2,10 +2,10 @@ import inspect
 import os
 
 import ancpbids
-from ancpbids.plugin import WritingPlugin, plugin
+from ancpbids.plugin import WritingPlugin, hook
 
 
-@plugin(ranking=0, system=True)
+@hook(ranking=0, system=True)
 class DatasetWritingPlugin(WritingPlugin):
     def execute(self, ds, target_dir: str, context_folder=None, src_dir: str = None):
         if context_folder is None and os.path.exists(target_dir) and len(os.listdir(target_dir)) > 0:
