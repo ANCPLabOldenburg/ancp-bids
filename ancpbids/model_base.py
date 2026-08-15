@@ -1,6 +1,7 @@
 """In-memory BIDS graph types. Hand-maintained; not generated from YAML."""
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, get_origin
+from functools import lru_cache
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, get_origin
 
 from .model_ops import ArtifactOps, DatasetOps, FileOps, FolderOps, LazyContents, ModelOps
 
@@ -18,8 +19,10 @@ def member(pattern):
     return deco
 
 
-def _property_defaults(cls):
-    defaults = {}
+@lru_cache(maxsize=None)
+def _property_fields(cls) -> Tuple[Tuple[str, bool], ...]:
+    """Cached (name, is_list) fields for Model subclasses. Fresh list defaults are created per instance."""
+    fields = []
     seen_model = False
     for klass in reversed(cls.__mro__):
         if klass is Model:
@@ -31,8 +34,13 @@ def _property_defaults(cls):
             if not isinstance(value, property) or not value.fget or name.startswith('_'):
                 continue
             annotation = value.fget.__annotations__.get('return')
-            defaults[name] = [] if _is_list_type(annotation) else None
-    return defaults
+            fields.append((name, _is_list_type(annotation)))
+    return tuple(fields)
+
+
+def _property_defaults(cls):
+    """Compatibility helper: mapping of property name -> default value (new list per call)."""
+    return {name: ([] if is_list else None) for name, is_list in _property_fields(cls)}
 
 
 def _is_list_type(annotation):
@@ -47,8 +55,13 @@ class Model(ModelOps, dict):
     parent_object_: Optional['Model']
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        defaults = _property_defaults(type(self))
-        names = list(defaults)
+        fields = _property_fields(type(self))
+        if not args and not kwargs:
+            for name, is_list in fields:
+                self[name] = [] if is_list else None
+            return
+
+        names = [name for name, _ in fields]
         if len(args) > len(names):
             raise TypeError(
                 '%s() takes %d positional arguments but %d were given'
@@ -58,13 +71,14 @@ class Model(ModelOps, dict):
                 raise TypeError('%s() got multiple values for argument %r'
                                 % (type(self).__name__, name))
             kwargs[name] = value
-        unexpected = [key for key in kwargs if key not in defaults]
+        field_set = set(names)
+        unexpected = [key for key in kwargs if key not in field_set]
         if unexpected:
             raise TypeError('%s() got an unexpected keyword argument %r'
                             % (type(self).__name__, unexpected[0]))
-        for name, default in defaults.items():
+        for name, is_list in fields:
             value = kwargs.get(name)
-            self[name] = default if value is None else value
+            self[name] = ([] if is_list else None) if value is None else value
 
     def __repr__(self) -> str:
         return str({key: (str(value)[:32] + '[...]') if len(str(value)) > 32 else value

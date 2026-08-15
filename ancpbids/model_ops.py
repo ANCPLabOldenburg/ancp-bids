@@ -279,21 +279,49 @@ class FolderOps:
         folder, file_name = resolve_segments(self, file_name, True)
         if not folder:
             return None
-        direct_files = folder.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, File))
-        return next(filter(lambda f: f.name == file_name, direct_files), None)
+        for file in folder.files:
+            if file.name == file_name:
+                return file
+        # Schema members may hold promoted File objects (e.g. dataset_description).
+        for value in folder.values():
+            if isinstance(value, File) and value.name == file_name:
+                return value
+            if isinstance(value, list):
+                for item in value:
+                    if isinstance(item, File) and item.name == file_name:
+                        return item
+        return None
 
     def get_files(self, name_pattern: str) -> List["File"]:
         from .model_base import File
-        direct_files = self.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, File))
-        return [file for file in direct_files if fnmatch.fnmatch(file.name, name_pattern)]
+        matches = [file for file in self.files if fnmatch.fnmatch(file.name, name_pattern)]
+        for value in self.values():
+            if isinstance(value, File) and fnmatch.fnmatch(value.name, name_pattern):
+                if value not in matches:
+                    matches.append(value)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, File) and fnmatch.fnmatch(item.name, name_pattern):
+                        if item not in matches:
+                            matches.append(item)
+        return matches
 
     def remove_folder(self, folder_name: str) -> None:
         self.folders = [folder for folder in self.folders if folder.name != folder_name]
 
     def get_folder(self, folder_name: str) -> Optional["Folder"]:
         from .model_base import Folder
-        direct_folders = self.to_generator(depth_first=True, depth=1, filter_=lambda n: isinstance(n, Folder))
-        return next(filter(lambda f: f.name == folder_name, direct_folders), None)
+        for folder in self.folders:
+            if folder.name == folder_name:
+                return folder
+        for value in self.values():
+            if isinstance(value, Folder) and value.name == folder_name:
+                return value
+            if isinstance(value, list):
+                for item in value:
+                    if isinstance(item, Folder) and item.name == folder_name:
+                        return item
+        return None
 
     def get_files_sorted(self) -> List["File"]:
         return sorted(self.files, key=lambda f: f.name)

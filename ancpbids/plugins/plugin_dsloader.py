@@ -161,23 +161,27 @@ class DatasetPopulationPlugin(DatasetPlugin):
         parts = utils.parse_bids_name(file.name)
         if not parts:
             return None
-        artifact = Artifact()
-        artifact.name = file.name
-        for key, value in parts['entities'].items():
-            entity = EntityRef()
-            entity.key = key
-            value = self.schema.process_entity_value(key, value)
-            entity.value = value
-            artifact.entities.append(entity)
-        artifact.suffix = parts['suffix']
-        artifact.extension = parts['extension']
-        return artifact
+        process = self.schema.process_entity_value
+        entities = [
+            EntityRef(key, process(key, value))
+            for key, value in parts['entities'].items()
+        ]
+        return Artifact(
+            name=file.name,
+            suffix=parts['suffix'],
+            extension=parts['extension'],
+            entities=entities,
+        )
 
     def _handle_direct_folders(self, parent, member, pattern, new_type):
         if not isinstance(parent, Folder):
             return
         parent_folders = parent.get_folders_sorted()
-        folders = list(filter(lambda f: re.match(pattern, f.name), parent_folders))
+        if pattern == '.*':
+            folders = parent_folders
+        else:
+            matcher = re.compile(pattern).match
+            folders = [f for f in parent_folders if matcher(f.name)]
         for folder in folders:
             obj = new_type()
             obj.name = folder.name
@@ -212,27 +216,23 @@ class DatasetPopulationPlugin(DatasetPlugin):
             self._expand_member(folder, member)
 
     def _load_folder(self, parent, dir_path, ds_path):
-        for root, directories, files in os.walk(dir_path):
-            rel_base = root[len(ds_path):]
-            for directory in sorted(directories):
-                directory_ds_rel_path = '/'.join([rel_base, directory])[1:]
-                if self.bidsignore(directory_ds_rel_path):
-                    continue
+        rel_base = dir_path[len(ds_path):]
+        entries = sorted(os.scandir(dir_path), key=lambda e: e.name)
+        for entry in entries:
+            rel_path = f'{rel_base}/{entry.name}'[1:] if rel_base else entry.name
+            if self.bidsignore(rel_path):
+                continue
+            if entry.is_dir(follow_symlinks=False):
                 folder = Folder()
                 folder.parent_object_ = parent
-                folder.name = directory
+                folder.name = entry.name
                 parent.folders.append(folder)
-                self._load_folder(folder, '/'.join([root, directory]), ds_path)
-            for file in sorted(files):
-                file_ds_rel_path = '/'.join([rel_base, file])[1:]
-                if self.bidsignore(file_ds_rel_path):
-                    continue
+                self._load_folder(folder, entry.path, ds_path)
+            else:
                 model_file = File()
                 model_file.parent_object_ = parent
-                model_file.name = file
+                model_file.name = entry.name
                 parent.files.append(model_file)
-            # do not traverse into sub-dirs as they have been already processed recursively
-            break
 
     def _type_handler_default(self, parent, member, allow_lazy=True):
         typ = member['type']

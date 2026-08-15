@@ -163,6 +163,12 @@ class Schema:
     def get_members(self, element_type, include_superclass=True):
         if element_type == self.Model:
             return []
+        cache = self.__dict__.setdefault('_members_cache', {})
+        cache_key = (element_type, include_superclass)
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         super_members = []
         if include_superclass:
             for superclass in inspect.getmro(element_type)[1:]:
@@ -171,22 +177,27 @@ class Schema:
                 if not inspect.isclass(superclass) or not issubclass(superclass, self.Model):
                     continue
                 super_members.extend(_element_members(self, superclass))
-        return super_members + _element_members(self, element_type)
+        members = super_members + _element_members(self, element_type)
+        cache[cache_key] = members
+        return members
+
+    def _entity_formats(self):
+        formats = self.__dict__.get('_entity_format_by_name')
+        if formats is None:
+            formats = {entity.value['name']: entity.value['format'] for entity in self.EntityEnum}
+            self._entity_format_by_name = formats
+        return formats
 
     def process_entity_value(self, key, value):
         if not value:
             return value
         if isinstance(key, self.EntityEnum):
             key = key.value['name']
-        for entity in self.EntityEnum:
-            if entity.value['name'] != key:
-                continue
-            if entity.value['format'] != 'index':
-                return value
-            if isinstance(value, list):
-                return [_trim_int(item) if item is not None else item for item in value]
-            return _trim_int(value)
-        return value
+        if self._entity_formats().get(key) != 'index':
+            return value
+        if isinstance(value, list):
+            return [_trim_int(item) if item is not None else item for item in value]
+        return _trim_int(value)
 
     def fuzzy_match_entity(self, user_key):
         ratios = [
