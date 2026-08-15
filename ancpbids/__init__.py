@@ -6,8 +6,9 @@ from typing import Union, List, Optional, TYPE_CHECKING
 from ancpbids import plugins
 from ancpbids import utils
 
-from .plugin import get_plugins, load_plugins_by_package, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin, \
-    FileHandlerPlugin
+from .plugin import get_plugins, load_plugins_from_entrypoints, \
+    load_mixins_from_entrypoints, DatasetPlugin, WritingPlugin, ValidationPlugin, SchemaPlugin, \
+    FileHandlerPlugin, plugin, mixin
 from .query import BoolExpr, Select, EqExpr, AnyExpr, AllExpr, ReExpr, CustomOpExpr, \
     EntityExpr
 from .model_base import Dataset
@@ -188,8 +189,8 @@ def write_derivative(ds, derivative):
     save_dataset(ds, target_dir=ds.get_absolute_path(), context_folder=derivative)
 
 
-# load system plugins using lowest rank value
-load_plugins_by_package(plugins, ranking=0, system=True)
+# load built-in and third-party plugins from [project.entry-points."ancpbids.plugins"]
+load_plugins_from_entrypoints()
 
 from .schema import available_versions, load as load_schema_version
 
@@ -210,6 +211,9 @@ for pl in get_plugins(FileHandlerPlugin):
 
 from .pybids_compat import BIDSLayout
 from .plugins.plugin_pickle import pickle_dataset, unpickle_dataset
+
+# apply built-in and third-party @mixin contributions from ancpbids.mixins entry points
+load_mixins_from_entrypoints()
 
 select = Select
 any_of = AnyExpr

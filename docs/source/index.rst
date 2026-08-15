@@ -11,5 +11,6 @@ Using a plugin mechanism, contributors can extend its functionality in a control
    userDocCombined
    advancedQueries.rst
    validate
+   plugins
    api
 

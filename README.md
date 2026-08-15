@@ -60,27 +60,64 @@
 - **Testing:**  
 	The `tests/` directory is organized into `auto` (CI-safe) and `manual` (non-deterministic or performance) tests, with synthetic datasets under `tests/data/`.
 
-## Plugin System
+## Plugin and mixin system
 
-The plugin system is a core feature for extensibility:
+Extensibility comes in two shapes:
 
-- **Plugin Types:**  
-	- `SchemaPlugin`: Modify or extend the BIDS schema.
-	- `DatasetPlugin`: Operate on in-memory dataset graphs.
-	- `FileHandlerPlugin`: Register custom file readers/writers.
-	- `WritingPlugin`: Add files/folders during dataset writing.
-	- `ValidationPlugin`: Add custom validation rules.
+- **Plugins** — hook into load / write / validate / schema / file I/O (`execute` methods).
+- **Mixins** — add methods to a host class such as `BIDSLayout` via `@mixin(target=...)`.
 
-- **Registration and Discovery:**  
-	Plugins are registered via `register_plugin` or discovered with `load_plugins_by_package`. They are prioritized by a `ranking` value.
+Built-in plugins/mixins are registered the same way: decorated with
+`@plugin(ranking=0, system=True)` / `@mixin(...)` and listed under
+`ancpbids.plugins` / `ancpbids.mixins` in this project's `pyproject.toml`.
+Third-party packages add their own entries to those groups.
 
-- **Execution:**  
-	At key points (e.g., dataset load, write, validate), the system retrieves and executes all relevant plugins using `get_plugins`.
+### Registering an external plugin
 
-- **How to Add a Plugin:**  
-	1. Subclass the appropriate plugin base class from `plugin.py`.
-	2. Implement the required `execute` method.
-	3. Register your plugin using `register_plugin` or by placing it in a discoverable package.
+1. Decorate a plugin subclass:
+
+	```python
+	from ancpbids.plugin import ValidationPlugin, plugin
+
+	@plugin(ranking=1000)
+	class SiteRulesPlugin(ValidationPlugin):
+	    def execute(self, dataset, report: ValidationPlugin.ValidationReport):
+	        pass
+	```
+
+2. In **your** package’s `pyproject.toml`:
+
+	```toml
+	[project.entry-points."ancpbids.plugins"]
+	site_rules = "lab_bids_extensions.validation:SiteRulesPlugin"
+	```
+
+3. Install alongside ancpBIDS; importing `ancpbids` loads the plugin.
+
+### Registering an external mixin
+
+1. Decorate a mixin with a target (live class or `"module:Class"` string):
+
+	```python
+	from ancpbids import BIDSLayout
+	from ancpbids.plugin import mixin
+
+	@mixin(target=BIDSLayout, ranking=1000)
+	class MyExportMixin:
+	    def to_custom(self):
+	        ...
+	```
+
+2. Advertise under `ancpbids.mixins`:
+
+	```toml
+	[project.entry-points."ancpbids.mixins"]
+	my_export = "lab_bids_extensions.exports:MyExportMixin"
+	```
+
+Built-in `DataFrameMixin` lives in `ancpbids.mixins.mixin_dataframe`, uses `@mixin(target=BIDSLayout, ranking=0)`, and is listed as `to_df` under the `ancpbids.mixins` entry-point group in this project's `pyproject.toml`.
+
+Full guide: [docs/source/plugins.rst](docs/source/plugins.rst).
 
 ## Versioning and Schema Evolution
 
@@ -101,7 +138,7 @@ The plugin system is a core feature for extensibility:
 - **Extending the Model:**  
 	Add a new `ancpbids/schema/schema_v<version>.json` (see Model Generation Utility). Type stubs and `model_latest` update from the vendored JSON files.
 - **Adding Plugins:**  
-	Follow the plugin system described above.
+	Follow the plugin system described above (including external entry points).
 - **Testing:**  
 	Add new tests to `tests/auto/` for CI-safe code, and to `tests/manual/` for performance or integration tests.
 - **Documentation:**  

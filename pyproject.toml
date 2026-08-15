@@ -47,6 +47,25 @@ Documentation = "https://ancpbids.readthedocs.io"
 Repository = "https://github.com/ANCPLabOldenburg/ancp-bids"
 Issues = "https://github.com/ANCPLabOldenburg/ancp-bids/issues"
 
+# Built-in and third-party plugins share this group. Prefer @plugin(ranking=...) on
+# each class. Loaded at import via load_plugins_from_entrypoints().
+[project.entry-points."ancpbids.plugins"]
+dataset_population = "ancpbids.plugins.plugin_dsloader:DatasetPopulationPlugin"
+dataset_writing = "ancpbids.plugins.plugin_dssaver:DatasetWritingPlugin"
+files_handler = "ancpbids.plugins.plugin_files_handlers:FilesHandlerPlugin"
+schema_files = "ancpbids.plugins.plugin_schema_validator:SchemaFilesPlugin"
+schema_entities = "ancpbids.plugins.plugin_schema_validator:SchemaEntitiesPlugin"
+schema_directories = "ancpbids.plugins.plugin_schema_validator:SchemaDirectoriesPlugin"
+schema_sidecars = "ancpbids.plugins.plugin_schema_validator:SchemaSidecarsPlugin"
+schema_json = "ancpbids.plugins.plugin_schema_validator:SchemaJsonPlugin"
+schema_tabular_data = "ancpbids.plugins.plugin_schema_validator:SchemaTabularDataPlugin"
+schema_dataset_metadata = "ancpbids.plugins.plugin_schema_validator:SchemaDatasetMetadataPlugin"
+schema_checks = "ancpbids.plugins.plugin_schema_validator:SchemaChecksPlugin"
+
+# Built-in and third-party @mixin contributions. Loaded via load_mixins_from_entrypoints().
+[project.entry-points."ancpbids.mixins"]
+to_df = "ancpbids.mixins.mixin_dataframe:DataFrameMixin"
+
 [dependency-groups]
 dev = [
     "pytest",

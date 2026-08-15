@@ -1,5 +1,5 @@
 from ancpbids import BIDSLayout
-from ancpbids.pybids_compat import DataFrameMixin
+from ancpbids.mixins.mixin_dataframe import DataFrameMixin
 from ..base_test_case import DS005_DIR
 
 

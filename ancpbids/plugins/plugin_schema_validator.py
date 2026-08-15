@@ -3,10 +3,11 @@
 One ``ValidationPlugin`` per ``schema.document`` rules section. Selectors use
 the schema expression language; oracle is ``meta.expression_tests``.
 """
-from ancpbids.plugin import ValidationPlugin
+from ancpbids.plugin import ValidationPlugin, plugin
 from ancpbids.schema import validate as schema_validate
 
 
+@plugin(ranking=0, system=True)
 class SchemaFilesPlugin(ValidationPlugin):
     """``rules.files``: naming contracts and required core files."""
 
@@ -14,6 +15,7 @@ class SchemaFilesPlugin(ValidationPlugin):
         schema_validate.files(dataset, report)
 
 
+@plugin(ranking=0, system=True)
 class SchemaEntitiesPlugin(ValidationPlugin):
     """``rules.entities``: known keys and filename order."""
 
@@ -21,6 +23,7 @@ class SchemaEntitiesPlugin(ValidationPlugin):
         schema_validate.entities(dataset, report)
 
 
+@plugin(ranking=0, system=True)
 class SchemaDirectoriesPlugin(ValidationPlugin):
     """``rules.directories``: folder tree and datatype names."""
 
@@ -28,6 +31,7 @@ class SchemaDirectoriesPlugin(ValidationPlugin):
         schema_validate.directories(dataset, report)
 
 
+@plugin(ranking=0, system=True)
 class SchemaSidecarsPlugin(ValidationPlugin):
     """``rules.sidecars``: sidecar metadata fields."""
 
@@ -35,6 +39,7 @@ class SchemaSidecarsPlugin(ValidationPlugin):
         schema_validate.fields(dataset, report, 'sidecars', 'sidecar')
 
 
+@plugin(ranking=0, system=True)
 class SchemaJsonPlugin(ValidationPlugin):
     """``rules.json``: fields on JSON files themselves."""
 
@@ -42,6 +47,7 @@ class SchemaJsonPlugin(ValidationPlugin):
         schema_validate.fields(dataset, report, 'json', 'json')
 
 
+@plugin(ranking=0, system=True)
 class SchemaTabularDataPlugin(ValidationPlugin):
     """``rules.tabular_data``: TSV columns."""
 
@@ -49,6 +55,7 @@ class SchemaTabularDataPlugin(ValidationPlugin):
         schema_validate.tabular(dataset, report)
 
 
+@plugin(ranking=0, system=True)
 class SchemaDatasetMetadataPlugin(ValidationPlugin):
     """``rules.dataset_metadata``: dataset_description.json fields."""
 
@@ -56,6 +63,7 @@ class SchemaDatasetMetadataPlugin(ValidationPlugin):
         schema_validate.fields(dataset, report, 'dataset_metadata', 'json')
 
 
+@plugin(ranking=0, system=True)
 class SchemaChecksPlugin(ValidationPlugin):
     """``rules.checks``: expression checks and issue codes."""
 

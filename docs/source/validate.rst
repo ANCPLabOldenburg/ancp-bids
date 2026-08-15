@@ -42,3 +42,10 @@ We are working on improving this further and making it more expressive.
             print("The dataset contains validation errors, cannot continue.")
 
 
+Custom validation rules
+-----------------------
+
+To add site- or project-specific checks, ship a ``ValidationPlugin`` from an
+external package. See :doc:`plugins` for entry-point registration.
+
+
