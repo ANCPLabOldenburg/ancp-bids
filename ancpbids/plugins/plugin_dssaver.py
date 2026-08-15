@@ -64,13 +64,11 @@ class DatasetWritingPlugin(WritingPlugin):
 
     def _get_ordered_entity_keys(self, artifact):
         schema = artifact.get_schema()
-        entity_refs = artifact.entities
-
         schema_entities = list(map(lambda e: e.value['name'], list(schema.EntityEnum)))
         expected_key_order = {k: i for i, k in enumerate(schema_entities)}
         expected_order_key = {i: k for i, k in enumerate(schema_entities)}
 
-        artifact_keys = list(map(lambda e: e.key, entity_refs))
+        artifact_keys = list(artifact.entities)
         actual_keys_order = list(map(lambda k: expected_key_order[k], artifact_keys))
         expected = tuple(map(lambda k: expected_order_key[k], sorted(actual_keys_order)))
         return expected

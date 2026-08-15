@@ -271,8 +271,8 @@ def _modalities_for(datatypes, document):
 def _basic_context(file, session):
     entities = {}
     if isinstance(file, Artifact):
-        for ref in file.entities:
-            entities[session.entity_long.get(ref.key, ref.key)] = ref.value
+        for key, value in file.entities.items():
+            entities[session.entity_long.get(key, key)] = value
     description = _local_dataset_description(file, session.dataset_description)
     dataset_ctx = dict(session.dataset_ctx)
     dataset_ctx['dataset_description'] = description
@@ -441,7 +441,7 @@ def _file_rule_matches(rule, artifact, context, session):
 
 
 def _entities_match(rule_entities, artifact, session):
-    present = {ref.key: ref.value for ref in artifact.entities}
+    present = dict(artifact.entities)
     allowed = set()
     for long_name, spec in rule_entities.items():
         short = session.entity_short.get(long_name)
@@ -502,7 +502,7 @@ def _not_included(file, report):
 
 def _validate_entities(session, report):
     for artifact in session.dataset.select(session.schema.Artifact).objects():
-        keys = [ref.key for ref in artifact.entities]
+        keys = list(artifact.entities)
         unknown = [key for key in keys if key not in session.known_short]
         if unknown:
             rel = _relpath(artifact)

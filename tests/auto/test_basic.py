@@ -105,17 +105,11 @@ def test_parse_entities_in_filenames(lazy_loading):
     assert artifact.suffix == "bold"
     assert artifact.extension == ".nii.gz"
     entities = artifact.entities
-    assert isinstance(entities, list)
+    assert isinstance(entities, dict)
     assert len(entities) == 3
-    entity = entities[0]
-    assert entity.key == "sub"
-    assert entity.value == "01"
-    entity = entities[1]
-    assert entity.key == "task"
-    assert entity.value == "mixedgamblestask"
-    entity = entities[2]
-    assert entity.key == "run"
-    assert entity.value == 1
+    assert entities["sub"] == "01"
+    assert entities["task"] == "mixedgamblestask"
+    assert entities["run"] == 1
 
 @pytest.mark.parametrize("lazy_loading", [True, False])
 def test_to_generator(lazy_loading):

@@ -49,8 +49,8 @@ class DataFrameMixin:
             row['suffix'] = file.suffix
         if file.datatype:
             row['datatype'] = file.datatype
-        for entity in file.entities:
-            row[entity_names.get(entity.key, entity.key)] = entity.value
+        for key, value in file.entities.items():
+            row[entity_names.get(key, key)] = value
         if metadata:
             sidecar = file.get_metadata(include_entities=False) or {}
             for key, value in sidecar.items():

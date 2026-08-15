@@ -162,15 +162,14 @@ class DatasetPopulationPlugin(DatasetPlugin):
         if not parts:
             return None
         process = self.schema.process_entity_value
-        entities = [
-            EntityRef(key, process(key, value))
-            for key, value in parts['entities'].items()
-        ]
         return Artifact(
             name=file.name,
             suffix=parts['suffix'],
             extension=parts['extension'],
-            entities=entities,
+            entities={
+                key: process(key, value)
+                for key, value in parts['entities'].items()
+            },
         )
 
     def _handle_direct_folders(self, parent, member, pattern, new_type):

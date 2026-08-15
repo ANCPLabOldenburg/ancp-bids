@@ -104,24 +104,26 @@ class EntityExpr(CompExpr):
                 pattern = str(pattern)
         self.key = key
         self.pattern = pattern
-        self.op = op(schema.EntityRef.value, pattern)
-        self.op.value_converter = lambda v: schema.process_entity_value(key, v)
+        self.op = op
+        self.value_converter = lambda v: schema.process_entity_value(key, v)
 
     def eval(self, context) -> bool:
         if not isinstance(context, self.schema.Artifact):
-            # for non-Artifacts, for example File, just return false
             return False
-        ents = list(filter(lambda e: e.key == self.key.value['name'], context.entities))
-        if not ents:
-            # the entity must not exist
-            if self.pattern is None:
-                return True
-            return False
+        key_name = self.key.value['name']
+        ents = context.entities
+        if key_name not in ents:
+            return self.pattern is None
         if self.pattern is None:
-            # the entity must not exist, but we found one
             return False
-        target_key = ents[0]
-        return self.op.eval(target_key)
+        value = self.value_converter(ents[key_name])
+        if self.op is FnMatchExpr:
+            return value is not None and fnmatch(str(value), self.pattern)
+        if self.op is ReExpr:
+            return bool(re.search(self.pattern, str(value)))
+        if self.op is EqExpr:
+            return self.pattern == value
+        raise TypeError(f'Unsupported entity match operator: {self.op!r}')
 
 
 class Select:
@@ -268,8 +270,9 @@ def query(folder, return_type: str = 'object', target: str = None, scope: str = 
         else:
             target = schema.fuzzy_match_entity_key(target)
             entities = {**entities, target: '*'}
-            result_extractor = lambda artifacts: [entity.value for a in artifacts for entity in
-                                                  filter(lambda e: e.key == target, a.entities) if a.entities]
+            result_extractor = lambda artifacts: [
+                a.entities[target] for a in artifacts if target in a.entities
+            ]
 
     search_operator = FnMatchExpr
     if regex_search:
@@ -345,11 +348,11 @@ def query_entities(folder, scope: str = None, sort: bool = False, long_form=True
     schema = folder.get_schema()
     artifacts = filter(lambda m: isinstance(m, schema.Artifact), query(folder, scope=scope))
     result = {}
-    for e in [e for a in artifacts for e in a.entities]:
-        key = e.key
-        if key not in result:
-            result[key] = set()
-        result[key].add(e.value)
+    for artifact in artifacts:
+        for key, value in artifact.entities.items():
+            if key not in result:
+                result[key] = set()
+            result[key].add(value)
     if long_form:
         known_entities = {e.value['name']: e.name for e in list(schema.EntityEnum)}
         result = {known_entities[k] if k in known_entities else k: v for k, v in result.items()}

@@ -17,7 +17,6 @@ if TYPE_CHECKING:
         Artifact,
         DatasetDescriptionFile,
         DerivativeFolder,
-        EntityRef,
         File,
         Folder,
         Model,
@@ -159,31 +158,23 @@ class FileOps:
 
 
 class ArtifactOps:
-    entities: List["EntityRef"]
+    entities: Dict[str, Any]
     suffix: Optional[str]
 
     def has_entity(self, entity_: str) -> bool:
-        return any(e.key == entity_ for e in self.entities)
+        return entity_ in self.entities
 
     def get_entity(self, entity_: str) -> Any:
-        for e in self.entities:
-            if e.key == entity_:
-                return e.value
-        return None
+        return self.entities.get(entity_)
 
     def get_entities(self) -> Dict[str, Any]:
-        return {e['key']: e['value'] for e in self.entities}
+        return dict(self.entities)
 
     def add_entity(self, key: Union[str, Enum], value: Any) -> None:
-        from .model_base import EntityRef
         schema = self.get_schema()
         if schema is not None and isinstance(key, schema.EntityEnum):
             key = key.value['name']
-        found = [er for er in self.entities if er.key == key]
-        if found:
-            found[0].value = value
-            return
-        self.entities.append(EntityRef(key, value))
+        self.entities[key] = value
 
     def add_entities(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
@@ -198,13 +189,13 @@ class ArtifactOps:
         from ancpbids.utils import deepupdate
         schema = self.get_schema()
         parent = self.get_parent()
-        artifact_entities = {e.key: e.value for e in self.entities}
+        artifact_entities = self.entities
         metadata_levels = []
         while parent is not None:
             for parent_mdf in parent.select(schema.MetadataArtifact).objects(depth=1):
                 if parent_mdf.suffix != self.suffix:
                     continue
-                mdf_entities = {e.key: e.value for e in parent_mdf.entities}
+                mdf_entities = parent_mdf.entities
                 if mdf_entities.items() <= artifact_entities.items():
                     metadata_levels.append(parent_mdf.contents)
             parent = parent.get_parent()
@@ -260,7 +251,7 @@ class FolderOps:
         from .model_base import Artifact
         artifact = Artifact()
         if isinstance(raw, Artifact):
-            artifact.entities.extend(raw.entities)
+            artifact.entities = dict(raw.entities)
         artifact.parent_object_ = self
         self.files.append(artifact)
         return artifact

@@ -20,8 +20,8 @@ def member(pattern):
 
 
 @lru_cache(maxsize=None)
-def _property_fields(cls) -> Tuple[Tuple[str, bool], ...]:
-    """Cached (name, is_list) fields for Model subclasses. Fresh list defaults are created per instance."""
+def _property_fields(cls) -> Tuple[Tuple[str, Optional[str]], ...]:
+    """Cached (name, container_kind) fields. container_kind is 'list', 'dict', or None."""
     fields = []
     seen_model = False
     for klass in reversed(cls.__mro__):
@@ -34,19 +34,40 @@ def _property_fields(cls) -> Tuple[Tuple[str, bool], ...]:
             if not isinstance(value, property) or not value.fget or name.startswith('_'):
                 continue
             annotation = value.fget.__annotations__.get('return')
-            fields.append((name, _is_list_type(annotation)))
+            fields.append((name, _container_kind(annotation)))
     return tuple(fields)
 
 
 def _property_defaults(cls):
-    """Compatibility helper: mapping of property name -> default value (new list per call)."""
-    return {name: ([] if is_list else None) for name, is_list in _property_fields(cls)}
+    """Compatibility helper: mapping of property name -> default value (new container per call)."""
+    return {name: _empty_container(kind) for name, kind in _property_fields(cls)}
+
+
+def _container_kind(annotation) -> Optional[str]:
+    if isinstance(annotation, str):
+        if annotation.startswith('List['):
+            return 'list'
+        if annotation.startswith('Dict['):
+            return 'dict'
+        return None
+    origin = get_origin(annotation)
+    if origin in (list, List):
+        return 'list'
+    if origin in (dict, Dict):
+        return 'dict'
+    return None
+
+
+def _empty_container(kind: Optional[str]):
+    if kind == 'list':
+        return []
+    if kind == 'dict':
+        return {}
+    return None
 
 
 def _is_list_type(annotation):
-    if isinstance(annotation, str):
-        return annotation.startswith('List[')
-    return get_origin(annotation) in (list, List)
+    return _container_kind(annotation) == 'list'
 
 
 class Model(ModelOps, dict):
@@ -57,8 +78,8 @@ class Model(ModelOps, dict):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         fields = _property_fields(type(self))
         if not args and not kwargs:
-            for name, is_list in fields:
-                self[name] = [] if is_list else None
+            for name, kind in fields:
+                self[name] = _empty_container(kind)
             return
 
         names = [name for name, _ in fields]
@@ -76,9 +97,9 @@ class Model(ModelOps, dict):
         if unexpected:
             raise TypeError('%s() got an unexpected keyword argument %r'
                             % (type(self).__name__, unexpected[0]))
-        for name, is_list in fields:
+        for name, kind in fields:
             value = kwargs.get(name)
-            self[name] = ([] if is_list else None) if value is None else value
+            self[name] = _empty_container(kind) if value is None else value
 
     def __repr__(self) -> str:
         return str({key: (str(value)[:32] + '[...]') if len(str(value)) > 32 else value
@@ -233,12 +254,30 @@ class Artifact(ArtifactOps, File):
         self['datatype'] = datatype
 
     @property
-    def entities(self) -> 'List[EntityRef]':
-        return self['entities']
+    def entities(self) -> 'Dict[str, Any]':
+        value = self['entities']
+        # Compat: older pickles stored List[EntityRef]
+        if isinstance(value, list):
+            value = {
+                (item['key'] if isinstance(item, dict) else item.key):
+                (item['value'] if isinstance(item, dict) else item.value)
+                for item in value
+            }
+            self['entities'] = value
+        elif value is None:
+            value = {}
+            self['entities'] = value
+        return value
 
     @entities.setter
-    def entities(self, entities: 'List[EntityRef]') -> None:
-        self['entities'] = entities
+    def entities(self, entities: 'Dict[str, Any]') -> None:
+        if isinstance(entities, list):
+            entities = {
+                (item['key'] if isinstance(item, dict) else item.key):
+                (item['value'] if isinstance(item, dict) else item.value)
+                for item in entities
+            }
+        self['entities'] = entities if entities is not None else {}
 
 
 class MetadataArtifact(LazyContents, Artifact):
@@ -299,6 +338,7 @@ class Folder(FolderOps, Model):
 
 
 class EntityRef(Model):
+    """Deprecated: artifacts now store entities as Dict[str, Any]. Kept for pickle compat."""
 
     @property
     def key(self) -> 'str':
