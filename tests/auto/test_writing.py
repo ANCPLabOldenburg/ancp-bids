@@ -34,15 +34,13 @@ def write_test_derivative(lazy_loading):
         txt_artifact.extension = ".txt"
         txt_artifact.content = "Subject %s participated in task %s" % (sub_label, task_label)
 
-        # create some random data
+        # create some random data — written via builtin TSV handler
         df = pd.DataFrame(np.random.randint(0, 100, size=(100, 4)), columns=list('ABCD'))
         ev_artifact = session.create_artifact()
         ev_artifact.add_entities(desc="mypipeline", run=1, sub=sub_label)
         ev_artifact.suffix = 'events'
         ev_artifact.extension = ".tsv"
-        # at this point, the file path is not known and will be provided
-        # to lambda when the derivative is written to disk
-        ev_artifact.content = lambda file_path, df=df: df.to_csv(file_path, index=None)
+        ev_artifact.content = df
 
     ancpbids.write_derivative(dataset, derivative)
     return DS005_DIR, pipeline_name

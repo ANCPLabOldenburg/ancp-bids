@@ -45,10 +45,24 @@ class DatasetWritingPlugin(WritingPlugin):
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
 
-        if hasattr(file, 'content') and callable(file.content):
-            file.content(abs_file_name)
-        else:
-            ancpbids.utils.write_contents(abs_file_name, file)
+        content = getattr(file, 'content', None)
+        if callable(content):
+            content(abs_file_name)
+            return
+
+        if content is not None:
+            ancpbids.utils.write_contents(abs_file_name, content)
+            return
+
+        # Prefer an explicit contents payload over dumping the whole model.
+        payload = getattr(file, '_contents', None)
+        if payload is None and hasattr(file, 'get'):
+            payload = file.get('contents')
+        if payload is not None and not callable(payload):
+            ancpbids.utils.write_contents(abs_file_name, payload)
+            return
+
+        ancpbids.utils.write_contents(abs_file_name, file)
 
     def _type_handler_Folder(self, src_dir, target_dir, folder, traverse_children=False):
         new_dir = os.path.join(target_dir, folder.get_relative_path())

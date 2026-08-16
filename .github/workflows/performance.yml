@@ -1,0 +1,98 @@
+name: Performance
+
+on:
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  performance:
+    name: Performance regression
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Check out the commit that triggered Tests (PR head or push SHA).
+        ref: ${{ github.event.workflow_run.head_sha }}
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        python-version: "3.12"
+    - name: Install dependencies
+      run: uv sync
+    - name: Run performance benchmark
+      run: |
+        mkdir -p benchmarks
+        uv run python tools/bench_performance.py \
+          --preset medium \
+          --warmup 1 \
+          --repeats 3 \
+          -o benchmarks/latest.json
+        cat benchmarks/latest.json
+    - name: Resolve baseline from last successful Performance run on main
+      id: resolve_baseline
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        mkdir -p benchmarks/resolved
+        cp benchmarks/baseline.json benchmarks/resolved/baseline.json
+        echo "source=committed" >> "$GITHUB_OUTPUT"
+
+        RUN_ID="$(gh run list \
+          --workflow performance.yml \
+          --branch main \
+          --status success \
+          --limit 20 \
+          --json databaseId \
+          --jq '.[].databaseId' | head -n 1 || true)"
+        if [ -z "${RUN_ID}" ]; then
+          echo "No previous successful Performance run found; using committed baseline."
+          exit 0
+        fi
+
+        echo "Trying artifact from run ${RUN_ID}"
+        if gh run download "${RUN_ID}" --name perf-metrics --dir benchmarks/from-ci; then
+          if [ -f benchmarks/from-ci/latest.json ]; then
+            cp benchmarks/from-ci/latest.json benchmarks/resolved/baseline.json
+            echo "source=artifact:${RUN_ID}" >> "$GITHUB_OUTPUT"
+            echo "Using previous CI metrics from run ${RUN_ID}"
+          fi
+        else
+          echo "No perf-metrics artifact on run ${RUN_ID}; using committed baseline."
+        fi
+    - name: Compare against baseline (+10% max regression)
+      run: |
+        echo "Baseline source: ${{ steps.resolve_baseline.outputs.source }}"
+        uv run python tools/compare_performance.py \
+          --current benchmarks/latest.json \
+          --baseline benchmarks/resolved/baseline.json \
+          --threshold 0.10 \
+          --require-baseline
+    - name: Upload metrics artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: perf-metrics
+        path: benchmarks/latest.json
+        retention-days: 90
+    - name: Job summary
+      if: always()
+      run: |
+        {
+          echo "## Performance"
+          echo ""
+          echo "- Baseline source: \`${{ steps.resolve_baseline.outputs.source }}\`"
+          echo "- Threshold: +10%"
+          echo "- Triggered by Tests run: ${{ github.event.workflow_run.id }}"
+          echo "- Commit: \`${{ github.event.workflow_run.head_sha }}\`"
+          echo ""
+          echo '```json'
+          cat benchmarks/latest.json
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
