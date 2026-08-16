@@ -148,13 +148,11 @@ def render_version_shim() -> str:
 
 
 def render_aliases_py(versions: list) -> str:
-    out = StringIO()
-    out.write("# Generated import shim; see aliases.pyi for types.\n")
-    for version in versions:
-        mod = _stub_module_name(version)
-        alias = f"SchemaV{version.replace('.', '_')}"
-        out.write(f"from .{mod} import Schema as {alias}\n")
-    return out.getvalue()
+    del versions  # types are declared in aliases.pyi only
+    return (
+        "# Generated import shim; see aliases.pyi for types.\n"
+        "# Runtime model_* aliases are installed in ancpbids.__init__.\n"
+    )
 
 
 def generate_all_stubs():

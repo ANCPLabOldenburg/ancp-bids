@@ -17,6 +17,17 @@ from .rules.tabular import validate_tabular
 from .session import get_session
 from .values import value_matches as _value_matches
 
+__all__ = [
+    'files',
+    'entities',
+    'directories',
+    'fields',
+    'tabular',
+    'checks',
+    '_load_binary_headers',
+    '_value_matches',
+]
+
 
 def files(dataset, report):
     validate_files(get_session(report, dataset), report)
