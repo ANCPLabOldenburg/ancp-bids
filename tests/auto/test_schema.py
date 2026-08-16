@@ -80,7 +80,7 @@ def test_schema_stubs():
     from pathlib import Path
     from ancpbids import schema as schema_pkg
 
-    stub_dir = Path(schema_pkg.__file__).parent
+    stub_dir = Path(schema_pkg.__file__).parent / "stubs"
     stub_180 = (stub_dir / "v1_8_0.pyi").read_text()
     stub_111 = (stub_dir / "v1_11_1.pyi").read_text()
     aliases = (stub_dir / "aliases.pyi").read_text()
@@ -91,7 +91,7 @@ def test_schema_stubs():
     assert "model_v1_8_0:" in aliases
     assert "model_latest:" in aliases
     assert (stub_dir / "v1_8_0.py").exists()
-    from ancpbids.schema.v1_8_0 import Schema as StubSchema
+    from ancpbids.schema.stubs.v1_8_0 import Schema as StubSchema
     assert StubSchema is schema_pkg.Schema
 
 

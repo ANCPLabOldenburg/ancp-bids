@@ -82,7 +82,7 @@ include-package-data = true
 include = ["ancpbids*"]
 
 [tool.setuptools.package-data]
-ancpbids = ["schema/*.json", "schema/*.pyi", "py.typed"]
+ancpbids = ["schema/versions/*.json", "schema/stubs/*.pyi", "py.typed"]
 
 [tool.setuptools_scm]
 version_file = "ancpbids/_version.py"

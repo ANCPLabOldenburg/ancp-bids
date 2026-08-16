@@ -1,7 +1,7 @@
 # Generated from schema.json — do not edit by hand.
 # BIDS version 1.9.0
 from enum import Enum
-from . import Schema as SchemaBase
+from .. import Schema as SchemaBase
 
 class DatatypeEnum(Enum):
     anat = ...

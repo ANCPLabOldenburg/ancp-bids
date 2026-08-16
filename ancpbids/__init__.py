@@ -195,7 +195,7 @@ load_plugins_from_entrypoints()
 from .schema import available_versions, load as load_schema_version
 
 if TYPE_CHECKING:
-    from ancpbids.schema.aliases import *  # noqa: F401,F403
+    from ancpbids.schema.stubs.aliases import *  # noqa: F401,F403
 else:
     _schemas: List[Schema] = [load_schema_version(version) for version in available_versions()]
     model_latest: Schema = _schemas[-1]

@@ -3,7 +3,7 @@
 
 The in-memory graph in ancpbids/model_base.py is hand-maintained.
 Enums and rules are loaded from these JSON files at runtime. Stubs under
-ancpbids/schema/v*.pyi restore compile-time enum literals for IDEs.
+ancpbids/schema/stubs/ restore compile-time enum literals for IDEs.
 """
 import argparse
 import json
@@ -14,6 +14,8 @@ from pathlib import Path
 TOOLS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOLS_DIR.parent
 SCHEMA_DIR = REPO_ROOT / "ancpbids" / "schema"
+VERSIONS_DIR = SCHEMA_DIR / "versions"
+STUBS_DIR = SCHEMA_DIR / "stubs"
 JSON_PREFIX = "schema_v"
 JSON_SUFFIX = ".json"
 
@@ -101,7 +103,7 @@ def render_version_stub(document: dict, version: str) -> str:
     out.write("# Generated from schema.json — do not edit by hand.\n")
     out.write(f"# BIDS version {version}\n")
     out.write("from enum import Enum\n")
-    out.write("from . import Schema as SchemaBase\n\n")
+    out.write("from .. import Schema as SchemaBase\n\n")
     _write_enum_stub(out, "DatatypeEnum", nested(document, "objects/datatypes"))
     _write_enum_stub(out, "ModalityEnum", nested(document, "objects/modalities"))
     _write_enum_stub(out, "SuffixEnum", nested(document, "objects/suffixes"))
@@ -132,7 +134,7 @@ def render_aliases(versions: list) -> str:
 
 def vendored_versions():
     versions = []
-    for path in SCHEMA_DIR.glob(f"{JSON_PREFIX}*{JSON_SUFFIX}"):
+    for path in VERSIONS_DIR.glob(f"{JSON_PREFIX}*{JSON_SUFFIX}"):
         versions.append(path.name[len(JSON_PREFIX):-len(JSON_SUFFIX)])
     versions.sort(key=lambda v: tuple(int(part) for part in v.split(".")))
     return versions
@@ -141,7 +143,7 @@ def vendored_versions():
 def render_version_shim() -> str:
     return (
         "# Generated import shim; enum members are declared in the .pyi stub.\n"
-        "from . import Schema as Schema\n"
+        "from .. import Schema as Schema\n"
     )
 
 
@@ -158,22 +160,23 @@ def render_aliases_py(versions: list) -> str:
 def generate_all_stubs():
     versions = vendored_versions()
     if not versions:
-        raise Exception(f"No schema JSON files found in {SCHEMA_DIR}")
+        raise Exception(f"No schema JSON files found in {VERSIONS_DIR}")
+    STUBS_DIR.mkdir(parents=True, exist_ok=True)
     shim = render_version_shim()
     for version in versions:
-        json_path = SCHEMA_DIR / f"{JSON_PREFIX}{version}{JSON_SUFFIX}"
+        json_path = VERSIONS_DIR / f"{JSON_PREFIX}{version}{JSON_SUFFIX}"
         document = json.loads(json_path.read_text())
         mod = _stub_module_name(version)
-        stub_path = SCHEMA_DIR / f"{mod}.pyi"
+        stub_path = STUBS_DIR / f"{mod}.pyi"
         stub_path.write_text(render_version_stub(document, version))
         print(f"Wrote {stub_path}")
-        shim_path = SCHEMA_DIR / f"{mod}.py"
+        shim_path = STUBS_DIR / f"{mod}.py"
         shim_path.write_text(shim)
         print(f"Wrote {shim_path}")
-    aliases_pyi = SCHEMA_DIR / "aliases.pyi"
+    aliases_pyi = STUBS_DIR / "aliases.pyi"
     aliases_pyi.write_text(render_aliases(versions))
     print(f"Wrote {aliases_pyi}")
-    aliases_py = SCHEMA_DIR / "aliases.py"
+    aliases_py = STUBS_DIR / "aliases.py"
     aliases_py.write_text(render_aliases_py(versions))
     print(f"Wrote {aliases_py}")
 
@@ -201,7 +204,8 @@ if __name__ == "__main__":
         else:
             version_tag, schema_url = fetch_schema_version()
         print(f"Using schema version: {version_tag}")
-        save_path = SCHEMA_DIR / f"{JSON_PREFIX}{version_tag}{JSON_SUFFIX}"
+        VERSIONS_DIR.mkdir(parents=True, exist_ok=True)
+        save_path = VERSIONS_DIR / f"{JSON_PREFIX}{version_tag}{JSON_SUFFIX}"
         download_schema(schema_url, save_path)
 
     generate_all_stubs()

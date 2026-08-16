@@ -3,17 +3,29 @@
 ancpbids runs official BIDS `schema.document` rules against the in-memory
 dataset graph (no Deno shell-out). Entry points:
 
-| Module | Role |
-|--------|------|
+| Module / folder | Role |
+|-----------------|------|
 | `expr.py` | Schema expression language (`meta.expression_tests` oracle) |
-| `validate.py` | Rule runners + validation context builder |
+| `validate.py` | Thin public API (`files` / `entities` / …) |
+| `session.py` | Shared `ValidationSession`, rule indexing, selectors |
+| `context.py` | Rich file context (sidecar, columns, associations, headers) |
+| `values.py` | Value constraints and issue helpers |
+| `rules/` | One module per schema rule family |
 | `headers.py` | NIfTI/GZIP/TIFF/OME header readers (nibabel preferred for NIfTI) |
+| `versions/` | Vendored official `schema_v*.json` (runtime source of truth) |
+| `stubs/` | Generated `.py` / `.pyi` shims for IDE enum literals |
 | `../plugins/plugin_schema_validator.py` | Thin `ValidationPlugin` wrappers per rule family |
 
 Public API: `validate_dataset()` → `ValidationReport` (optional `code` / `sub_code`).
 
 Reference implementation: [bids-validator](https://github.com/bids-standard/bids-validator)
 (Deno/TS). Context shapes follow `meta.context` in the BIDS schema.
+
+Regenerate stubs after adding JSON under `versions/`:
+
+```bash
+uv run python tools/generatemodel.py --stubs-only
+```
 
 ## Covered today
 

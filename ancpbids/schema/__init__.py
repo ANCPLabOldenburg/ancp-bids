@@ -12,6 +12,7 @@ from .. import model_base
 _PREFIX = "schema_v"
 _SUFFIX = ".json"
 _CACHE = {}
+_VERSIONS_PACKAGE = f"{__package__}.versions"
 
 
 def _normalize_version(version: str) -> str:
@@ -24,17 +25,17 @@ def _filename(version: str) -> str:
 
 def _read_text(filename: str) -> str:
     if hasattr(resources, "files"):
-        return resources.files(__package__).joinpath(filename).read_text(encoding="utf-8")
-    return resources.read_text(__package__, filename, encoding="utf-8")
+        return resources.files(_VERSIONS_PACKAGE).joinpath(filename).read_text(encoding="utf-8")
+    return resources.read_text(_VERSIONS_PACKAGE, filename, encoding="utf-8")
 
 
 def _resource_names():
     if hasattr(resources, "files"):
-        return [p.name for p in resources.files(__package__).iterdir() if p.is_file()]
+        return [p.name for p in resources.files(_VERSIONS_PACKAGE).iterdir() if p.is_file()]
     return [
         name
-        for name in resources.contents(__package__)
-        if resources.is_resource(__package__, name)
+        for name in resources.contents(_VERSIONS_PACKAGE)
+        if resources.is_resource(_VERSIONS_PACKAGE, name)
     ]
 
 

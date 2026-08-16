@@ -43,7 +43,7 @@
 ## Architecture
 
 - **Core Models:**  
-	The in-memory graph is hand-maintained in `ancpbids/model_base.py`. Versioned enums are loaded at runtime from official BIDS `schema.json` files vendored in `ancpbids/schema/`.
+	The in-memory graph is hand-maintained in `ancpbids/model_base.py`. Versioned enums are loaded at runtime from official BIDS `schema.json` files vendored in `ancpbids/schema/versions/`.
 
 - **Plugin System:**  
 	The extension mechanism (see `ancpbids/plugin.py`) allows for dynamic extension of core functionality. Plugins can hook into schema modification, dataset processing, file handling, writing, and validation. Graph methods (`query`, `get_schema`, …) live on the model classes; `SchemaPlugin` remains an extension point.
@@ -137,7 +137,7 @@ Full guide: [docs/source/plugins.rst](docs/source/plugins.rst).
 ## Developer Guidelines
 
 - **Extending the Model:**  
-	Add a new `ancpbids/schema/schema_v<version>.json` (see Model Generation Utility). Type stubs and `model_latest` update from the vendored JSON files.
+	Add a new `ancpbids/schema/versions/schema_v<version>.json` (see Model Generation Utility). Type stubs and `model_latest` update from the vendored JSON files.
 - **Adding Plugins:**  
 	Follow the plugin system described above (including external entry points).
 - **Testing:**  
@@ -151,7 +151,7 @@ Full guide: [docs/source/plugins.rst](docs/source/plugins.rst).
 - Contributions should follow PEP8 and include tests and documentation.
 ## Model Generation Utility
 
-The in-memory graph (`ancpbids/model_base.py`) is hand-maintained. `tools/generatemodel.py` fetches an official BIDS `schema.json` into `ancpbids/schema/` and writes version-specific type stubs (`v1_X_Y.pyi`) so IDEs can see enum literals such as `SuffixEnum.bold`. Enums are still built from JSON at runtime.
+The in-memory graph (`ancpbids/model_base.py`) is hand-maintained. `tools/generatemodel.py` fetches an official BIDS `schema.json` into `ancpbids/schema/versions/` and writes version-specific type stubs under `ancpbids/schema/stubs/` (`v1_X_Y.pyi`) so IDEs can see enum literals such as `SuffixEnum.bold`. Enums are still built from JSON at runtime.
 
 **Usage:**
 
@@ -161,8 +161,8 @@ uv run python tools/generatemodel.py --stubs-only
 ```
 
 - If `--schema-version` is omitted, the latest available schema version is used.
-- `--stubs-only` regenerates stubs from JSON files already in `ancpbids/schema/`.
-- Output: `ancpbids/schema/schema_v<version>.json`, `ancpbids/schema/v1_X_Y.pyi`, and `ancpbids/schema/aliases.pyi`.
+- `--stubs-only` regenerates stubs from JSON files already in `ancpbids/schema/versions/`.
+- Output: `ancpbids/schema/versions/schema_v<version>.json`, `ancpbids/schema/stubs/v1_X_Y.pyi`, and `ancpbids/schema/stubs/aliases.pyi`.
 
 
 ## Further Reading
