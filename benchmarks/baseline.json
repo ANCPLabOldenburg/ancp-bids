@@ -3,16 +3,38 @@
   "preset": "medium",
   "repeats": 3,
   "warmup": 1,
-  "python": "3.12",
-  "platform": "GitHub Actions ubuntu-latest",
+  "python": "3.12.3",
+  "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
   "machine": "x86_64",
+  "host": {
+    "cpu_count": 4,
+    "ram_total_bytes": 16766414848,
+    "ram_available_bytes": 15663644672,
+    "ram_total_gib": 15.61,
+    "ram_available_gib": 14.59
+  },
   "n_files": 10404,
   "n_dirs": 702,
   "n_messages": 54210,
   "metrics": {
-    "load_seconds": 0.2627,
-    "validate_seconds": 12.7956,
-    "load_validate_seconds": 13.0583
+    "load_seconds": 0.27046119999999974,
+    "validate_seconds": 13.769179209666666,
+    "load_validate_seconds": 14.039640409666665
   },
-  "note": "Seeded from first CI Performance run; prefer prior perf-metrics artifact when available."
+  "samples": {
+    "load_seconds": [
+      0.20099236999999448,
+      0.28855341499999554,
+      0.3218378150000092
+    ],
+    "validate_seconds": [
+      13.844617792999998,
+      13.902822979999996,
+      13.560096856000001
+    ]
+  },
+  "stats": {
+    "load_seconds_stdev": 0.06242116289382512,
+    "validate_seconds_stdev": 0.18339447622412217
+  }
 }

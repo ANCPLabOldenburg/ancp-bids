@@ -16,9 +16,9 @@ jobs:
     name: Performance regression
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v7
       with:
         python-version: "3.12"
     - name: Install dependencies
@@ -74,7 +74,7 @@ jobs:
           --require-baseline
     - name: Upload metrics artifact
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: perf-metrics
         path: benchmarks/latest.json

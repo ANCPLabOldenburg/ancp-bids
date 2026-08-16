@@ -15,9 +15,9 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Install uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v7
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -27,7 +27,7 @@ jobs:
     - name: Test with pytest
       run: uv run pytest --cov=ancpbids --cov-report=xml tests/auto tests/optional
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
