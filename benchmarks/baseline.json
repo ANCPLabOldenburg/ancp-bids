@@ -9,32 +9,32 @@
   "host": {
     "cpu_count": 4,
     "ram_total_bytes": 16766414848,
-    "ram_available_bytes": 15663644672,
+    "ram_available_bytes": 15421775872,
     "ram_total_gib": 15.61,
-    "ram_available_gib": 14.59
+    "ram_available_gib": 14.36
   },
   "n_files": 10404,
   "n_dirs": 702,
-  "n_messages": 54210,
+  "n_messages": 54211,
   "metrics": {
-    "load_seconds": 0.27046119999999974,
-    "validate_seconds": 13.769179209666666,
-    "load_validate_seconds": 14.039640409666665
+    "load_seconds": 0.24556169666667196,
+    "validate_seconds": 15.30416786366667,
+    "load_validate_seconds": 15.549729560333342
   },
   "samples": {
     "load_seconds": [
-      0.20099236999999448,
-      0.28855341499999554,
-      0.3218378150000092
+      0.17054730800000328,
+      0.2730554900000044,
+      0.29308229200000824
     ],
     "validate_seconds": [
-      13.844617792999998,
-      13.902822979999996,
-      13.560096856000001
+      15.133832652000002,
+      15.354998706000003,
+      15.423672233000005
     ]
   },
   "stats": {
-    "load_seconds_stdev": 0.06242116289382512,
-    "validate_seconds_stdev": 0.18339447622412217
+    "load_seconds_stdev": 0.06573155315267062,
+    "validate_seconds_stdev": 0.15145816774872656
   }
 }

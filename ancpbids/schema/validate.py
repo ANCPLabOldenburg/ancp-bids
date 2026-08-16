@@ -1,4 +1,5 @@
 """Execute ``schema.document`` rules against a dataset graph."""
+import gzip as gzip_mod
 import os
 import re
 from collections import defaultdict
@@ -11,6 +12,7 @@ from .headers import parse_gzip, parse_nifti_header, parse_tiff
 
 _SUFFIX_EQ = re.compile(r"""(?:^|[\s(&|])suffix\s*==\s*['\"]([^'\"]+)['\"]""")
 _DATATYPE_EQ = re.compile(r"""(?:^|[\s(&|])datatype\s*==\s*['\"]([^'\"]+)['\"]""")
+_DERIVATIVE_SELECTOR = 'dataset.dataset_description.DatasetType == "derivative"'
 
 
 def files(dataset, report):
@@ -44,7 +46,32 @@ def _session(report, dataset):
     if sess is None or sess.dataset is not dataset:
         sess = _ValidationSession(dataset)
         report._schema_session = sess
+    sess.report = report
+    _flush_pending(sess, report)
     return sess
+
+
+def _flush_pending(session, report):
+    pending = getattr(session, '_pending_issues', None)
+    if not pending:
+        return
+    for severity, message, offender, code, sub_code in pending:
+        if severity == 'warn':
+            report.warn(message, offender, code=code, sub_code=sub_code)
+        else:
+            report.error(message, offender, code=code, sub_code=sub_code)
+    pending.clear()
+
+
+def _queue_issue(session, severity, message, offender, code, sub_code=None):
+    report = getattr(session, 'report', None)
+    if report is not None:
+        if severity == 'warn':
+            report.warn(message, offender, code=code, sub_code=sub_code)
+        else:
+            report.error(message, offender, code=code, sub_code=sub_code)
+        return
+    session._pending_issues.append((severity, message, offender, code, sub_code))
 
 
 class _FileIndex:
@@ -206,16 +233,22 @@ class _ValidationSession:
         self._contexts = {}
         self._subject_ctx = {}
         self._files = None
+        self._pending_issues = []
+        self.report = None
         self.dataset_ctx = self._build_dataset_context()
 
-    def _load_file_rules(self, node):
+    def _load_file_rules(self, node, section=None):
         if not isinstance(node, dict):
             return
         if _is_file_rule(node):
             self._register_file_rule(node)
             return
-        for child in node.values():
-            self._load_file_rules(child)
+        for key, child in node.items():
+            if section is None and key == 'deriv':
+                dtype = self.dataset_description.get('DatasetType') or 'raw'
+                if dtype not in ('derivative', 'derivatives'):
+                    continue
+            self._load_file_rules(child, section or key)
 
     def _register_file_rule(self, rule):
         if _is_core_file_rule(rule):
@@ -244,7 +277,7 @@ class _ValidationSession:
         session_id = None
         for candidate in subject.files or []:
             if getattr(candidate, 'suffix', None) == 'sessions' and candidate.name.endswith('.tsv'):
-                columns = _load_columns(candidate)
+                columns = _load_columns(candidate, self)
                 if columns and 'session_id' in columns:
                     session_id = columns['session_id']
                 break
@@ -257,7 +290,7 @@ class _ValidationSession:
         sub_dirs = [subject.name for subject in subjects]
         participant_id = None
         participants = getattr(self.dataset, 'participants_tsv', None)
-        columns = _load_columns(participants) if participants else None
+        columns = _load_columns(participants, self) if participants else None
         if columns and 'participant_id' in columns:
             participant_id = columns['participant_id']
         present = sorted({
@@ -290,10 +323,10 @@ class _ValidationSession:
             ctx['subject'] = self.subject_context(file)
             ctx['sidecar'] = _sidecar(file)
             ctx['json'] = _load_json(file)
-            ctx['columns'] = _load_columns(file)
             ctx['associations'] = _associations(file, self, ctx)
+            ctx['columns'] = _load_columns(file, self, ctx)
             ctx['size'] = _file_size(file)
-            _load_binary_headers(file, ctx)
+            _load_binary_headers(file, ctx, self)
             self._contexts[(file_id, True)] = ctx
             # Rich context is a superset; reuse for plain consumers.
             self._contexts[(file_id, False)] = ctx
@@ -352,17 +385,111 @@ def _load_json(file):
     return _json_contents(file)
 
 
-def _load_columns(file):
-    if file is None or not file.name.endswith('.tsv'):
+def _load_columns(file, session=None, ctx=None):
+    if file is None:
+        return None
+    extension = getattr(file, 'extension', None) or ''
+    suffix = getattr(file, 'suffix', None)
+    if extension == '.tsv.gz' or (extension == '.tsv' and suffix == 'motion'):
+        return _load_headerless_columns(file, session, ctx)
+    if not file.name.endswith('.tsv'):
         return None
     rows = getattr(file, 'contents', None)
     if rows is None and hasattr(file, 'load_contents'):
         rows = file.load_contents()
-    if not isinstance(rows, list) or not rows:
+    if not isinstance(rows, list):
+        return _load_tsv_from_disk(file, session)
+    if not rows:
         return {}
     if not isinstance(rows[0], dict):
         return {}
-    return {key: [row.get(key) for row in rows] for key in rows[0]}
+    headers = list(rows[0])
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            _tsv_issue(session, file, 'TSV_EQUAL_ROWS', index + 2)
+            return {key: [] for key in headers}
+        # csv.DictReader fills missing cells with None when a row is short.
+        if any(row.get(key) is None for key in headers):
+            _tsv_issue(session, file, 'TSV_EQUAL_ROWS', index + 2)
+            return {
+                key: [r.get(key) for r in rows[:index] if isinstance(r, dict)]
+                for key in headers
+            }
+    return {key: [row.get(key) for row in rows] for key in headers}
+
+
+def _load_headerless_columns(file, session, ctx):
+    ctx = ctx or {}
+    extension = getattr(file, 'extension', None) or ''
+    compressed = extension == '.tsv.gz'
+    if compressed:
+        headers = (ctx.get('sidecar') or {}).get('Columns')
+    else:
+        channels = (ctx.get('associations') or {}).get('channels') or {}
+        headers = channels.get('name')
+    if not headers:
+        return None
+    size = _file_size(file)
+    if size == 0:
+        return None
+    try:
+        lines = _read_text_lines(file.get_absolute_path(), gzipped=compressed)
+    except OSError:
+        if compressed and session is not None:
+            _queue_issue(session, 'error', 'Invalid gzip', file, 'INVALID_GZIP')
+        return {}
+    return _columns_from_lines(headers, lines, file, session, start_line=1)
+
+
+def _load_tsv_from_disk(file, session):
+    try:
+        lines = _read_text_lines(file.get_absolute_path(), gzipped=False)
+    except OSError:
+        return {}
+    if not lines:
+        return {}
+    headers = lines[0].split('\t')
+    if len(headers) != len(set(headers)):
+        _tsv_issue(session, file, 'TSV_COLUMN_HEADER_DUPLICATE', 1)
+    return _columns_from_lines(headers, lines[1:], file, session, start_line=2)
+
+
+def _read_text_lines(path, gzipped=False):
+    opener = gzip_mod.open if gzipped else open
+    with opener(path, 'rt', encoding='utf-8', newline='') as handle:
+        text = handle.read()
+    if not text:
+        return []
+    return text.splitlines()
+
+
+def _columns_from_lines(headers, lines, file, session, start_line=1):
+    columns = {header: [] for header in headers}
+    for offset, line in enumerate(lines):
+        line_no = start_line + offset
+        if line == '':
+            if offset + 1 == len(lines):
+                break
+            _tsv_issue(session, file, 'TSV_EMPTY_LINE', line_no)
+            return {header: [] for header in headers}
+        values = line.split('\t')
+        if len(values) != len(headers):
+            _tsv_issue(session, file, 'TSV_EQUAL_ROWS', line_no)
+            return {header: columns[header] for header in headers}
+        for header, value in zip(headers, values):
+            columns[header].append(value)
+    return columns
+
+
+def _tsv_issue(session, file, code, line):
+    if session is None:
+        return
+    _queue_issue(
+        session,
+        'error',
+        "%s at line %s in '%s'" % (code, line, _relpath(file)),
+        file,
+        code)
 
 
 def _sidecar(file):
@@ -429,13 +556,21 @@ def _ancestor_subject(file):
     return None
 
 
-def _load_binary_headers(file, ctx):
+def _load_binary_headers(file, ctx, session=None):
     path = file.get_absolute_path()
     extension = file.extension or ''
     if extension.endswith('.gz'):
         ctx['gzip'] = parse_gzip(path)
     if extension.startswith('.nii'):
-        ctx['nifti_header'] = parse_nifti_header(path)
+        header = parse_nifti_header(path)
+        ctx['nifti_header'] = header
+        if header is not None and header.get('axis_codes') is None and session is not None:
+            _queue_issue(
+                session,
+                'error',
+                "Ambiguous affine in '%s'" % _relpath(file),
+                file,
+                'AMBIGUOUS_AFFINE')
     if extension.endswith('.tif') or extension.endswith('.btf') or '.ome.tif' in file.name:
         ome = extension.startswith('.ome') or '.ome.' in file.name
         tiff, ome_meta = parse_tiff(path, ome=ome)
@@ -480,32 +615,49 @@ def _associations(file, session, ctx):
         if not _selectors_match(rule.get('selectors'), ctx):
             result[name] = None
             continue
-        found = _find_associated(file, rule.get('target') or {}, rule.get('inherit', False))
-        result[name] = _association_context(found)
+        found = _find_associated(file, rule.get('target') or {}, rule.get('inherit', False), session)
+        result[name] = _association_context(found, name, session)
     return result
 
 
-def _find_associated(file, target, inherit):
+def _find_associated(file, target, inherit, session):
     suffix = target.get('suffix')
     extensions = target.get('extension')
     if isinstance(extensions, str):
         extensions = [extensions]
-    required_entities = target.get('entities') or []
+    allowed_extra = []
+    for entity in target.get('entities') or []:
+        allowed_extra.append(session.entity_short.get(entity, entity))
+    multi = bool(allowed_extra)
     current = file.get_parent()
     while current is not None:
-        match = _associated_in_folder(
-            file, current, suffix, extensions, required_entities)
-        if match is not None:
-            return match
+        matches = _associated_in_folder(
+            file, current, suffix, extensions, allowed_extra)
+        if matches:
+            if multi:
+                return matches
+            if len(matches) == 1:
+                return matches[0]
+            exact = _exact_associated(file, matches, allowed_extra)
+            if exact is not None:
+                return exact
+            paths = sorted(_schema_path(item) for item in matches)
+            _queue_issue(
+                session,
+                'error',
+                "Multiple inheritable files for '%s': %s" % (_relpath(file), paths),
+                matches[0],
+                'MULTIPLE_INHERITABLE_FILES')
+            return None
         if not inherit:
             return None
         current = current.get_parent()
     return None
 
 
-def _associated_in_folder(file, folder, suffix, extensions, required_entities=None):
+def _associated_in_folder(file, folder, suffix, extensions, allowed_extra):
     file_ents = file.get_entities() if isinstance(file, Artifact) else {}
-    required_entities = required_entities or []
+    matches = []
     for candidate in folder.files or []:
         if candidate is file:
             continue
@@ -515,47 +667,80 @@ def _associated_in_folder(file, folder, suffix, extensions, required_entities=No
             continue
         if isinstance(candidate, Artifact) and file_ents:
             cand_ents = candidate.get_entities()
-            if not cand_ents.items() <= file_ents.items():
-                continue
-            if required_entities:
-                long_to_short = {}
-                schema = file.get_schema()
-                if schema is not None:
-                    long_to_short = {
-                        e.name: e.value['name'] for e in schema.EntityEnum
-                    }
-                missing = False
-                for entity in required_entities:
-                    short = long_to_short.get(entity, entity)
-                    if short not in cand_ents:
-                        missing = True
+            compatible = True
+            for key, value in cand_ents.items():
+                if key in file_ents:
+                    if str(file_ents[key]) != str(value):
+                        compatible = False
                         break
-                if missing:
-                    continue
-        return candidate
+                elif key not in allowed_extra:
+                    compatible = False
+                    break
+            if not compatible:
+                continue
+        matches.append(candidate)
+    return matches
+
+
+def _exact_associated(file, matches, allowed_extra):
+    file_ents = file.get_entities() if isinstance(file, Artifact) else {}
+    needed = list(file_ents) + list(allowed_extra)
+    for candidate in matches:
+        if not isinstance(candidate, Artifact):
+            continue
+        cand_ents = candidate.get_entities()
+        if all(cand_ents.get(key) == file_ents.get(key) for key in needed):
+            return candidate
     return None
 
 
-def _association_context(file):
-    if file is None:
+def _association_context(found, name, session):
+    if name == 'coordsystems':
+        files = found if isinstance(found, list) else ([found] if found else [])
+        return _coordsystems_context(files, session)
+    if found is None:
         return None
-    path = _schema_path(file)
-    name = file.name
-    if name.endswith('.bval') or name.endswith('.bvec'):
-        return _bval_bvec_context(file, path)
+    if isinstance(found, list):
+        found = found[0] if found else None
+    if found is None:
+        return None
+    path = _schema_path(found)
+    if name == 'physio':
+        return {'path': path, 'sidecar': _sidecar(found)}
+    name_on_disk = found.name
+    if name_on_disk.endswith('.bval') or name_on_disk.endswith('.bvec'):
+        return _bval_bvec_context(found, path)
+    if isinstance(found, Artifact) and found.extension == '.json':
+        return {'path': path}
     ctx = {'path': path, 'n_rows': None}
-    columns = _load_columns(file)
+    columns = _load_columns(found, session, {'sidecar': _sidecar(found), 'associations': {}})
     if columns:
         ctx['n_rows'] = len(next(iter(columns.values())))
         ctx.update(columns)
-    if isinstance(file, Artifact) and file.extension == '.json':
-        return {'path': path}
-    if getattr(file, 'suffix', None) == 'events':
-        try:
-            ctx['sidecar'] = file.get_metadata() if isinstance(file, Artifact) else {}
-        except Exception:
-            ctx['sidecar'] = {}
+    if getattr(found, 'suffix', None) == 'events':
+        ctx['sidecar'] = _sidecar(found)
     return ctx
+
+
+def _coordsystems_context(files, session):
+    if not files:
+        return None
+    paths = []
+    spaces = []
+    parents = []
+    for item in files:
+        paths.append(_schema_path(item))
+        ents = item.get_entities() if isinstance(item, Artifact) else {}
+        spaces.append(ents.get('space'))
+        contents = _json_contents(item)
+        parent = contents.get('ParentCoordinateSystem')
+        if parent:
+            parents.append(parent)
+    return {
+        'paths': paths,
+        'spaces': spaces,
+        'ParentCoordinateSystems': parents,
+    }
 
 
 def _bval_bvec_context(file, path):
@@ -586,17 +771,23 @@ def _selectors_match(selectors, context, compiled=None):
             return True
         for item in compiled:
             if isinstance(item, str):
-                if _safe_eval(item, context) is not True:
+                if not _selector_ok(_safe_eval(item, context)):
                     return False
-            elif _safe_eval_ast(item, context) is not True:
+            elif not _selector_ok(_safe_eval_ast(item, context)):
                 return False
         return True
     if not selectors:
         return True
     for expr in selectors:
-        if _safe_eval(expr, context) is not True:
+        if not _selector_ok(_safe_eval(expr, context)):
             return False
     return True
+
+
+def _selector_ok(value):
+    # Schema selectors follow JS truthiness for intersects() results (lists),
+    # while failed intersects() returns False.
+    return value is not False and value is not None
 
 
 def _safe_eval(expression, context):
@@ -617,16 +808,12 @@ def _safe_eval_ast(ast, context):
 
 def _validate_files(session, report):
     for file in session.iter_files():
-        if isinstance(file, Artifact):
-            if _matches_any_suffix_rule(file, session):
-                continue
-            if _matches_path_or_stem(file, session):
-                continue
+        identified = _identify_filename_rules(file, session)
+        if not identified:
             _not_included(file, report)
             continue
-        if _matches_path_or_stem(file, session):
-            continue
-        _not_included(file, report)
+        if isinstance(file, Artifact):
+            _validate_identified_rules(file, identified, session, report)
     files = list(session.iter_files())
     for rule in session.required_core:
         if any(_core_rule_covers(rule, file) for file in files):
@@ -646,52 +833,124 @@ def _validate_files(session, report):
             code='MISSING_RECOMMENDED_FILE')
 
 
-def _matches_any_suffix_rule(artifact, session):
-    context = session.context(artifact, rich=False)
-    for rule in session.suffix_rules.get(artifact.suffix, ()):
-        if _file_rule_matches(rule, artifact, context, session):
-            return True
-    return False
-
-
-def _file_rule_matches(rule, artifact, context, session):
-    if not _selectors_match(rule.get('selectors'), context):
-        return False
-    extensions = rule.get('extensions')
-    if extensions is not None and artifact.extension not in extensions:
-        return False
-    datatypes = rule.get('datatypes')
-    if datatypes is not None and context['datatype'] not in datatypes:
-        return False
-    return _entities_match(rule.get('entities') or {}, artifact, session)
-
-
-def _entities_match(rule_entities, artifact, session):
-    present = dict(artifact.entities)
-    allowed = set()
-    for long_name, spec in rule_entities.items():
-        short = session.entity_short.get(long_name)
-        if short is None:
-            return False
-        allowed.add(short)
-        level, enum_values = _entity_spec(spec)
-        if level == 'required' and short not in present:
-            return False
-        if enum_values is not None and short in present:
-            if str(present[short]) not in enum_values:
-                return False
-    return all(key in allowed for key in present)
-
-
-def _matches_path_or_stem(file, session):
+def _identify_filename_rules(file, session):
+    rules = []
+    if isinstance(file, Artifact) and getattr(file, 'suffix', None):
+        rules.extend(session.suffix_rules.get(file.suffix, ()))
     rel = _relpath(file)
     for rule in session.path_rules:
         if _path_matches(rule, rel):
-            return True
+            rules.append(rule)
     for rule in session.stem_rules:
         if _stem_matches(rule, file.name):
-            return True
-    return False
+            rules.append(rule)
+    if len(rules) <= 1 or not isinstance(file, Artifact):
+        return rules
+    ctx = session.context(file, rich=False)
+    datatype = ctx.get('datatype')
+    by_datatype = [
+        rule for rule in rules
+        if rule.get('datatypes') and datatype in rule['datatypes']
+    ]
+    if by_datatype:
+        rules = by_datatype
+    if len(rules) <= 1:
+        return rules
+    by_entities = [
+        rule for rule in rules
+        if _entities_extensions_in_rule(rule, file, session, ctx)
+    ]
+    if by_entities:
+        return by_entities
+    return rules
+
+
+def _entities_extensions_in_rule(rule, artifact, session, ctx):
+    extensions = rule.get('extensions')
+    if extensions is not None and artifact.extension not in extensions:
+        return False
+    rule_entities = rule.get('entities') or {}
+    if not rule_entities:
+        return True
+    allowed = {
+        session.entity_short.get(name, name) for name in rule_entities
+    }
+    return all(key in allowed for key in artifact.entities)
+
+
+def _validate_identified_rules(file, rules, session, report):
+    ctx = session.context(file, rich=False)
+    if len(rules) == 1:
+        _filename_rule_issues(rules[0], file, session, ctx, report)
+        return
+    clean = []
+    for rule in rules:
+        sink = []
+        _filename_rule_issues(rule, file, session, ctx, sink=sink)
+        if not sink:
+            clean.append(rule)
+    if clean:
+        return
+    report.error(
+        "All filename rules have issues for '%s'" % _relpath(file),
+        file,
+        code='ALL_FILENAME_RULES_HAVE_ISSUES')
+
+
+def _filename_rule_issues(rule, file, session, ctx, report=None, sink=None):
+    def add(code, message, sub_code=None):
+        if sink is not None:
+            sink.append(code)
+            return
+        report.error(message, file, code=code, sub_code=sub_code)
+
+    rule_entities = rule.get('entities') or {}
+    present = dict(file.entities)
+    if rule_entities and not _is_at_root(ctx):
+        missing = []
+        for long_name, spec in rule_entities.items():
+            level, _enum = _entity_spec(spec)
+            short = session.entity_short.get(long_name)
+            if short is None:
+                continue
+            if level == 'required' and short not in present:
+                missing.append(short)
+        if missing:
+            add(
+                'MISSING_REQUIRED_ENTITY',
+                "Missing required entit%s %s in '%s'" % (
+                    'y' if len(missing) == 1 else 'ies',
+                    ', '.join(missing),
+                    _relpath(file)))
+    if rule_entities:
+        allowed = {
+            session.entity_short.get(name, name) for name in rule_entities
+        }
+        extra = [key for key in present if key not in allowed]
+        if extra:
+            add(
+                'ENTITY_NOT_IN_RULE',
+                "Entit%s %s not allowed by filename rule in '%s'" % (
+                    'y' if len(extra) == 1 else 'ies',
+                    ', '.join(extra),
+                    _relpath(file)))
+    extensions = rule.get('extensions')
+    if extensions is not None and file.extension not in extensions:
+        add(
+            'EXTENSION_MISMATCH',
+            "Extension '%s' does not match filename rule for '%s'" % (
+                file.extension, _relpath(file)))
+    datatypes = rule.get('datatypes')
+    if datatypes is not None and ctx.get('datatype') not in datatypes:
+        add(
+            'DATATYPE_MISMATCH',
+            "Datatype '%s' does not match filename rule for '%s'" % (
+                ctx.get('datatype'), _relpath(file)))
+
+
+def _is_at_root(ctx):
+    path = (ctx.get('path') or '').strip('/')
+    return path != '' and '/' not in path
 
 
 def _path_matches(rule, rel):
@@ -900,14 +1159,27 @@ def _validate_fields(session, report, section, data_key):
         for bound in index.for_file(ctx.get('suffix'), ctx.get('datatype')):
             if not _selectors_match(None, ctx, compiled=bound.selector_asts):
                 continue
-            _apply_fields(bound.rule.get('fields') or {}, data, objects, report, file, key_type)
+            _apply_fields(
+                bound.rule.get('fields') or {},
+                data,
+                objects,
+                report,
+                file,
+                key_type,
+                rule=bound.rule,
+                ctx=ctx)
 
 
-def _apply_fields(fields, data, objects, report, file, key_type='JSON_KEY'):
+def _apply_fields(fields, data, objects, report, file, key_type='JSON_KEY', rule=None, ctx=None):
     for name, spec in fields.items():
         level, issue = _field_spec(spec)
         present = isinstance(data, dict) and name in data and data[name] is not None
         if not present:
+            if (
+                key_type == 'SIDECAR_KEY'
+                and _skip_derivative_sidecar_missing(ctx, rule)
+            ):
+                continue
             _missing_field(level, issue, name, report, file, key_type=key_type)
             continue
         if level == 'deprecated':
@@ -928,6 +1200,16 @@ def _apply_fields(fields, data, objects, report, file, key_type='JSON_KEY'):
             sub_code=name)
 
 
+def _skip_derivative_sidecar_missing(ctx, rule):
+    if not ctx or not rule:
+        return False
+    description = (ctx.get('dataset') or {}).get('dataset_description') or {}
+    if description.get('DatasetType') != 'derivative':
+        return False
+    selectors = rule.get('selectors') or ()
+    return _DERIVATIVE_SELECTOR not in selectors
+
+
 def _missing_field(level, issue, name, report, file, key_type='JSON_KEY'):
     if level not in ('required', 'recommended'):
         return
@@ -946,7 +1228,8 @@ def _missing_field(level, issue, name, report, file, key_type='JSON_KEY'):
 
 def _validate_tabular(session, report):
     for file in session.iter_files():
-        if not file.name.endswith('.tsv'):
+        extension = getattr(file, 'extension', None) or ''
+        if extension not in ('.tsv', '.tsv.gz'):
             continue
         ctx = session.context(file, rich=True)
         columns = ctx.get('columns')
