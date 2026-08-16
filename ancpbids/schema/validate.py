@@ -3,9 +3,10 @@ import os
 import re
 from collections import defaultdict
 
-from ancpbids.model_base import Artifact, DatatypeFolder, DerivativeFolder, Folder
+from ancpbids.model_base import Artifact, DatatypeFolder, DerivativeFolder, Folder, Subject
 
 from .expr import evaluate, evaluate_ast, parse
+from .headers import parse_gzip, parse_nifti_header, parse_tiff
 
 
 _SUFFIX_EQ = re.compile(r"""(?:^|[\s(&|])suffix\s*==\s*['\"]([^'\"]+)['\"]""")
@@ -182,12 +183,19 @@ class _ValidationSession:
         self.known_short = set(self.ordered_short)
         self.metadata_objects = objects.get('metadata') or {}
         self.column_objects = objects.get('columns') or {}
+        self.format_patterns = {
+            name: spec.get('pattern')
+            for name, spec in (objects.get('formats') or {}).items()
+            if isinstance(spec, dict) and spec.get('pattern')
+        }
+        self.entity_defs = objects.get('entities') or {}
         self.files_index = _FileIndex(dataset)
         self.dataset_description = _json_contents(dataset.dataset_description)
         self.suffix_rules = defaultdict(list)
         self.path_rules = []
         self.stem_rules = []
         self.required_core = []
+        self.recommended_core = []
         self._load_file_rules(self.document['rules']['files'])
         self.sidecar_rules = _IndexedRules(_rule_leaves(self.document['rules'].get('sidecars')))
         self.json_rules = _IndexedRules(_rule_leaves(self.document['rules'].get('json')))
@@ -196,6 +204,7 @@ class _ValidationSession:
             _rule_leaves(self.document['rules'].get('dataset_metadata')))
         self.check_rules = _IndexedRules(_rule_leaves(self.document['rules'].get('checks')))
         self._contexts = {}
+        self._subject_ctx = {}
         self._files = None
         self.dataset_ctx = self._build_dataset_context()
 
@@ -209,8 +218,12 @@ class _ValidationSession:
             self._load_file_rules(child)
 
     def _register_file_rule(self, rule):
-        if rule.get('level') == 'required' and _is_core_file_rule(rule):
-            self.required_core.append(rule)
+        if _is_core_file_rule(rule):
+            level = rule.get('level')
+            if level == 'required':
+                self.required_core.append(rule)
+            elif level == 'recommended':
+                self.recommended_core.append(rule)
         if 'path' in rule:
             self.path_rules.append(rule)
             return
@@ -219,6 +232,25 @@ class _ValidationSession:
             return
         for suffix in rule.get('suffixes') or ():
             self.suffix_rules[suffix].append(rule)
+
+    def subject_context(self, file):
+        subject = _ancestor_subject(file)
+        if subject is None:
+            return None
+        cached = self._subject_ctx.get(id(subject))
+        if cached is not None:
+            return cached
+        ses_dirs = [session.name for session in (subject.sessions or [])]
+        session_id = None
+        for candidate in subject.files or []:
+            if getattr(candidate, 'suffix', None) == 'sessions' and candidate.name.endswith('.tsv'):
+                columns = _load_columns(candidate)
+                if columns and 'session_id' in columns:
+                    session_id = columns['session_id']
+                break
+        cached = {'sessions': {'ses_dirs': ses_dirs, 'session_id': session_id}}
+        self._subject_ctx[id(subject)] = cached
+        return cached
 
     def _build_dataset_context(self):
         subjects = list(self.dataset.subjects or [])
@@ -255,11 +287,13 @@ class _ValidationSession:
             if cached is not None:
                 return cached
             ctx = dict(_basic_context(file, self))
+            ctx['subject'] = self.subject_context(file)
             ctx['sidecar'] = _sidecar(file)
             ctx['json'] = _load_json(file)
             ctx['columns'] = _load_columns(file)
             ctx['associations'] = _associations(file, self, ctx)
             ctx['size'] = _file_size(file)
+            _load_binary_headers(file, ctx)
             self._contexts[(file_id, True)] = ctx
             # Rich context is a superset; reuse for plain consumers.
             self._contexts[(file_id, False)] = ctx
@@ -370,17 +404,43 @@ def _basic_context(file, session):
         'datatype': _datatype(file),
         'modality': _modality(_datatype(file), session.document),
         'entities': entities,
+        'subject': None,
         'sidecar': {},
         'json': None,
         'columns': None,
         'associations': {},
         'nifti_header': None,
         'gzip': None,
+        'ome': None,
+        'tiff': None,
         'dataset': dataset_ctx,
         'schema': session.document,
         'size': None,
         '_files': session.files_index,
     }
+
+
+def _ancestor_subject(file):
+    current = file
+    while current is not None:
+        if isinstance(current, Subject):
+            return current
+        current = getattr(current, 'parent_object_', None)
+    return None
+
+
+def _load_binary_headers(file, ctx):
+    path = file.get_absolute_path()
+    extension = file.extension or ''
+    if extension.endswith('.gz'):
+        ctx['gzip'] = parse_gzip(path)
+    if extension.startswith('.nii'):
+        ctx['nifti_header'] = parse_nifti_header(path)
+    if extension.endswith('.tif') or extension.endswith('.btf') or '.ome.tif' in file.name:
+        ome = extension.startswith('.ome') or '.ome.' in file.name
+        tiff, ome_meta = parse_tiff(path, ome=ome)
+        ctx['tiff'] = tiff
+        ctx['ome'] = ome_meta
 
 
 def _local_dataset_description(file, root_description):
@@ -430,9 +490,11 @@ def _find_associated(file, target, inherit):
     extensions = target.get('extension')
     if isinstance(extensions, str):
         extensions = [extensions]
+    required_entities = target.get('entities') or []
     current = file.get_parent()
     while current is not None:
-        match = _associated_in_folder(file, current, suffix, extensions)
+        match = _associated_in_folder(
+            file, current, suffix, extensions, required_entities)
         if match is not None:
             return match
         if not inherit:
@@ -441,8 +503,9 @@ def _find_associated(file, target, inherit):
     return None
 
 
-def _associated_in_folder(file, folder, suffix, extensions):
+def _associated_in_folder(file, folder, suffix, extensions, required_entities=None):
     file_ents = file.get_entities() if isinstance(file, Artifact) else {}
+    required_entities = required_entities or []
     for candidate in folder.files or []:
         if candidate is file:
             continue
@@ -454,6 +517,21 @@ def _associated_in_folder(file, folder, suffix, extensions):
             cand_ents = candidate.get_entities()
             if not cand_ents.items() <= file_ents.items():
                 continue
+            if required_entities:
+                long_to_short = {}
+                schema = file.get_schema()
+                if schema is not None:
+                    long_to_short = {
+                        e.name: e.value['name'] for e in schema.EntityEnum
+                    }
+                missing = False
+                for entity in required_entities:
+                    short = long_to_short.get(entity, entity)
+                    if short not in cand_ents:
+                        missing = True
+                        break
+                if missing:
+                    continue
         return candidate
     return None
 
@@ -461,12 +539,45 @@ def _associated_in_folder(file, folder, suffix, extensions):
 def _association_context(file):
     if file is None:
         return None
-    ctx = {'path': _schema_path(file), 'n_rows': None}
+    path = _schema_path(file)
+    name = file.name
+    if name.endswith('.bval') or name.endswith('.bvec'):
+        return _bval_bvec_context(file, path)
+    ctx = {'path': path, 'n_rows': None}
     columns = _load_columns(file)
     if columns:
         ctx['n_rows'] = len(next(iter(columns.values())))
         ctx.update(columns)
+    if isinstance(file, Artifact) and file.extension == '.json':
+        return {'path': path}
+    if getattr(file, 'suffix', None) == 'events':
+        try:
+            ctx['sidecar'] = file.get_metadata() if isinstance(file, Artifact) else {}
+        except Exception:
+            ctx['sidecar'] = {}
     return ctx
+
+
+def _bval_bvec_context(file, path):
+    try:
+        text = open(file.get_absolute_path(), 'r', encoding='utf-8').read()
+    except OSError:
+        return {'path': path, 'n_cols': 0, 'n_rows': 0, 'values': []}
+    rows = [line.split() for line in text.strip().splitlines() if line.strip()]
+    if not rows:
+        return {'path': path, 'n_cols': 0, 'n_rows': 0, 'values': []}
+    values = []
+    for item in rows[0]:
+        try:
+            values.append(float(item))
+        except ValueError:
+            values.append(item)
+    return {
+        'path': path,
+        'n_cols': len(rows[0]),
+        'n_rows': len(rows),
+        'values': values,
+    }
 
 
 def _selectors_match(selectors, context, compiled=None):
@@ -525,6 +636,14 @@ def _validate_files(session, report):
             "Missing required file '%s'" % missing,
             session.dataset,
             code='MISSING_REQUIRED_FILE')
+    for rule in session.recommended_core:
+        if any(_core_rule_covers(rule, file) for file in files):
+            continue
+        missing = rule.get('path') or rule.get('stem')
+        report.warn(
+            "Missing recommended file '%s'" % missing,
+            session.dataset,
+            code='MISSING_RECOMMENDED_FILE')
 
 
 def _matches_any_suffix_rule(artifact, session):
@@ -620,6 +739,8 @@ def _validate_entities(session, report):
                     code='ENTITY_NOT_IN_RULE',
                     sub_code=key)
             continue
+        for key, value in artifact.entities.items():
+            _check_entity_label(session, report, artifact, key, value)
         if not _entity_order_error(keys, session.ordered_short):
             continue
         expected = tuple(sorted(keys, key=session.ordered_short.index))
@@ -628,6 +749,22 @@ def _validate_entities(session, report):
                 expected, tuple(keys), _relpath(artifact)),
             artifact,
             code='FILENAME_MISMATCH')
+
+
+def _check_entity_label(session, report, artifact, short_key, value):
+    long_name = session.entity_long.get(short_key)
+    definition = session.entity_defs.get(long_name) or {}
+    format_name = definition.get('format')
+    pattern = session.format_patterns.get(format_name)
+    if not pattern:
+        return
+    if re.fullmatch(pattern, str(value)):
+        return
+    report.error(
+        "Invalid entity label '%s-%s' in '%s'" % (short_key, value, _relpath(artifact)),
+        artifact,
+        code='INVALID_ENTITY_LABEL',
+        sub_code=short_key)
 
 
 def _entity_order_error(keys, ordered_short):
@@ -780,7 +917,9 @@ def _apply_fields(fields, data, objects, report, file, key_type='JSON_KEY'):
                 code='SIDECAR_KEY_DEPRECATED' if key_type == 'SIDECAR_KEY' else 'JSON_KEY_DEPRECATED',
                 sub_code=name)
         definition = objects.get(name) or {}
-        if _value_matches(data[name], definition):
+        session = getattr(report, '_schema_session', None)
+        patterns = session.format_patterns if session is not None else {}
+        if _value_matches(data[name], definition, patterns):
             continue
         report.error(
             "Invalid type for '%s' in '%s'" % (name, _relpath(file)),
@@ -836,6 +975,31 @@ def _apply_tabular_rule(rule, columns, session, report, file):
             "Additional columns not allowed in '%s': %s" % (_relpath(file), extras),
             file,
             code='TSV_ADDITIONAL_COLUMNS_NOT_ALLOWED')
+    elif additional == 'allowed_if_defined' and extras:
+        sidecar = _sidecar(file) if isinstance(file, Artifact) else {}
+        undefined = [header for header in extras if header not in sidecar]
+        if undefined:
+            report.error(
+                "Additional columns require sidecar definitions in '%s': %s" % (
+                    _relpath(file), undefined),
+                file,
+                code='TSV_ADDITIONAL_COLUMNS_UNDEFINED')
+    for key, spec in (rule.get('columns') or {}).items():
+        header = (session.column_objects.get(key) or {}).get('name', key)
+        if header not in columns:
+            continue
+        definition = session.column_objects.get(key) or {}
+        for cell in columns[header]:
+            if cell in (None, 'n/a'):
+                continue
+            if _value_matches(cell, definition, session.format_patterns):
+                continue
+            report.error(
+                "Invalid value in column '%s' of '%s'" % (header, _relpath(file)),
+                file,
+                code='TSV_VALUE_INCORRECT',
+                sub_code=header)
+            break
     initial = rule.get('initial_columns') or []
     initial_headers = [
         (session.column_objects.get(key) or {}).get('name', key) for key in initial
@@ -923,16 +1087,48 @@ def _emit_issue(report, issue, file, fallback, default_level='error', default_co
     report.error(message, file, code=code, sub_code=sub_code)
 
 
-def _value_matches(value, definition):
+def _value_matches(value, definition, format_patterns=None):
     if not definition:
         return True
     if 'anyOf' in definition:
-        return any(_value_matches(value, option) for option in definition['anyOf'])
+        return any(
+            _value_matches(value, option, format_patterns)
+            for option in definition['anyOf'])
     expected = definition.get('type')
     if expected and not _json_type_matches(value, expected):
         return False
     enum_values = definition.get('enum')
     if enum_values is not None and value not in enum_values:
+        return False
+    if expected in ('number', 'integer') and isinstance(value, (int, float)) and not isinstance(value, bool):
+        if 'minimum' in definition and value < definition['minimum']:
+            return False
+        if 'exclusiveMinimum' in definition and value <= definition['exclusiveMinimum']:
+            return False
+        if 'maximum' in definition and value > definition['maximum']:
+            return False
+        if 'exclusiveMaximum' in definition and value >= definition['exclusiveMaximum']:
+            return False
+    if expected == 'array' and isinstance(value, list):
+        if 'minItems' in definition and len(value) < definition['minItems']:
+            return False
+        if 'maxItems' in definition and len(value) > definition['maxItems']:
+            return False
+        item_def = definition.get('items')
+        if isinstance(item_def, dict):
+            return all(_value_matches(item, item_def, format_patterns) for item in value)
+    if expected == 'object' and isinstance(value, dict):
+        props = definition.get('properties') or {}
+        for key, prop_def in props.items():
+            if key not in value:
+                continue
+            if not _value_matches(value[key], prop_def, format_patterns):
+                return False
+    pattern = definition.get('pattern')
+    format_name = definition.get('format')
+    if not pattern and format_name and format_patterns:
+        pattern = format_patterns.get(format_name)
+    if pattern and isinstance(value, str) and not re.fullmatch(pattern, value):
         return False
     return True
 
@@ -941,9 +1137,25 @@ def _json_type_matches(value, expected):
     if expected == 'string':
         return isinstance(value, str)
     if expected == 'number':
-        return isinstance(value, (int, float)) and not isinstance(value, bool)
+        if isinstance(value, bool):
+            return False
+        if isinstance(value, (int, float)):
+            return True
+        if isinstance(value, str):
+            try:
+                float(value)
+                return True
+            except ValueError:
+                return False
+        return False
     if expected == 'integer':
-        return isinstance(value, int) and not isinstance(value, bool)
+        if isinstance(value, bool):
+            return False
+        if isinstance(value, int):
+            return True
+        if isinstance(value, str) and re.fullmatch(r'-?\d+', value):
+            return True
+        return False
     if expected == 'boolean':
         return isinstance(value, bool)
     if expected == 'array':
