@@ -2,8 +2,6 @@
 import importlib.util
 from pathlib import Path
 
-import pytest
-
 _COMPARE_PATH = Path(__file__).resolve().parents[2] / "tools" / "compare_performance.py"
 _SPEC = importlib.util.spec_from_file_location("compare_performance", _COMPARE_PATH)
 _MOD = importlib.util.module_from_spec(_SPEC)
