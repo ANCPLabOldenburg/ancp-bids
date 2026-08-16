@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import statistics
 import tempfile
 import time
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 from create_heavy_dataset import PRESETS, create_heavy_dataset
 
@@ -28,9 +30,40 @@ def _stdev(values):
     return statistics.stdev(values) if len(values) > 1 else 0.0
 
 
+def _bytes_to_gib(n: Optional[int]) -> Optional[float]:
+    if n is None:
+        return None
+    return round(n / (1024**3), 2)
+
+
+def _host_resources() -> Dict[str, Any]:
+    """CPU / RAM snapshot for detecting runner hardware changes."""
+    mem_total: Optional[int] = None
+    mem_available: Optional[int] = None
+    try:
+        info: Dict[str, int] = {}
+        with open("/proc/meminfo", encoding="utf-8") as fh:
+            for line in fh:
+                key, _, rest = line.partition(":")
+                info[key] = int(rest.strip().split()[0]) * 1024  # kB → bytes
+        mem_total = info.get("MemTotal")
+        mem_available = info.get("MemAvailable")
+    except OSError:
+        pass
+
+    return {
+        "cpu_count": os.cpu_count(),
+        "ram_total_bytes": mem_total,
+        "ram_available_bytes": mem_available,
+        "ram_total_gib": _bytes_to_gib(mem_total),
+        "ram_available_gib": _bytes_to_gib(mem_available),
+    }
+
+
 def run_benchmark(preset: str, repeats: int, warmup: int) -> dict:
     from ancpbids import DatasetOptions, load_dataset, validate_dataset
 
+    host = _host_resources()
     cfg = PRESETS[preset]
     with tempfile.TemporaryDirectory(prefix="ancpbids_bench_") as tmp:
         root = Path(tmp) / "dataset"
@@ -73,6 +106,7 @@ def run_benchmark(preset: str, repeats: int, warmup: int) -> dict:
             "python": platform.python_version(),
             "platform": platform.platform(),
             "machine": platform.machine(),
+            "host": host,
             "n_files": n_files,
             "n_dirs": n_dirs,
             "n_messages": n_messages,
@@ -116,8 +150,12 @@ def main(argv=None) -> int:
     args.output.write_text(json.dumps(result, indent=2) + "\n")
 
     metrics = result["metrics"]
+    host = result["host"]
     print(
         f"preset={result['preset']} files≈{result['n_files']} "
+        f"cpus={host.get('cpu_count')} "
+        f"ram={host.get('ram_available_gib')}GiB_avail/"
+        f"{host.get('ram_total_gib')}GiB_total "
         f"load={metrics['load_seconds']:.3f}s "
         f"validate={metrics['validate_seconds']:.3f}s "
         f"total={metrics['load_validate_seconds']:.3f}s "

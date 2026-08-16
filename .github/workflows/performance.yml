@@ -1,9 +1,11 @@
 name: Performance
 
 on:
-  workflow_run:
-    workflows: ["Tests"]
-    types: [completed]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,13 +14,9 @@ permissions:
 jobs:
   performance:
     name: Performance regression
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        # Check out the commit that triggered Tests (PR head or push SHA).
-        ref: ${{ github.event.workflow_run.head_sha }}
     - name: Install uv
       uses: astral-sh/setup-uv@v5
       with:
@@ -88,9 +86,8 @@ jobs:
           echo "## Performance"
           echo ""
           echo "- Baseline source: \`${{ steps.resolve_baseline.outputs.source }}\`"
-          echo "- Threshold: +10%"
-          echo "- Triggered by Tests run: ${{ github.event.workflow_run.id }}"
-          echo "- Commit: \`${{ github.event.workflow_run.head_sha }}\`"
+          echo "- Threshold: +10% (validate / load+validate gated; load info-only)"
+          echo "- Commit: \`${{ github.sha }}\`"
           echo ""
           echo '```json'
           cat benchmarks/latest.json
