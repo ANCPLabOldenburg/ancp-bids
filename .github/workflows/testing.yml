@@ -27,7 +27,7 @@ jobs:
     - name: Test with pytest
       run: uv run pytest --cov=ancpbids --cov-report=xml tests/auto tests/optional
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v7
       with:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
