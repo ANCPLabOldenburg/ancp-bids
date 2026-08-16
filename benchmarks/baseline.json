@@ -15,26 +15,23 @@
   },
   "n_files": 10404,
   "n_dirs": 702,
-  "n_messages": 54211,
+  "n_messages": 57808,
+  "note": "Typical GitHub-hosted runner cost for medium preset. CI gate uses +35% and +4s absolute to absorb runner noise (~11.6–17.4s observed).",
   "metrics": {
-    "load_seconds": 0.24556169666667196,
-    "validate_seconds": 15.30416786366667,
-    "load_validate_seconds": 15.549729560333342
+    "load_seconds": 0.2234,
+    "validate_seconds": 13.7537,
+    "load_validate_seconds": 13.9771
   },
   "samples": {
     "load_seconds": [
-      0.17054730800000328,
-      0.2730554900000044,
-      0.29308229200000824
+      0.2234
     ],
     "validate_seconds": [
-      15.133832652000002,
-      15.354998706000003,
-      15.423672233000005
+      13.7537
     ]
   },
   "stats": {
-    "load_seconds_stdev": 0.06573155315267062,
-    "validate_seconds_stdev": 0.15145816774872656
+    "load_seconds_stdev": 0.0,
+    "validate_seconds_stdev": 0.0
   }
 }

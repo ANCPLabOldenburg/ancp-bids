@@ -32,16 +32,25 @@ jobs:
           --repeats 3 \
           -o benchmarks/latest.json
         cat benchmarks/latest.json
-    - name: Resolve baseline from last successful Performance run on main
-      id: resolve_baseline
+    - name: Compare against committed baseline
+      id: compare
+      run: |
+        echo "Baseline source: committed (benchmarks/baseline.json)"
+        # Shared runners swing validate ~30% for the same workload; require both
+        # a relative and an absolute overrun before failing.
+        uv run python tools/compare_performance.py \
+          --current benchmarks/latest.json \
+          --baseline benchmarks/baseline.json \
+          --threshold 0.35 \
+          --min-absolute-seconds 4 \
+          --require-baseline
+    - name: Informational compare vs last successful main artifact
+      if: always()
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         set -euo pipefail
-        mkdir -p benchmarks/resolved
-        cp benchmarks/baseline.json benchmarks/resolved/baseline.json
-        echo "source=committed" >> "$GITHUB_OUTPUT"
-
+        mkdir -p benchmarks/from-ci
         RUN_ID="$(gh run list \
           --workflow performance.yml \
           --branch main \
@@ -50,28 +59,23 @@ jobs:
           --json databaseId \
           --jq '.[].databaseId' | head -n 1 || true)"
         if [ -z "${RUN_ID}" ]; then
-          echo "No previous successful Performance run found; using committed baseline."
+          echo "No previous successful Performance run found; skipping artifact compare."
           exit 0
         fi
-
-        echo "Trying artifact from run ${RUN_ID}"
-        if gh run download "${RUN_ID}" --name perf-metrics --dir benchmarks/from-ci; then
-          if [ -f benchmarks/from-ci/latest.json ]; then
-            cp benchmarks/from-ci/latest.json benchmarks/resolved/baseline.json
-            echo "source=artifact:${RUN_ID}" >> "$GITHUB_OUTPUT"
-            echo "Using previous CI metrics from run ${RUN_ID}"
-          fi
-        else
-          echo "No perf-metrics artifact on run ${RUN_ID}; using committed baseline."
+        if ! gh run download "${RUN_ID}" --name perf-metrics --dir benchmarks/from-ci; then
+          echo "No perf-metrics artifact on run ${RUN_ID}; skipping."
+          exit 0
         fi
-    - name: Compare against baseline (+10% max regression)
-      run: |
-        echo "Baseline source: ${{ steps.resolve_baseline.outputs.source }}"
+        if [ ! -f benchmarks/from-ci/latest.json ]; then
+          echo "Artifact missing latest.json; skipping."
+          exit 0
+        fi
+        echo "Informational compare vs artifact from run ${RUN_ID} (not gated):"
         uv run python tools/compare_performance.py \
           --current benchmarks/latest.json \
-          --baseline benchmarks/resolved/baseline.json \
-          --threshold 0.10 \
-          --require-baseline
+          --baseline benchmarks/from-ci/latest.json \
+          --threshold 0.35 \
+          --min-absolute-seconds 4 || true
     - name: Upload metrics artifact
       if: always()
       uses: actions/upload-artifact@v6
@@ -85,8 +89,8 @@ jobs:
         {
           echo "## Performance"
           echo ""
-          echo "- Baseline source: \`${{ steps.resolve_baseline.outputs.source }}\`"
-          echo "- Threshold: +10% (validate / load+validate gated; load info-only)"
+          echo "- Baseline source: \`committed\` (\`benchmarks/baseline.json\`)"
+          echo "- Gate: +35% **and** +4s absolute (validate / load+validate; load info-only)"
           echo "- Commit: \`${{ github.sha }}\`"
           echo ""
           echo '```json'

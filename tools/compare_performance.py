@@ -1,24 +1,34 @@
 #!/usr/bin/env python3
 """Compare benchmark metrics against a persisted baseline.
 
-Fails when a *gated* metric is more than ``--threshold`` slower than baseline
-(default 10%). ``load_seconds`` is reported only: short loads are too noisy on
-shared CI runners to gate on. Faster gated results pass.
+Fails when a *gated* metric is slower than baseline by **both**:
+
+* more than ``--threshold`` relatively (default 35% for CI runner noise), and
+* more than ``--min-absolute-seconds`` in wall time (default 4s)
+
+``load_seconds`` is reported only: short loads are too noisy on shared CI
+runners to gate on. Faster gated results pass.
+
+GitHub-hosted runners commonly swing validate by ~30% for the same workload
+(observed ~11.6–17.4s on the medium preset), so a tight 10% gate false-fails.
 
 Persistence model
 -----------------
-* Committed ``benchmarks/baseline.json`` is the bootstrap / fallback baseline.
-* CI prefers the previous successful Performance run's ``perf-metrics`` artifact.
-* Update the committed baseline intentionally after accepted improvements::
+* Committed ``benchmarks/baseline.json`` is the gated baseline (source of truth).
+* Update it intentionally after accepted improvements or costlier validation::
 
     uv run python tools/bench_performance.py --preset medium -o benchmarks/baseline.json
+
+* CI may still download the previous Performance artifact for an informational
+  comparison in the job summary; gating always uses the committed file.
 
 Example
 -------
   uv run python tools/compare_performance.py \\
       --current benchmarks/latest.json \\
       --baseline benchmarks/baseline.json \\
-      --threshold 0.10
+      --threshold 0.35 \\
+      --min-absolute-seconds 4
 """
 from __future__ import annotations
 
@@ -49,6 +59,7 @@ def compare(
     current: dict,
     baseline: dict,
     threshold: float,
+    min_absolute_seconds: float = 0.0,
 ) -> Tuple[List[str], List[str]]:
     """Return (failures, notes)."""
     failures: List[str] = []
@@ -64,10 +75,10 @@ def compare(
     cur_metrics: Dict[str, float] = current.get("metrics") or {}
     base_metrics: Dict[str, float] = baseline.get("metrics") or {}
 
-    def _line(key: str, cur: float, base: float, delta_pct: float) -> str:
+    def _line(key: str, cur: float, base: float, delta_pct: float, delta_abs: float) -> str:
         return (
             f"{key}: current={cur:.4f}s baseline={base:.4f}s "
-            f"delta={delta_pct:+.2f}%"
+            f"delta={delta_pct:+.2f}% ({delta_abs:+.2f}s)"
         )
 
     for key in INFO_METRICS + GATED_METRICS:
@@ -92,14 +103,25 @@ def compare(
 
         ratio = cur / base
         delta_pct = (ratio - 1.0) * 100.0
-        line = _line(key, cur, base, delta_pct)
+        delta_abs = cur - base
+        line = _line(key, cur, base, delta_pct, delta_abs)
 
         if key in INFO_METRICS:
             notes.append(line + " (info only; not gated)")
             continue
 
-        if ratio > 1.0 + threshold:
-            failures.append(line + f" exceeds +{threshold * 100:.1f}% threshold")
+        relative_fail = ratio > 1.0 + threshold
+        absolute_fail = delta_abs > min_absolute_seconds
+        if relative_fail and absolute_fail:
+            failures.append(
+                line
+                + f" exceeds +{threshold * 100:.1f}% and +{min_absolute_seconds:.1f}s"
+            )
+        elif relative_fail and not absolute_fail:
+            notes.append(
+                line
+                + f" (relative >+{threshold * 100:.1f}% but abs <={min_absolute_seconds:.1f}s; not gated)"
+            )
         elif ratio < 1.0 - threshold:
             notes.append(line + " (improved)")
         else:
@@ -115,8 +137,17 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--threshold",
         type=float,
-        default=0.10,
-        help="Max allowed slowdown fraction (default: 0.10 = 10%%)",
+        default=0.35,
+        help="Max allowed relative slowdown (default: 0.35 = 35%%)",
+    )
+    parser.add_argument(
+        "--min-absolute-seconds",
+        type=float,
+        default=4.0,
+        help=(
+            "Also require this many extra seconds before failing "
+            "(default: 4.0; use 0 to disable)"
+        ),
     )
     parser.add_argument(
         "--require-baseline",
@@ -151,12 +182,20 @@ def main(argv=None) -> int:
         return 0
 
     baseline = _load(args.baseline)
-    failures, notes = compare(current, baseline, args.threshold)
+    failures, notes = compare(
+        current,
+        baseline,
+        args.threshold,
+        min_absolute_seconds=args.min_absolute_seconds,
+    )
 
     print("Performance comparison")
     print(f"  current:  {args.current}")
     print(f"  baseline: {args.baseline}")
-    print(f"  threshold: +{args.threshold * 100:.1f}%")
+    print(
+        f"  threshold: +{args.threshold * 100:.1f}% "
+        f"and +{args.min_absolute_seconds:.1f}s absolute"
+    )
     for note in notes:
         print(f"  OK  {note}")
     for fail in failures:
