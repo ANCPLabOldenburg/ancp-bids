@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Compare benchmark metrics against a persisted baseline.
 
-Fails when any tracked metric is more than ``--threshold`` slower than baseline
-(default 10%). Faster results pass. Missing baseline bootstraps unless
-``--require-baseline`` is set.
+Fails when a *gated* metric is more than ``--threshold`` slower than baseline
+(default 10%). ``load_seconds`` is reported only: short loads are too noisy on
+shared CI runners to gate on. Faster gated results pass.
 
 Persistence model
 -----------------
-* Committed ``benchmarks/baseline.json`` is the source of truth across runs.
-* CI also uploads ``benchmarks/latest.json`` as an artifact for history.
+* Committed ``benchmarks/baseline.json`` is the bootstrap / fallback baseline.
+* CI prefers the previous successful Performance run's ``perf-metrics`` artifact.
 * Update the committed baseline intentionally after accepted improvements::
 
     uv run python tools/bench_performance.py --preset medium -o benchmarks/baseline.json
@@ -29,10 +29,15 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-TRACKED_METRICS = (
-    "load_seconds",
+# Fail the job when these regress above threshold.
+GATED_METRICS = (
     "validate_seconds",
     "load_validate_seconds",
+)
+
+# Always printed for visibility; never fails the comparison.
+INFO_METRICS = (
+    "load_seconds",
 )
 
 
@@ -59,9 +64,18 @@ def compare(
     cur_metrics: Dict[str, float] = current.get("metrics") or {}
     base_metrics: Dict[str, float] = baseline.get("metrics") or {}
 
-    for key in TRACKED_METRICS:
+    def _line(key: str, cur: float, base: float, delta_pct: float) -> str:
+        return (
+            f"{key}: current={cur:.4f}s baseline={base:.4f}s "
+            f"delta={delta_pct:+.2f}%"
+        )
+
+    for key in INFO_METRICS + GATED_METRICS:
         if key not in cur_metrics:
-            failures.append(f"missing current metric: {key}")
+            if key in GATED_METRICS:
+                failures.append(f"missing current metric: {key}")
+            else:
+                notes.append(f"missing current metric: {key}")
             continue
         if key not in base_metrics:
             notes.append(f"baseline missing {key}; skipping")
@@ -70,15 +84,20 @@ def compare(
         cur = float(cur_metrics[key])
         base = float(base_metrics[key])
         if base <= 0:
-            failures.append(f"invalid baseline {key}={base}")
+            if key in GATED_METRICS:
+                failures.append(f"invalid baseline {key}={base}")
+            else:
+                notes.append(f"invalid baseline {key}={base}")
             continue
 
         ratio = cur / base
         delta_pct = (ratio - 1.0) * 100.0
-        line = (
-            f"{key}: current={cur:.4f}s baseline={base:.4f}s "
-            f"delta={delta_pct:+.2f}%"
-        )
+        line = _line(key, cur, base, delta_pct)
+
+        if key in INFO_METRICS:
+            notes.append(line + " (info only; not gated)")
+            continue
+
         if ratio > 1.0 + threshold:
             failures.append(line + f" exceeds +{threshold * 100:.1f}% threshold")
         elif ratio < 1.0 - threshold:

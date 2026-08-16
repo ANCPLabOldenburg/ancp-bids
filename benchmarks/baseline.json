@@ -3,31 +3,16 @@
   "preset": "medium",
   "repeats": 3,
   "warmup": 1,
-  "python": "3.12.3",
-  "platform": "Linux-6.17.2-1-pve-x86_64-with-glibc2.39",
+  "python": "3.12",
+  "platform": "GitHub Actions ubuntu-latest",
   "machine": "x86_64",
   "n_files": 10404,
   "n_dirs": 702,
   "n_messages": 54210,
   "metrics": {
-    "load_seconds": 0.1606963916371266,
-    "validate_seconds": 11.798886310658418,
-    "load_validate_seconds": 11.959582702295544
+    "load_seconds": 0.2627,
+    "validate_seconds": 12.7956,
+    "load_validate_seconds": 13.0583
   },
-  "samples": {
-    "load_seconds": [
-      0.17927715694531798,
-      0.15202694397885352,
-      0.1507850739872083
-    ],
-    "validate_seconds": [
-      11.699348754016683,
-      11.754600569955073,
-      11.942709608003497
-    ]
-  },
-  "stats": {
-    "load_seconds_stdev": 0.0161033906320254,
-    "validate_seconds_stdev": 0.12758152858282742
-  }
+  "note": "Seeded from first CI Performance run; prefer prior perf-metrics artifact when available."
 }
